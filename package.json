@@ -1,0 +1,77 @@
+{
+	"name": "noriture",
+	"private": true,
+	"version": "1.0.0",
+	"displayName": "Noriture",
+	"shortName": "Noriture",
+	"description": "",
+	"homepage": "https://madcampos.github.io/noriture/",
+	"keywords": [],
+	"author": {
+		"name": "madcampos",
+		"email": "madcampos@outlook.com"
+	},
+	"license": "MIT",
+	"browser": "./dist/index.html",
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/madcampos/sdrlog.git"
+	},
+	"scripts": {
+		"postinstall": "husky install",
+		"start": "vite",
+		"preview": "vite preview --port 3000",
+		"typecheck": "vue-tsc --noEmit -p tsconfig.json",
+		"lint": "npm run lint:js && npm run check && npm run lint:css",
+		"lint:js": "eslint . --ext .vue,.js,.mjs,.ts,.mts --fix --ignore-path .gitignore",
+		"lint:css": "stylelint **/*.css",
+		"lint-staged": "lint-staged",
+		"prebuild": "npm run typecheck && npm run lint",
+		"build:assets": "npm run build:icons-transparent && npm run build:icons-maskable && npm run build:splash",
+		"build:icons-transparent": "pwa-asset-generator build/logo.html --type png --maskable false --icon-only --scrape false --dark-mode --opaque false --log false public/icons/transparent",
+		"build:icons-maskable": "pwa-asset-generator build/logo.html --type png --maskable false --icon-only --log false public/icons/maskable",
+		"build:splash": "pwa-asset-generator build/logo.html --type png --splash-only --log false public/splash",
+		"build": "vite build"
+	},
+	"dependencies": {
+		"@types/node": "^17.0.23",
+		"vue-router": "^4.0.14"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "^16.1.0",
+		"@commitlint/config-conventional": "^16.0.0",
+		"@typescript-eslint/eslint-plugin": "^5.10.1",
+		"@typescript-eslint/parser": "^5.10.1",
+		"@vitejs/plugin-vue": "^2.3.1",
+		"eslint": "^8.5.0",
+		"eslint-plugin-vue": "^8.2.0",
+		"husky": "^7.0.4",
+		"lint-staged": "^12.3.3",
+		"pwa-asset-generator": "^6.0.8",
+		"stylelint": "^14.3.0",
+		"typescript": "~4.6.3",
+		"vite": "^2.9.1",
+		"vite-plugin-html": "^3.2.0",
+		"vite-plugin-pwa": "^0.11.13",
+		"vue-eslint-parser": "^8.3.0",
+		"vue-tsc": "^0.33.9"
+	},
+	"engines": {
+		"node": ">=17.0.0"
+	},
+	"volta": {
+		"node": "17.8.0"
+	},
+	"lint-staged": {
+		"*.ts": "eslint --ext .ts --fix",
+		"*.js": "eslint --ext .js --fix",
+		"*.vue": "eslint --ext .vue --fix",
+		"*.css": "stylelint --fix"
+	},
+	"commitlint": {
+		"extends": [
+			"@commitlint/config-conventional"
+		]
+	}
+}
