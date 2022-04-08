@@ -1,0 +1,29 @@
+<svg viewBox="0 0 100 100" color-interpolation-filters="sRGB" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+	<style>
+		#bg {
+			fill: #f28500;
+		}
+
+		.front {
+			stroke: #ffffff;
+			stroke-width: 5;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+			fill: transparent;
+		}
+
+		.fill {
+			fill: tomato;
+			fill-opacity: 0.5;
+		}
+	</style>
+
+	<circle id="bg" cx="50" cy="50" r="50"/>
+	<path class="front" d="M55,10 a40,40 0 0,1 35,35"/>
+	<path class="front" d="M55,20 a30,30 0 0,1 25,25"/>
+	<path class="front" d="M55,30 a20,20 0 0,1 15,15"/>
+
+	<path class="front fill" d="M10,45 a50,50 0 0,1 35,-35 v35 z"/>
+	<path class="front fill" d="M45,55 v35 a50,50 0 0,1 -35,-35 z"/>
+	<path class="front fill" d="M55,55 h35 a50,50 0 0,1 -35,35 z"/>
+</svg>
