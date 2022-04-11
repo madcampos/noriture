@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { i18n, loadLocaleMessages, useLocale } from '../components/i18n';
 import HomeView from '../views/HomeView.vue';
 
 const router = createRouter({
@@ -18,6 +19,18 @@ const router = createRouter({
 			component: async () => import('../views/AboutView.vue')
 		}
 	]
+});
+
+router.beforeEach(async (_origin, _destination, next) => {
+	// TODO: review if this is the best option?
+	const locale = useLocale();
+
+	// Load locale messages
+	if (i18n.global.availableLocales.includes(locale.value)) {
+		await loadLocaleMessages(locale.value);
+	}
+
+	next();
 });
 
 export default router;

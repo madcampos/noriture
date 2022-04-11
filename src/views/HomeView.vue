@@ -1,3 +1,3 @@
 <template>
-	<h1>Main view</h1>
+	<h1>{{ $t('messages.mainView') }}</h1>
 </template>
