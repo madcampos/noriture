@@ -122,6 +122,7 @@ export default defineConfig(({ mode }) => {
 				}
 			})
 		],
+		assetsInclude: ['locales/*.json'],
 		clearScreen: false,
 		server: {
 			https: sslOptions,
