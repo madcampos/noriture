@@ -245,7 +245,7 @@
 		"no-plusplus": ["warn", { "allowForLoopAfterthoughts": true }],
 		"no-restricted-syntax": "off",
 		"no-tabs": ["warn", { "allowIndentationTabs": true }],
-		"no-ternary": "error",
+		"no-ternary": "off",
 		"no-trailing-spaces": "error",
 		"no-underscore-dangle": "error",
 		"no-unneeded-ternary": "error",
@@ -732,7 +732,7 @@
 			"ignores": ["pre", "textarea"],
 			"allowEmptyLines": false
 		}],
-		"vue/mustache-interpolation-spacing": ["error", "never"],
+		"vue/mustache-interpolation-spacing": ["error", "always"],
 		"vue/no-multi-spaces": ["error", { "ignoreProperties": false }],
 		"vue/no-spaces-around-equal-signs-in-attribute": "error",
 		"vue/no-template-shadow": "error",
