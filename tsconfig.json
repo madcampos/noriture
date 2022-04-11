@@ -1,5 +1,5 @@
 {
-	"include": ["env.d.ts", "src/**/*", "src/**/*.vue", "vite.config.ts"],
+	"include": ["globals.d.ts", "src/**/*", "src/**/*.vue", "src/**/*.json", "vite.config.ts"],
 	"exclude": ["src/**/__tests__/*", "./dist/**/*"],
 	"compilerOptions": {
 		"allowJs": true,
