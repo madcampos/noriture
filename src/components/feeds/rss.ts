@@ -1,9 +1,7 @@
 import type { Ref } from 'vue';
 import type { Feed } from './feed';
-import type { FeedItem } from './feedItem';
 
 interface RssFeed extends Feed {
-	items: FeedItem[],
 	type: Ref<'rss'>
 }
 
