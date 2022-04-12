@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { i18n, loadLocaleMessages, useLocale } from '../components/i18n';
 import HomeView from '../views/HomeView.vue';
+import FeedItemListView from '../views/FeedItemListView.vue';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,12 +12,10 @@ const router = createRouter({
 			component: HomeView
 		},
 		{
-			path: '/about',
-			name: 'about',
-			// Route level code-splitting
-			// This generates a separate chunk (About.[hash].js) for this route
-			// Which is lazy-loaded when the route is visited.
-			component: async () => import('../views/AboutView.vue')
+			path: '/:feedId',
+			name: 'feed-item-list',
+			component: FeedItemListView,
+			props: true
 		}
 	]
 });
