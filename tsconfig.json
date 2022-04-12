@@ -26,7 +26,8 @@
 		"forceConsistentCasingInFileNames": true,
 		"skipLibCheck": true,
 		"newLine": "LF",
-		"composite": true,
+		"composite": false,
+		"incremental": false,
 		"baseUrl": "."
 	}
 }

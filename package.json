@@ -23,7 +23,7 @@
 		"start": "vite",
 		"preview": "vite preview --port 3000",
 		"typecheck": "vue-tsc --noEmit -p tsconfig.json",
-		"lint": "npm run lint:js && npm run check && npm run lint:css",
+		"lint": "npm run lint:js && npm run typecheck && npm run lint:css",
 		"lint:js": "eslint . --ext .vue,.js,.mjs,.ts,.mts --fix --ignore-path .gitignore",
 		"lint:css": "stylelint **/*.css",
 		"lint-staged": "lint-staged",
