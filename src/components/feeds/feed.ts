@@ -1,7 +1,6 @@
 import { type Ref, ref, type UnwrapNestedRefs } from 'vue';
 import type { FeedItem } from './feedItem';
 import { useRefreshRate } from './refreshRate';
-import { readRssFeed } from './rss';
 
 type FeedType = 'rss' | 'atom' | 'youtube';
 
@@ -15,15 +14,17 @@ export interface Feed {
 	/** The feed's description that will be displayed to the user. */
 	description: Ref<string>,
 	/** The feed's URL that will be displayed to the user. */
-	url: Ref<string>,
+	siteUrl: Ref<string>,
+	/** The feed's URL. */
+	feedUrl: Ref<string>,
 	/** The feed's icon that will be displayed to the user. */
 	icon: Ref<string>,
 	/** The feed's color that will be displayed to the user. */
 	color: Ref<string>,
 	/** The feed's background color that will be displayed to the user. */
 	backgroundColor: Ref<string>,
-	/** The feed's category that will be displayed to the user. */
-	category: Ref<string>,
+	/** The feed's categories that will be displayed to the user. */
+	categories: Ref<string[]>,
 	/** The feed's type. */
 	type: Ref<FeedType>,
 	/** The feed's display type. */
@@ -46,11 +47,11 @@ function createFeed(feed: FeedConstructor = {}) {
 	const feedId = feed.id ?? crypto.randomUUID();
 	const name = ref(feed.name ?? '');
 	const description = ref(feed.description ?? '');
-	const url = ref(feed.url ?? '');
+	const siteUrl = ref(feed.siteUrl ?? '');
 	const icon = ref(feed.icon ?? '');
 	const color = ref(feed.color ?? '');
 	const backgroundColor = ref(feed.backgroundColor ?? '');
-	const category = ref(feed.category ?? '');
+	const categories = ref(feed.categories ?? []);
 	const type = ref(feed.type ?? 'rss');
 	const displayType = ref(feed.displayType ?? 'list');
 	const refreshRate = ref(feed.refreshRate ?? useRefreshRate(undefined, feedId));
@@ -63,21 +64,19 @@ function createFeed(feed: FeedConstructor = {}) {
 		id: feedId,
 		name,
 		description,
-		url,
+		siteUrl,
+		feedUrl: feed.feedUrl,
 		icon,
 		color,
 		backgroundColor,
-		category,
+		categories,
 		type,
 		displayType,
 		refreshRate,
 		lastUpdated,
 		unreadCount,
 		unreadItemIds,
-		items,
-		readFeed: async () => {
-			await readRssFeed(url.value);
-		}
+		items
 	};
 }
 
