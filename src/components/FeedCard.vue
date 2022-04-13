@@ -6,7 +6,6 @@
 
 <script lang="ts" setup>
 	import { RouterLink } from 'vue-router';
-	import { readRssFeed } from './feeds/rss';
 
 	defineProps({
 		feedId: {
@@ -14,6 +13,4 @@
 			required: true
 		}
 	});
-
-	void readRssFeed('https://xkcd.com/rss.xml');
 </script>
