@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers, no-console */
+//@ts-expect-error - Missing types
 import corsProxy from 'cors-anywhere';
 
 // Listen on a specific host via the HOST environment variable
