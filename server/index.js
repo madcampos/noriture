@@ -9,7 +9,7 @@ const port = process.env.PORT ?? 8080;
 
 corsProxy.createServer({
 	// Allow all origins
-	originWhitelist: [],
+	originWhitelist: ['https://localhost:3000', 'https://madcampos.github.io'],
 	requireHeader: ['origin', 'x-requested-with'],
 	removeHeaders: ['cookie', 'cookie2']
 }).listen(port, host, () => {
