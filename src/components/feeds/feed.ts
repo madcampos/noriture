@@ -1,5 +1,5 @@
+import { get } from '../fetch';
 import { extractItems, extractUnreadItemsIds, type FeedItem } from './feedItem';
-import { useProxyUrl } from './proxy';
 
 type FeedType = 'rss' | 'atom' | 'youtube';
 
@@ -108,12 +108,7 @@ export function parseFeed(feedText: string, url: string, id?: string) {
 }
 
 export async function fetchFeed(url: string) {
-	const proxyUrl = useProxyUrl();
-	const response = await fetch(`${proxyUrl.value}${url}`, {
-		method: 'GET',
-		credentials: 'omit',
-		redirect: 'follow'
-	});
+	const response = await get(url);
 
 	const text = await response.text();
 	const feed = parseFeed(text, url);

@@ -9,7 +9,7 @@
 				<img
 					crossorigin="anonymous"
 					referrerpolicy="no-referrer"
-					:src="`${proxyUrl}${thumb}`"
+					:src="proxiedThumbUrl"
 				/>
 			</picture>
 			<section>
@@ -21,12 +21,11 @@
 </template>
 
 <script lang="ts" setup>
+	import { ref } from 'vue';
 	import { RouterLink } from 'vue-router';
-	import { useProxyUrl } from './feeds/proxy';
+	import { resolveUrl } from './fetch';
 
-	const proxyUrl = useProxyUrl();
-
-	defineProps({
+	const props = defineProps({
 		itemId: {
 			type: String,
 			required: true
@@ -40,4 +39,6 @@
 			required: true
 		}
 	});
+
+	const proxiedThumbUrl = ref(resolveUrl(props.thumb));
 </script>
