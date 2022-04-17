@@ -716,9 +716,9 @@
 		"vue/html-quotes": ["error", "double"],
 		"vue/html-self-closing": ["error", {
 			"html": {
-				"void": "never",
-				"normal": "always",
-				"component": "always"
+				"void": "always",
+				"normal": "never",
+				"component": "never"
 			},
 			"svg": "always",
 			"math": "always"
