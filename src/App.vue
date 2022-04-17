@@ -2,12 +2,15 @@
 	<header>
 		<nav>
 			<router-link to="/">
-				Home
+				🏠 Home
+			</router-link>
+			<router-link to="/add">
+				➕ Add a feed
 			</router-link>
 		</nav>
 	</header>
 
-	<router-view />
+	<router-view></router-view>
 </template>
 
 <script setup lang="ts">

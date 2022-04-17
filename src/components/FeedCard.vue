@@ -1,6 +1,6 @@
 <template>
-	<router-link :to="{ name: 'feed-item-list', params: { feedId } }">
-		<h1><slot /></h1>
+	<router-link :to="{ name: 'feed', params: { feedId } }">
+		<h1><slot></slot></h1>
 	</router-link>
 </template>
 

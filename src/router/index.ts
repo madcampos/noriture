@@ -1,7 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { i18n, loadLocaleMessages, useLocale } from '../components/i18n';
 import HomeView from '../views/HomeView.vue';
-import FeedItemListView from '../views/FeedItemListView.vue';
+import FeedView from '../views/FeedView.vue';
+import ItemView from '../views/ItemView.vue';
+import AddFeed from '../views/AddFeed.vue';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,9 +14,20 @@ const router = createRouter({
 			component: HomeView
 		},
 		{
-			path: '/:feedId',
-			name: 'feed-item-list',
-			component: FeedItemListView,
+			path: '/add',
+			name: 'add',
+			component: AddFeed
+		},
+		{
+			path: '/feed/:feedId',
+			name: 'feed',
+			component: FeedView,
+			props: true
+		},
+		{
+			path: '/feed/:feedId/:itemId',
+			name: 'item',
+			component: ItemView,
 			props: true
 		}
 	]
