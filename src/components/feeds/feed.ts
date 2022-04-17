@@ -1,6 +1,5 @@
-import { type Ref, ref, type UnwrapNestedRefs } from 'vue';
-import type { FeedItem } from './feedItem';
-import { useRefreshRate } from './refreshRate';
+import { extractItems, extractUnreadItemsIds, type FeedItem } from './feedItem';
+import { useProxyUrl } from './proxy';
 
 type FeedType = 'rss' | 'atom' | 'youtube';
 
@@ -10,82 +9,114 @@ export interface Feed {
 	/** The feed's unique identifier. */
 	id: ReturnType<typeof crypto.randomUUID>,
 	/** The feed's title that will be displayed to the user. */
-	name: Ref<string>,
+	name: string,
 	/** The feed's description that will be displayed to the user. */
-	description: Ref<string>,
+	description: string,
 	/** The feed's URL that will be displayed to the user. */
-	siteUrl: Ref<string>,
+	siteUrl: string,
 	/** The feed's URL. */
-	feedUrl: Ref<string>,
+	feedUrl: string,
 	/** The feed's icon that will be displayed to the user. */
-	icon: Ref<string>,
+	icon: string,
 	/** The feed's color that will be displayed to the user. */
-	color: Ref<string>,
+	color?: string,
 	/** The feed's background color that will be displayed to the user. */
-	backgroundColor: Ref<string>,
+	backgroundColor?: string,
 	/** The feed's categories that will be displayed to the user. */
-	categories: Ref<string[]>,
+	categories: string[],
 	/** The feed's type. */
-	type: Ref<FeedType>,
+	type: FeedType,
 	/** The feed's display type. */
-	displayType: Ref<FeedDisplayType>,
-	/** The feeds's refresh interval in seconds. */
-	refreshRate: Ref<number>,
+	displayType: FeedDisplayType,
 	/** The feeds's last updated date. */
-	lastUpdated: Ref<Date>,
+	lastUpdated: Date,
 	/** The number of unread items. */
-	unreadCount: Ref<number>,
+	unreadCount: number,
 	/** The list of ids for the unread items. */
-	unreadItemIds: Ref<ReturnType<typeof crypto.randomUUID>[]>,
+	unreadItemIds: ReturnType<typeof crypto.randomUUID>[],
 	/** The list of items in the feed. */
-	items: Ref<FeedItem[]>
+	items: FeedItem[]
 }
 
-type FeedConstructor = Partial<UnwrapNestedRefs<Feed>>;
+function extractFeedType(feed: Document) {
+	const feedType = feed.querySelector('channel') ? 'rss' : 'atom';
 
-function createFeed(feed: FeedConstructor = {}) {
-	const feedId = feed.id ?? crypto.randomUUID();
-	const name = ref(feed.name ?? '');
-	const description = ref(feed.description ?? '');
-	const siteUrl = ref(feed.siteUrl ?? '');
-	const icon = ref(feed.icon ?? '');
-	const color = ref(feed.color ?? '');
-	const backgroundColor = ref(feed.backgroundColor ?? '');
-	const categories = ref(feed.categories ?? []);
-	const type = ref(feed.type ?? 'rss');
-	const displayType = ref(feed.displayType ?? 'list');
-	const refreshRate = ref(feed.refreshRate ?? useRefreshRate(undefined, feedId));
-	const lastUpdated = ref(new Date());
-	const unreadCount = ref(0);
-	const unreadItemIds = ref<ReturnType<typeof crypto.randomUUID>[]>([]);
-	const items = ref<FeedItem[]>([]);
+	return feedType;
+}
 
-	return {
+function extractFeedName(feed: Document) {
+	const title = feed.querySelector('channel > title, feed > title')?.textContent ?? '';
+
+	return title;
+}
+
+function extractFeedDescription(feed: Document) {
+	const description = feed.querySelector('channel > description, feed > subtitle')?.textContent ?? '';
+
+	return description;
+}
+
+function extractFeedSiteUrl(feed: Document) {
+	const siteUrl = feed.querySelector('channel > |link, feed > link, feed > id')?.textContent ?? '';
+
+	return siteUrl;
+}
+
+function extractFeedLastUpdate(feed: Document) {
+	// TODO: handle invalid dates
+	const lastUpdate = new Date(feed.querySelector('channel > lastBuildDate, feed > updated')?.textContent ?? new Date().toISOString());
+
+	return lastUpdate;
+}
+
+function extractFeedCategories(feed: Document) {
+	const rssCategories = [...feed.querySelectorAll('channel > category')].map((category) => category.textContent ?? '');
+	const atomCategories = [...feed.querySelectorAll('feed > category')].map((category) => category.getAttribute('term') ?? '');
+
+	return [...rssCategories, ...atomCategories];
+}
+
+function extractFeedIcon(feed: Document) {
+	const icon = feed.querySelector('channel > image > url, feed > icon, feed > logo')?.textContent ?? '';
+
+	return icon;
+}
+
+export function parseFeed(feedText: string, url: string, id?: string) {
+	const feedId = id ?? crypto.randomUUID();
+	const xml = new window.DOMParser().parseFromString(feedText, 'text/xml');
+	const items = extractItems(xml, feedId);
+	const unreadItemIds = extractUnreadItemsIds(items);
+
+	const feed: Feed = {
 		id: feedId,
-		name,
-		description,
-		siteUrl,
-		feedUrl: feed.feedUrl,
-		icon,
-		color,
-		backgroundColor,
-		categories,
-		type,
-		displayType,
-		refreshRate,
-		lastUpdated,
-		unreadCount,
+		type: extractFeedType(xml),
+		name: extractFeedName(xml),
+		description: extractFeedDescription(xml),
+		siteUrl: extractFeedSiteUrl(xml),
+		feedUrl: url,
+		lastUpdated: extractFeedLastUpdate(xml),
+		categories: extractFeedCategories(xml),
+		icon: extractFeedIcon(xml),
+		displayType: 'list',
+		items,
 		unreadItemIds,
-		items
+		unreadCount: unreadItemIds.length
 	};
+
+	return feed;
 }
 
-export function useFeed(feedConstructor: FeedConstructor = {}) {
-	// TODO: check if the feed is already in DB.
+export async function fetchFeed(url: string) {
+	const proxyUrl = useProxyUrl();
+	const response = await fetch(`${proxyUrl.value}${url}`, {
+		method: 'GET',
+		credentials: 'omit',
+		redirect: 'follow'
+	});
 
-	const feed = createFeed(feedConstructor);
-
-	// TODO: append to list of feeds/save to db.
+	const text = await response.text();
+	const feed = parseFeed(text, url);
 
 	return feed;
 }

@@ -37,15 +37,16 @@ export interface FeedItem {
 }
 
 function extractItemId(item: Element) {
-	const id = item.querySelector('guid, id, link')?.textContent ?? item.querySelector('link')?.href ?? crypto.randomUUID();
+	const url = item.querySelector('id, link')?.textContent ?? item.querySelector('link')?.href;
+	const id = item.querySelector('guid')?.textContent ?? crypto.randomUUID();
 
-	return id;
+	return (url ?? id).trim();
 }
 
 function extractItemUrl(item: Element) {
-	const url = item.querySelector('link')?.textContent ?? item.querySelector('link')?.href ?? '';
+	const url = item.querySelector('link, id')?.textContent ?? item.querySelector('link')?.href ?? '';
 
-	return url;
+	return url.trim();
 }
 
 function extractItemTitle(item: Element) {
