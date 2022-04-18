@@ -21,18 +21,25 @@
 	"scripts": {
 		"postinstall": "husky install",
 		"start": "vite",
-		"preview": "vite preview --port 3000",
+
 		"typecheck": "vue-tsc --noEmit -p tsconfig.json",
-		"lint": "npm run lint:js && npm run lint:css && npm run typecheck",
+		"lint": "npm run typecheck && npm run lint:js && npm run lint:css",
 		"lint:js": "eslint . --ext .vue,.js,.mjs,.ts,.mts --fix --ignore-path .gitignore",
 		"lint:css": "stylelint **/*.{vue,css} --fix",
+
 		"lint-staged": "lint-staged",
-		"prebuild": "npm run typecheck && npm run lint",
-		"build:assets": "npm run build:icons-transparent && npm run build:icons-maskable && npm run build:splash",
+
 		"build:icons-transparent": "pwa-asset-generator build/logo.html --type png --maskable false --icon-only --scrape false --dark-mode --opaque false --log false public/icons/transparent",
 		"build:icons-maskable": "pwa-asset-generator build/logo.html --type png --maskable false --icon-only --log false public/icons/maskable",
 		"build:splash": "pwa-asset-generator build/logo.html --type png --splash-only --log false public/splash",
-		"build": "vite build"
+
+		"build:assets": "npm run build:icons-transparent && npm run build:icons-maskable && npm run build:splash",
+
+		"prebuild:app": "npm run lint",
+		"build:app": "vite build",
+
+		"prepreview": "npm run build:app",
+		"preview": "vite preview --port 3000"
 	},
 	"dependencies": {
 		"@mozilla/readability": "^0.4.2",
