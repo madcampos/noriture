@@ -1,8 +1,10 @@
-# TODOs
-- Check CORS proxies
-	- https://github.com/Rob--W/cors-anywhere
-	- https://thingproxy.freeboard.io/fetch/
-	- https://github.com/Freeboard/thingproxy
+# CORS proxies
+- https://github.com/Rob--W/cors-anywhere
+- https://thingproxy.freeboard.io/fetch/
+- https://github.com/Freeboard/thingproxy
+- https://github.com/ccoenraets/cors-proxy
+- https://github.com/gnuns/allOrigins
+- https://medium.com/nodejsmadeeasy/a-simple-cors-proxy-for-javascript-applications-9b36a8d39c51
 
 # Sample RSS feeds to test
 - https://www.rssboard.org/files/rss-enclosures-use-case-feed.xml
