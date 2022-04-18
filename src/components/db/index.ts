@@ -14,8 +14,8 @@ class Database extends Dexie {
 	constructor() {
 		super('noriture');
 		this.version(DATABASE_VERSION).stores({
-			feeds: '&id, name, &url, category, type, displayType',
-			feedItems: '&id, title, &url, date, feedId'
+			feeds: '&id, name, &feedUrl, *categories, type, displayType, lastUpdated',
+			feedItems: '&id, title, &url, date, feedId, *tags, read'
 		});
 	}
 }
@@ -29,7 +29,25 @@ export function listUnreadItems(feedId: string) {
 export async function saveFeedItems(items: FeedItem[] | Ref<FeedItem[]>) {
 	const itemsValue = unref(items);
 
-	return database.feedItems.bulkPut(itemsValue.map((item) => ({
+	const existingItems = await database.feedItems.where('url').anyOf(itemsValue.map((item) => item.url)).toArray();
+	const existingItemsUrls = existingItems.map((item) => item.url);
+
+	const newItems = itemsValue.filter((item) => !existingItemsUrls.includes(item.url));
+	const updatedItems = itemsValue.filter((item) => {
+		const isExistingItem = existingItemsUrls.includes(item.url);
+
+		if (!isExistingItem) {
+			return false;
+		}
+
+		const updatedItemDate = item.date ?? new Date();
+		const savedItemDate = existingItems.find((existingItem) => existingItem.url === item.url)?.date ?? updatedItemDate;
+		const isUpdated = updatedItemDate > savedItemDate;
+
+		return isUpdated;
+	});
+
+	return database.feedItems.bulkPut([...newItems, ...updatedItems].map((item) => ({
 		feedId: item.feedId,
 		id: item.id,
 		title: item.title,
@@ -64,6 +82,12 @@ export async function getFeed(id: string) {
 export async function saveFeed(feed: Feed | Ref<Feed>) {
 	const feedValue = unref(feed);
 
+	const existingFeed = await database.feeds.where('feedUrl').equals(feedValue.feedUrl).first();
+
+	if (existingFeed) {
+		throw new Error('Feed already exists');
+	}
+
 	await saveFeedItems(feedValue.items);
 
 	return database.feeds.add({
@@ -82,4 +106,9 @@ export async function saveFeed(feed: Feed | Ref<Feed>) {
 		unreadCount: feedValue.unreadCount,
 		unreadItemIds: [...feedValue.unreadItemIds]
 	});
+}
+
+export async function updateFeed(feedId: string, items: FeedItem[]) {
+	await database.feeds.update(feedId, { lastUpdated: new Date() });
+	await saveFeedItems(items);
 }
