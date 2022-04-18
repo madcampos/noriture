@@ -37,27 +37,26 @@ export interface FeedItem {
 }
 
 function extractItemId(item: Element) {
-	const url = item.querySelector('id, link')?.textContent ?? item.querySelector('link')?.href;
-	const id = item.querySelector('guid')?.textContent ?? crypto.randomUUID();
+	const id = item.querySelector('guid')?.textContent?.trim() ?? crypto.randomUUID();
 
-	return (url ?? id).trim();
+	return id;
 }
 
 function extractItemUrl(item: Element) {
-	const url = item.querySelector('link, id')?.textContent ?? item.querySelector('link')?.href ?? '';
+	const url = item.querySelector('link, id')?.textContent?.trim() ?? item.querySelector('link')?.href ?? '';
 
-	return url.trim();
+	return url;
 }
 
 function extractItemTitle(item: Element) {
-	return item.querySelector('title')?.textContent ?? '';
+	return (item.querySelector('title')?.textContent ?? '').trim();
 }
 
 function extractItemAuthor(item: Element) {
 	const authorNestedTag = item.querySelector('author > name, contributor > name')?.textContent;
 	const authorDirectTag = item.querySelector('author, creator')?.textContent;
 
-	return authorNestedTag ?? authorDirectTag ?? '';
+	return (authorNestedTag ?? authorDirectTag ?? '').trim();
 }
 
 function extractMediaContent(item: Element) {
@@ -97,17 +96,16 @@ function extractContentThumbnail(content: string) {
 }
 
 function extractItemDate(item: Element) {
-	const publicationDate = item.querySelector('pubDate, published')?.textContent;
-	const lastModified = item.querySelector('lastBuildDate, updated')?.textContent;
+	const publicationDate = item.querySelector('pubDate, published')?.textContent?.trim();
+	const lastModified = item.querySelector('lastBuildDate, updated')?.textContent?.trim();
 
 	if (publicationDate || lastModified) {
-		// TODO: handle invalid dates
 		return new Date(publicationDate ?? lastModified ?? '');
 	}
 }
 
 function extractItemCategories(item: Element) {
-	const categories = [...item.querySelectorAll('category')].map((category) => category.getAttribute('label') ?? category.getAttribute('term') ?? category.textContent ?? '');
+	const categories = [...item.querySelectorAll('category')].map((category) => category.getAttribute('label') ?? category.getAttribute('term') ?? category.textContent?.trim() ?? '');
 
 	return categories;
 }
@@ -115,7 +113,7 @@ function extractItemCategories(item: Element) {
 function extractItemContents(item: Element) {
 	const content = item.querySelector('description, content')?.textContent ?? item.querySelector('summary')?.textContent ?? '';
 
-	return content;
+	return content.trim();
 }
 
 export function extractItems(feed: Document, feedId: string) {

@@ -63,10 +63,13 @@ function extractFeedSiteUrl(feed: Document) {
 }
 
 function extractFeedLastUpdate(feed: Document) {
-	// TODO: handle invalid dates
-	const lastUpdate = new Date(feed.querySelector('channel > lastBuildDate, feed > updated')?.textContent ?? new Date().toISOString());
+	const lastUpdate = new Date(feed.querySelector('channel > lastBuildDate, feed > updated')?.textContent ?? '');
 
-	return lastUpdate;
+	if (!isNaN(lastUpdate as unknown as number)) {
+		return lastUpdate;
+	}
+
+	return new Date();
 }
 
 function extractFeedCategories(feed: Document) {
