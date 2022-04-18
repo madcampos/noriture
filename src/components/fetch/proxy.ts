@@ -1,6 +1,6 @@
 import { ref, watch } from 'vue';
 
-const DEFAULT_PROXY_URL = 'https://thingproxy.freeboard.io/fetch/';
+const DEFAULT_PROXY_URL = import.meta.env.VITE_PROXY_URL;
 
 export function useProxyUrl() {
 	const storedProxyUrl = localStorage.getItem('proxy-url');

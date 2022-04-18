@@ -20,7 +20,11 @@ interface ImportMetaEnv {
 	readonly BASE_URL: string,
 	readonly MODE: 'development' | 'production',
 	readonly PROD: boolean,
-	readonly DEV: boolean
+	readonly DEV: boolean,
+
+	// Declared on .env file
+	readonly VITE_PROXY_URL: string,
+	readonly VITE_PUBLIC_URL: string
 }
 
 interface ImportMeta {
