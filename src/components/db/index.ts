@@ -91,7 +91,7 @@ export async function saveFeed(feed: Feed | Ref<Feed>) {
 	await saveFeedItems(feedValue.items);
 
 	return database.feeds.add({
-		feedUrl: feedValue.siteUrl,
+		feedUrl: feedValue.feedUrl,
 		id: feedValue.id,
 		name: feedValue.name,
 		categories: [...feedValue.categories],

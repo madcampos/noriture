@@ -58,7 +58,6 @@
 
 	async function addFeed() {
 		isAddDisabled.value = true;
-		// TODO: check if feedUrl already exists
 		await saveFeed(feed.value);
 		isAddDisabled.value = false;
 	}
