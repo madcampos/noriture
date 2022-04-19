@@ -126,7 +126,7 @@ export default defineConfig(({ mode }) => {
 		clearScreen: false,
 		server: {
 			https: sslOptions,
-			open: true
+			open: false
 		},
 		build: {
 			target: 'esnext',
