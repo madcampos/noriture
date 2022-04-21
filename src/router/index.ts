@@ -3,7 +3,7 @@ import { i18n, loadLocaleMessages, useLocale } from '../components/i18n';
 import HomeView from '../views/HomeView.vue';
 import FeedView from '../views/FeedView.vue';
 import ItemView from '../views/ItemView.vue';
-import AddFeed from '../views/AddFeed.vue';
+import ManageFeeds from '../views/ManageFeeds.vue';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,9 +14,9 @@ const router = createRouter({
 			component: HomeView
 		},
 		{
-			path: '/add',
-			name: 'add',
-			component: AddFeed
+			path: '/feeds',
+			name: 'manage-feeds',
+			component: ManageFeeds
 		},
 		{
 			path: '/feed/:feedId',
@@ -34,7 +34,6 @@ const router = createRouter({
 });
 
 router.beforeEach(async (_origin, _destination, next) => {
-	// TODO: review if this is the best option?
 	const locale = useLocale();
 
 	// Load locale messages
