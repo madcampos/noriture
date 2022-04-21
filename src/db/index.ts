@@ -1,7 +1,7 @@
 import Dexie, { liveQuery, type Table } from 'dexie';
 import { type Ref, unref } from 'vue';
-import type { Feed } from '../feeds';
-import type { FeedItem } from '../feeds/feedItem';
+import type { Feed } from '../components/feeds/feed';
+import type { FeedItem } from '../components/feeds/feedItem';
 
 const DATABASE_VERSION = 1;
 

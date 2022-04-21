@@ -1,7 +1,7 @@
 import { nextTick, watch } from 'vue';
 import { createI18n, type I18n, type I18nOptions, type IntlDateTimeFormats } from 'vue-i18n';
 
-import * as defaultTranslation from '../../locales/en.json';
+import * as defaultTranslation from '../locales/en.json';
 
 export type Messages = typeof defaultTranslation.messages;
 export const DEFAULT_LOCALE = 'en';

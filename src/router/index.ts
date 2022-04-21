@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { i18n, loadLocaleMessages, useLocale } from '../components/i18n';
+import { i18n, loadLocaleMessages, useLocale } from '../plugins/i18n';
 import HomeView from '../views/HomeView.vue';
 import FeedView from '../views/FeedView.vue';
 import ItemView from '../views/ItemView.vue';

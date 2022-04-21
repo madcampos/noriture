@@ -27,7 +27,7 @@
 <script lang="ts" setup>
 	import { useObservable } from '@vueuse/rxjs';
 	import type { Observable } from 'rxjs';
-	import { listUnreadItems } from '../components/db';
+	import { listUnreadItems } from '../db';
 	import type { FeedItem } from '../components/feeds/feedItem';
 	import ItemCard from '../components/ItemCard.vue';
 

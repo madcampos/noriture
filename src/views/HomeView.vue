@@ -10,7 +10,7 @@
 <script lang="ts" setup>
 	import { useObservable } from '@vueuse/rxjs';
 	import type { Observable } from 'rxjs';
-	import { listFeeds } from '../components/db';
+	import { listFeeds } from '../db';
 	import FeedCard from '../components/FeedCard.vue';
 	import type { Feed } from '../components/feeds/feed';
 

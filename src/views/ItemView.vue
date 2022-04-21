@@ -11,7 +11,7 @@
 <script lang="ts" setup>
 	import { RouterLink } from 'vue-router';
 	import { ref } from 'vue';
-	import { getFeedItem } from '../components/db';
+	import { getFeedItem } from '../db';
 
 	const title = ref('Loading...');
 	const content = ref('');

@@ -20,7 +20,7 @@
 <script lang="ts" setup>
 	import { ref } from 'vue';
 	import { type Feed, fetchFeed, parseFeed } from '../components/feeds/feed';
-	import { saveFeed } from '../components/db';
+	import { saveFeed } from '../db';
 
 	const feedUrl = ref('');
 	const feed = ref<Feed>({} as unknown as Feed);

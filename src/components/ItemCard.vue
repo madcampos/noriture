@@ -23,7 +23,7 @@
 <script lang="ts" setup>
 	import { ref } from 'vue';
 	import { RouterLink } from 'vue-router';
-	import { resolveUrl } from './fetch';
+	import { resolveUrl } from '../util/fetch';
 
 	const props = defineProps({
 		itemId: {
