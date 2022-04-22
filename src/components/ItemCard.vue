@@ -1,31 +1,45 @@
 <template>
-	<router-link :to="{ name: 'item', params: { feedId, itemId } }">
-		<article>
-			<header>
-				<h3><slot name="title"></slot></h3>
-				<p><slot name="date"></slot></p>
-			</header>
-			<picture>
-				<img
-					crossorigin="anonymous"
-					referrerpolicy="no-referrer"
-					:src="proxiedThumbUrl"
-				/>
-			</picture>
-			<section>
-				<p><slot name="author"></slot></p>
-				<p><slot name="tags"></slot></p>
-			</section>
-		</article>
-	</router-link>
+	<v-card>
+		<v-card-title v-if="title">
+			{{ title }}
+		</v-card-title>
+		<v-card-subtitle>
+			<v-chip v-if="author !== ''" size="small">
+				{{ author }}
+			</v-chip>
+			<span v-if="author && date">
+				●
+			</span>
+			<v-chip v-if="date" size="small">
+				{{ formatDate(date) }}
+			</v-chip>
+		</v-card-subtitle>
+		<v-card-content>
+			<v-card-text>
+				<!-- eslint-disable-next-line vue/no-v-html -->
+				<article v-html="content"></article>
+			</v-card-text>
+
+			<v-card-subtitle v-if="tags.length > 0">
+				<v-divider></v-divider>
+				<v-chip v-for="tag of tags" :key="(tag as string)" size="small">
+					{{ tag }}
+				</v-chip>
+			</v-card-subtitle>
+		</v-card-content>
+		<v-card-actions>
+			<v-btn :to="{ name: 'item', params: { feedId, itemId } }">
+				Read Item
+			</v-btn>
+		</v-card-actions>
+	</v-card>
 </template>
 
 <script lang="ts" setup>
-	import { ref } from 'vue';
-	import { RouterLink } from 'vue-router';
-	import { resolveUrl } from '../util/fetch';
+	import { VBtn, VCard, VCardActions, VCardContent, VCardSubtitle, VCardText, VCardTitle, VChip, VDivider } from 'vuetify/components';
+	import { useLocale } from '../plugins/i18n';
 
-	const props = defineProps({
+	defineProps({
 		itemId: {
 			type: String,
 			required: true
@@ -37,8 +51,40 @@
 		thumb: {
 			type: String,
 			required: true
+		},
+		title: {
+			type: String,
+			required: true
+		},
+		date: {
+			type: Date,
+			'default': null,
+			required: false
+		},
+		author: {
+			type: String,
+			'default': null,
+			required: false
+		},
+		tags: {
+			type: Array,
+			'default': [],
+			required: false
+		},
+		content: {
+			type: String,
+			'default': null,
+			required: false
 		}
 	});
 
-	const proxiedThumbUrl = ref(resolveUrl(props.thumb));
+	function formatDate(date: Date) {
+		const locale = useLocale();
+
+		return date.toLocaleDateString(locale.value, {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		});
+	}
 </script>
