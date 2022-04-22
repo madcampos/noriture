@@ -45,7 +45,7 @@ export function useLocale() {
 
 export async function loadLocaleMessages(locale: string) {
 	// Load locale messages with dynamic import
-	const messages = await import(`../../locales/${locale}.json`);
+	const messages = await import(`../locales/${locale}.json`);
 
 	// Set locale and locale message
 	i18n.global.setLocaleMessage(locale, messages.default);
