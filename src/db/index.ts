@@ -15,7 +15,7 @@ class Database extends Dexie {
 		super('noriture');
 		this.version(DATABASE_VERSION).stores({
 			feeds: '&id, name, &feedUrl, *categories, type, displayType, lastUpdated',
-			feedItems: '&id, title, &url, date, feedId, *tags, read'
+			feedItems: '&id, title, url, date, feedId, *tags, read'
 		});
 	}
 }
