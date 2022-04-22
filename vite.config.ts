@@ -40,7 +40,6 @@ export default defineConfig(({ mode }) => {
 	};
 
 	return {
-		define: { 'import.meta.env': env },
 		plugins: [
 			vue(),
 			vuetify({
