@@ -31,6 +31,7 @@
 			<v-btn :to="{ name: 'item', params: { feedId, itemId } }">
 				Read Item
 			</v-btn>
+			<!-- TODO: add buttons for share, mark as read, bookmark and "options" (?) -->
 		</v-card-actions>
 	</v-card>
 </template>
