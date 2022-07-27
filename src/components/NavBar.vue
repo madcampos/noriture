@@ -1,28 +1,33 @@
 <template>
-	<v-list nav>
-		<v-list-item to="/" @click="$emit('updateAppTitle', { name: 'Home' } as Feed)">
-			<v-list-item-avatar>
-				<v-icon>mdi-home</v-icon>
-			</v-list-item-avatar>
-
-			<v-list-item-title>Home</v-list-item-title>
-		</v-list-item>
-		<v-list-item v-for="feed of feedList" :key="feed.id" :to="`/feed/${feed.id}`" @click="$emit('updateAppTitle', feed)">
-			<v-list-item-avatar>
-				<v-icon>mdi-rss</v-icon>
-			</v-list-item-avatar>
-
-			<v-list-item-title>{{ feed.name }}</v-list-item-title>
-
-			<v-badge color="error" :content="feed.unreadCount" inline></v-badge>
-		</v-list-item>
-	</v-list>
+	<nav>
+		<ul>
+			<li>
+				<router-link to="/" @click="$emit('updateAppTitle', { name: 'Home' } as Feed)">
+					<span class="icon">
+						<img src="/img/icons/home.svg" alt="Home" />
+					</span>
+					<span>Home</span>
+				</router-link>
+			</li>
+			<li v-for="feed of feedList" :key="feed.id">
+				<router-link :to="`/feed/${feed.id}`" @click="$emit('updateAppTitle', feed)">
+					<span class="icon">
+						<img :src="feed.icon" :alt="feed.name" />
+					</span>
+					<span>{{ feed.name }}</span>
+					<span v-if="feed.unreadCount > 0" class="badge">
+						{{ feed.unreadCount }}
+					</span>
+				</router-link>
+			</li>
+		</ul>
+	</nav>
 </template>
 
 <script setup lang="ts">
+	import { RouterLink } from 'vue-router';
 	import { useObservable } from '@vueuse/rxjs';
 	import type { Observable } from 'rxjs';
-	import { VBadge, VIcon, VList, VListItem, VListItemAvatar, VListItemTitle } from 'vuetify/components';
 
 	import type { Feed } from '../components/feeds';
 

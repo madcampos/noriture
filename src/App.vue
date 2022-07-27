@@ -1,29 +1,24 @@
 <template>
-	<v-app>
-		<v-app-bar app color="primary" prominent>
-			<v-app-bar-nav-icon @click.stop="isDrawerOpen = !isDrawerOpen"></v-app-bar-nav-icon>
-			<v-app-bar-title>
-				{{ title }}
-			</v-app-bar-title>
-			<v-btn icon="mdi-cog" to="/feeds"></v-btn>
-		</v-app-bar>
-
-		<v-navigation-drawer v-model="isDrawerOpen">
-			<nav-bar @update-app-title="(feed) => title = feed.name"></nav-bar>
-		</v-navigation-drawer>
-
-		<v-main>
-			<v-container fluid>
-				<router-view></router-view>
-			</v-container>
-		</v-main>
-	</v-app>
+	<header>
+		<button type="button" @click.stop="isDrawerOpen = !isDrawerOpen">
+			Menu
+		</button>
+		<h1>{{ title }}</h1>
+		<button type="button">
+			Config
+		</button>
+	</header>
+	<aside>
+		<nav-bar @update-app-title="(feed) => title = feed.name"></nav-bar>
+	</aside>
+	<main>
+		<router-view></router-view>
+	</main>
 </template>
 
 <script setup lang="ts">
 	import { ref } from 'vue';
 	import { RouterView } from 'vue-router';
-	import { VApp, VAppBar, VAppBarNavIcon, VAppBarTitle, VBtn, VContainer, VMain, VNavigationDrawer } from 'vuetify/components';
 	import NavBar from './components/NavBar.vue';
 
 	const isDrawerOpen = ref(false);

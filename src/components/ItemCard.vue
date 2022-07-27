@@ -1,43 +1,43 @@
 <template>
-	<v-card>
-		<v-card-title v-if="title">
+	<section>
+		<h2 v-if="title">
 			{{ title }}
-		</v-card-title>
-		<v-card-subtitle>
-			<v-chip v-if="author !== ''" size="small">
+		</h2>
+		<p>
+			<span v-if="author !== ''" size="small">
 				{{ author }}
-			</v-chip>
+			</span>
 			<span v-if="author && date">
 				●
 			</span>
-			<v-chip v-if="date" size="small">
+			<span v-if="date" size="small">
 				{{ formatDate(date) }}
-			</v-chip>
-		</v-card-subtitle>
-		<v-card-content>
-			<v-card-text>
+			</span>
+		</p>
+		<div>
+			<article>
 				<!-- eslint-disable-next-line vue/no-v-html -->
 				<article v-html="content"></article>
-			</v-card-text>
+			</article>
 
-			<v-card-subtitle v-if="tags.length > 0">
-				<v-divider></v-divider>
-				<v-chip v-for="tag of tags" :key="(tag as string)" size="small">
+			<aside v-if="tags.length > 0">
+				<hr />
+				<span v-for="tag of tags" :key="(tag as string)" size="small">
 					{{ tag }}
-				</v-chip>
-			</v-card-subtitle>
-		</v-card-content>
-		<v-card-actions>
-			<v-btn :to="{ name: 'item', params: { feedId, itemId } }">
+				</span>
+			</aside>
+		</div>
+		<footer>
+			<router-link :to="{ name: 'item', params: { feedId, itemId } }">
 				Read Item
-			</v-btn>
+			</router-link>
 			<!-- TODO: add buttons for share, mark as read, bookmark and "options" (?) -->
-		</v-card-actions>
-	</v-card>
+		</footer>
+	</section>
 </template>
 
 <script lang="ts" setup>
-	import { VBtn, VCard, VCardActions, VCardContent, VCardSubtitle, VCardText, VCardTitle, VChip, VDivider } from 'vuetify/components';
+	import { RouterLink } from 'vue-router';
 	import { useLocale } from '../plugins/i18n';
 
 	defineProps({
