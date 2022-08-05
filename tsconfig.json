@@ -1,6 +1,5 @@
 {
-	"include": ["globals.d.ts", "src/**/*", "src/**/*.vue", "src/**/*.json", "vite.config.ts", "server/**/*.js"],
-	"exclude": ["src/**/__tests__/*", "./dist/**/*"],
+	"exclude": ["src/**/__tests__/*", "./node_modules/**/*", "./dist/**/*"],
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,
@@ -11,7 +10,6 @@
 		"removeComments": true,
 		"target": "ESNext",
 		"strict": true,
-		"jsx": "preserve",
 		"noImplicitThis": true,
 		"preserveValueImports": true,
 		"importsNotUsedAsValues": "error",
@@ -26,8 +24,7 @@
 		"forceConsistentCasingInFileNames": true,
 		"skipLibCheck": true,
 		"newLine": "LF",
-		"composite": false,
-		"incremental": false,
-		"baseUrl": "."
+		"composite": true,
+		"incremental": true
 	}
 }
