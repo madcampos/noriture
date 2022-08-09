@@ -31,11 +31,7 @@ const config = {
 	root: './src',
 	env,
 	mount: {
-		src: '/',
-		data: '/data',
-		'images/covers': '/covers',
-		'images/thumbs': '/thumbs',
-		lib: '/lib'
+		src: '/'
 	},
 	exclude: ['**/*.schema.json'],
 	optimize: {

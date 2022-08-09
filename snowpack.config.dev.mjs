@@ -47,7 +47,7 @@ const config = {
 	routes: [
 		{
 			match: 'all',
-			src: '/sdrlog.webmanifest',
+			src: '/app.webmanifest',
 			dest: handleManifest
 		},
 		{
