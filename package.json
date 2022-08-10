@@ -26,25 +26,27 @@
 	},
 	"scripts": {
 		"postinstall": "husky install",
-		"start": "snowpack dev --config snowpack.config.dev.mjs",
-		"start:sw": "snowpack dev --config snowpack.config.serviceworker.mjs",
-		"typecheck": "vue-tsc --noEmit -p tsconfig.json",
+		"start": "vite",
+		"start:sw": "vite",
+		"typecheck": "tsc --noEmit",
 		"lint": "npm run typecheck && npm run lint:js && npm run lint:css",
-		"lint:js": "eslint . --ext .vue,.js,.mjs,.ts,.mts --fix --ignore-path .gitignore",
-		"lint:css": "stylelint **/*.{vue,css} --fix",
+		"lint:js": "eslint src --ext .js,.mjs,.ts,.mts --fix --ignore-path .gitignore",
+		"lint:css": "stylelint **/*.css --fix",
 		"lint-staged": "lint-staged",
-		"build": "snowpack build --mode production",
-		"postbuild": "node build/postprocess-files.mjs",
+		"prebuild:app": "npm run lint",
+		"build:app": "vite build",
 		"build:icons-transparent": "pwa-asset-generator build/logo.html --type png --maskable false --icon-only --scrape false --dark-mode --opaque false --log false public/icons/transparent",
 		"build:icons-maskable": "pwa-asset-generator build/logo.html --type png --maskable false --icon-only --log false public/icons/maskable",
 		"build:splash": "pwa-asset-generator build/logo.html --type png --splash-only --log false public/splash",
 		"build:assets": "npm run build:icons-transparent && npm run build:icons-maskable && npm run build:splash",
-		"clean": "node -e \"require('fs').rmSync('./dist', { force: true, recursive: true})\"",
-		"test": "wtr"
+		"prepreview": "npm run build:app",
+		"preview": "vite preview --port 3000",
+		"test": "vitest",
+		"test:coverage": "vitest run --coverage"
 	},
 	"dependencies": {
 		"@mozilla/readability": "^0.4.2",
-		"@types/node": "^18.6.1",
+		"@types/node": "^18.6.5",
 		"cors-anywhere": "^0.4.4",
 		"idb": "^7.0.2",
 		"urlpattern-polyfill": "^5.0.5"
@@ -52,19 +54,20 @@
 	"devDependencies": {
 		"@commitlint/cli": "^17.0.3",
 		"@commitlint/config-conventional": "^17.0.3",
-		"@snowpack/web-test-runner-plugin": "^0.2.2",
-		"@typescript-eslint/eslint-plugin": "^5.31.0",
-		"@typescript-eslint/parser": "^5.31.0",
-		"@web/test-runner": "^0.13.31",
-		"@web/test-runner-playwright": "^0.8.9",
-		"eslint": "^8.20.0",
+		"@typescript-eslint/eslint-plugin": "^5.33.0",
+		"@typescript-eslint/parser": "^5.33.0",
+		"c8": "^7.12.0",
+		"eslint": "^8.21.0",
 		"husky": "^8.0.1",
 		"lint-staged": "^13.0.3",
 		"pwa-asset-generator": "^6.1.1",
-		"snowpack": "^3.8.8",
-		"snowpack-plugin-minify-html": "^0.1.1",
 		"stylelint": "^14.9.1",
-		"typescript": "^4.7.4"
+		"typescript": "^4.7.4",
+		"vite": "^3.0.5",
+		"vite-plugin-chunk-split": "^0.2.7",
+		"vite-plugin-html": "^3.2.0",
+		"vite-plugin-pwa": "^0.12.3",
+		"vitest": "^0.21.1"
 	},
 	"engines": {
 		"node": ">=17.0.0"
@@ -73,8 +76,8 @@
 		"node": "17.8.0"
 	},
 	"lint-staged": {
-		"*.ts": "eslint --ext .ts --fix",
-		"*.js": "eslint --ext .js --fix",
+		"*.ts": ["eslint --ext .ts --fix", "vitest related"],
+		"*.js": ["eslint --ext .js --fix", "vitest related"],
 		"*.css": "stylelint --fix"
 	},
 	"commitlint": {

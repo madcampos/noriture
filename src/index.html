@@ -8,17 +8,17 @@
 
 		<!-- App Metadata -->
 		<link rel="icon" href="/icons/favicon.svg"/>
-		<meta name="theme-color" content="<%= THEME_COLOR %>">
+		<meta name="theme-color" content="<%= APP_THEME_COLOR %>">
 
 		<!-- Social metadata -->
 		<meta name="keywords" content="<%= APP_KEYWORDS %>"/>
 
 		<meta property="og:title" name="twitter:title" itemprop="name" content="<%= APP_NAME %>"/>
 		<meta property="og:description" name="description" itemprop="description" content="<%= APP_DESCRIPTION %>"/>
-		<meta property="og:image" name="twitter:image" itemprop="image" content="<%= BASE_URL %><%= LARGE_ICON %>"/>
+		<meta property="og:image" name="twitter:image" itemprop="image" content="<%= APP_PUBLIC_URL %><%= APP_LARGE_ICON %>"/>
 		<meta property="og:type" content="website"/>
 		<meta property="og:locale" content="en_US"/>
-		<meta property="og:url" content="<%= BASE_URL %>" />
+		<meta property="og:url" content="<%= APP_PUBLIC_URL %>" />
 		<meta name="twitter:card" content="summary"/>
 		<meta name="twitter:dnt" content="on">
 
@@ -32,7 +32,7 @@
 
 		<!-- Apple icons -->
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-		<link rel="apple-touch-icon" href="%APPLE_ICON%">
+		<link rel="apple-touch-icon" href="<%= APP_APPLE_ICON %>">
 
 		<link rel="apple-touch-startup-image" href="/splash/apple-splash-2048-2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
 		<link rel="apple-touch-startup-image" href="/splash/apple-splash-2732-2048.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
@@ -62,10 +62,10 @@
 		<link rel="apple-touch-startup-image" href="/splash/apple-splash-1136-640.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
 
 		<!-- Styles -->
-		<link rel="stylesheet" href="/css/base.css"/>
+		<link rel="stylesheet" href="./css/base.css"/>
 	</head>
 	<body>
-		<div id="app"></div>
-		<script type="module" src="/src/main.ts"></script>
+		<main></main>
+		<script type="module" src="./js/main.ts"></script>
 	</body>
 </html>
