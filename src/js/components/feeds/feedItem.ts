@@ -144,3 +144,21 @@ export function extractItems(feed: Document, feedId: string) {
 export function extractUnreadItemsIds(items: FeedItem[]) {
 	return items.filter((item) => !item.read).map((item) => item.id);
 }
+
+
+export function formatFeedItem(item: FeedItem) {
+	// TODO: improve formatting
+	return {
+		id: item.id,
+		title: item.title,
+		author: item.author,
+		date: item.date,
+		image: item.image,
+		content: item.content,
+		media: item.media,
+		url: item.url,
+		read: item.read ? 1 : 0,
+		feedId: item.feedId,
+		tags: item.tags
+	};
+}
