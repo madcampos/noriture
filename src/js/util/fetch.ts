@@ -1,4 +1,4 @@
-const DEFAULT_PROXY_URL = import.meta.env.PROXY_URL;
+const DEFAULT_PROXY_URL = import.meta.env.APP_PROXY_URL;
 
 export const proxyUrl = (new Proxy({ proxy: '' }, {
 	get(_target, _prop) {

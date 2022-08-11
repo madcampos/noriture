@@ -1,7 +1,7 @@
 import { Router } from './router';
 
 Router.init({
-	baseUrl: import.meta.env.BASE_URL,
+	baseUrl: import.meta.env.APP_BASE_URL,
 	beforeEach: () => {
 		// TODO: load locale messages
 	},
