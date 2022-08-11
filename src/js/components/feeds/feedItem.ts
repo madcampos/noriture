@@ -15,19 +15,19 @@ export interface FeedItem {
 	/** The item's unique identifier. */
 	id: ReturnType<typeof crypto.randomUUID>,
 	/** The item's title that will be displayed to the user. */
-	title: string,
+	title?: string,
 	/** The item's author. */
-	author: string,
+	author?: string,
 	/** The item's date */
 	date?: Date,
 	/** The item's image */
-	image: string,
+	image?: string,
 	/** The item's content. */
 	content: string,
 	/** The item's media. */
-	media?: FeedMedia[],
+	media: FeedMedia[],
 	/** The item's URL. */
-	url: string,
+	url?: string,
 	/** The item's read status. */
 	read: boolean,
 	/** The item's feed id. */
@@ -37,26 +37,23 @@ export interface FeedItem {
 }
 
 function extractItemId(item: Element) {
-	const id = item.querySelector('guid')?.textContent?.trim() ?? crypto.randomUUID();
-
-	return id;
+	return item.querySelector('guid:not([isPermaLink="true"])')?.textContent?.trim() ?? crypto.randomUUID();
 }
 
 function extractItemUrl(item: Element) {
-	const url = item.querySelector('link, id')?.textContent?.trim() ?? item.querySelector('link')?.href ?? '';
-
-	return url;
+	return item.querySelector('link, id, guid[isPermaLink="true"]')?.textContent?.trim() ?? item.querySelector('link')?.href;
 }
 
 function extractItemTitle(item: Element) {
-	return (item.querySelector('title')?.textContent ?? '').trim();
+	return item.querySelector('title')?.textContent?.trim();
 }
 
 function extractItemAuthor(item: Element) {
-	const authorNestedTag = item.querySelector('author > name, contributor > name')?.textContent;
-	const authorDirectTag = item.querySelector('author, creator')?.textContent;
+	const authorNestedTag = item.querySelector('author > name, contributor > name');
+	// TODO: parse author email/name format
+	const authorDirectTag = item.querySelector('author, creator');
 
-	return (authorNestedTag ?? authorDirectTag ?? '').trim();
+	return (authorNestedTag ?? authorDirectTag)?.textContent?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
 }
 
 function extractMediaContent(item: Element) {
@@ -90,7 +87,7 @@ function extractMediaContent(item: Element) {
 
 function extractContentThumbnail(content: string) {
 	const parsedContent = new window.DOMParser().parseFromString(content, 'text/html');
-	const parsedThumbnail = parsedContent.querySelector('img')?.getAttribute('src');
+	const parsedThumbnail = parsedContent.querySelector('img')?.getAttribute('src')?.trim();
 
 	return parsedThumbnail;
 }
@@ -105,12 +102,19 @@ function extractItemDate(item: Element) {
 }
 
 function extractItemCategories(item: Element) {
-	const categories = [...item.querySelectorAll('category')].map((category) => category.getAttribute('label') ?? category.getAttribute('term') ?? category.textContent?.trim() ?? '');
+	return [
+		...new Set([...item.querySelectorAll('category')].map((category) => {
+			const label = category.getAttribute('label');
+			const term = category.getAttribute('term');
+			const textContent = category.textContent?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
 
-	return categories;
+			return label ?? term ?? textContent;
+		}).filter((category) => category))
+	] as string[];
 }
 
 function extractItemContents(item: Element) {
+	// TODO: parse differently depending on the content type
 	const content = item.querySelector('description, content')?.textContent ?? item.querySelector('summary')?.textContent ?? '';
 
 	return content.trim();
@@ -122,43 +126,30 @@ export function extractItems(feed: Document, feedId: string) {
 		const content = extractItemContents(item);
 		const contentThumbnail = extractContentThumbnail(content);
 		const date = extractItemDate(item);
+		const title = extractItemTitle(item);
+
+		if (!title && !content) {
+			return undefined;
+		}
 
 		return {
 			id: extractItemId(item),
 			feedId,
 			read: false,
-			title: extractItemTitle(item),
+			title,
 			author: extractItemAuthor(item),
 			content,
 			url: extractItemUrl(item),
-			image: enclosureImage ?? mediaThumbnail ?? contentThumbnail ?? '',
+			image: enclosureImage ?? mediaThumbnail ?? contentThumbnail,
 			tags: extractItemCategories(item),
-			...(date && { date }),
-			...(mediaItems.length > 0 ? { media: mediaItems } : {})
+			date,
+			media: mediaItems
 		};
-	});
+	}).filter((item) => item !== undefined) as FeedItem[];
 
 	return items;
 }
 
 export function extractUnreadItemsIds(items: FeedItem[]) {
 	return items.filter((item) => !item.read).map((item) => item.id);
-}
-
-
-export function formatFeedItem(item: FeedItem) {
-	// TODO: improve formatting
-	return {
-		id: item.id,
-		title: item.title,
-		author: item.author,
-		date: item.date,
-		image: item.image,
-		content: item.content,
-		media: item.media,
-		url: item.url,
-		read: item.read ? 1 : 0,
-		feedId: item.feedId,
-		tags: item.tags
-	};
 }
