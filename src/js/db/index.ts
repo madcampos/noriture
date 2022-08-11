@@ -3,9 +3,16 @@ import type { IDBPDatabase } from 'idb/with-async-ittr';
 import type { Feed } from '../components/feeds/feed';
 import type { FeedItem } from '../components/feeds/feedItem';
 
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = Number.parseInt(import.meta.env.APP_VERSION.replaceAll('.', ''));
 
-type SavedFeed = Omit<Feed, 'items' | 'unreadCount' | 'unreadItemIds'>;
+type SavedFeed = Omit<Feed, 'items' | 'unreadCount' | 'unreadItemIds' | 'lastUpdated'> & {
+	lastUpdated: string
+};
+
+type SavedFeedItem = Omit<FeedItem, 'date' | 'read'> & {
+	date?: string,
+	read: 0 | 1
+};
 
 export class Database {
 	static #database: IDBPDatabase<{
@@ -14,12 +21,13 @@ export class Database {
 			value: SavedFeed,
 			indexes: {
 				feedUrl: string,
+				siteUrl: string,
 				feedCategories: string[]
 			}
 		},
 		feedItems: {
 			key: 'id',
-			value: FeedItem,
+			value: SavedFeedItem,
 			indexes: {
 				feedId: string,
 				itemUrl: string,
@@ -38,6 +46,7 @@ export class Database {
 					const feedItemsStore = database.createObjectStore('feedItems', { keyPath: 'id' });
 
 					feedsStore.createIndex('feedUrl', 'feedUrl', { unique: true });
+					feedsStore.createIndex('siteUrl', 'siteUrl');
 					feedsStore.createIndex('feedCategories', 'categories', { multiEntry: true });
 
 					feedItemsStore.createIndex('feedId', 'feedId');
@@ -51,28 +60,83 @@ export class Database {
 		return this.#database;
 	}
 
+	static #asSavedFeed(feed: Feed): SavedFeed {
+		return {
+			feedUrl: feed.feedUrl,
+			id: feed.id,
+			name: feed.name,
+			categories: [...feed.categories],
+			type: feed.type,
+			displayType: feed.displayType,
+			siteUrl: feed.siteUrl,
+			description: feed.description,
+			icon: feed.icon,
+			lastUpdated: typeof feed.lastUpdated === 'string' ? feed.lastUpdated : feed.lastUpdated.toISOString(),
+			backgroundColor: feed.backgroundColor,
+			color: feed.color
+		};
+	}
+
+	static #asFeed(feed: SavedFeed, items: FeedItem[]): Feed {
+		const unreadItems = items.filter((item) => !item.read);
+
+		return {
+			...feed,
+			lastUpdated: new Date(feed.lastUpdated),
+			items,
+			unreadCount: unreadItems.length,
+			unreadItemIds: unreadItems.map((item) => item.id)
+		};
+	}
+
+	static #asSavedFeedItem(item: FeedItem, feedId: string): SavedFeedItem {
+		return {
+			...item,
+			feedId,
+			date: item.date ? item.date.toISOString() : undefined,
+			read: item.read ? 1 : 0
+		};
+	}
+
+	static #asFeedItem(item: SavedFeedItem): FeedItem {
+		return {
+			...item,
+			date: item.date ? new Date(item.date) : undefined,
+			read: item.read === 1
+		};
+	}
+
 	static async listFeeds() {
 		const database = await this.#getConnection();
+		const feeds = await database.getAll('feeds');
 
-		return database.getAll('feeds');
+		return feeds.map((feed) => Database.#asFeed(feed, []));
 	}
 
 	static async listFeedItems(feedId: string) {
 		const database = await this.#getConnection();
+		const feedItems = await database.getAll('feedItems', IDBKeyRange.only(feedId));
 
-		return database.getAll('feedItems', IDBKeyRange.only(feedId));
+		return feedItems.map((item) => Database.#asFeedItem(item));
 	}
 
 	static async listUnreadFeedItems(feedId: string) {
 		const database = await this.#getConnection();
+		const feedItems = await database.getAllFromIndex('feedItems', 'isRead', IDBKeyRange.only([feedId, 0]));
 
-		return database.getAllFromIndex('feedItems', 'isRead', IDBKeyRange.only([feedId, 0]));
+		return feedItems.map((item) => Database.#asFeedItem(item));
 	}
 
 	static async getFeedItem(itemId: string) {
 		const database = await this.#getConnection();
 
-		return database.get('feedItems', IDBKeyRange.only(itemId));
+		const feedItem = await database.get('feedItems', IDBKeyRange.only(itemId));
+
+		if (!feedItem) {
+			throw new Error(`Feed item with id ${itemId} does not exist`);
+		}
+
+		return Database.#asFeedItem(feedItem);
 	}
 
 	static async getFeed(feedId: string): Promise<Feed> {
@@ -84,15 +148,13 @@ export class Database {
 			throw new Error(`Feed with id ${feedId} does not exist`);
 		}
 
-		const items = await Database.listFeedItems(feedId);
-		const unreadItems = items.filter((item) => !item.read);
+		if (feed.lastUpdated === 'DownloadError' || feed.lastUpdated === 'ParseError') {
+			throw new Error(`Feed with id ${feedId} has an error`);
+		}
 
-		return {
-			...feed,
-			items,
-			unreadItemIds: unreadItems.map((item) => item.id),
-			unreadCount: unreadItems.length
-		};
+		const items = await Database.listFeedItems(feedId);
+
+		return Database.#asFeed(feed, items);
 	}
 
 	static async saveFeedItems(feedId: string, items: FeedItem[]) {
@@ -101,17 +163,15 @@ export class Database {
 		const existingItems = await database.getAllFromIndex('feedItems', 'feedId', IDBKeyRange.only(feedId));
 
 		return Promise.all(items.map(async (item) => {
+			// TODO: review how we check if an item is duplicated.
 			const existingItemIndex = existingItems.findIndex((existingItem) => existingItem.url === item.url);
 
 			if (existingItemIndex !== -1) {
 				item.id = existingItems[existingItemIndex].id;
+				item.read = false;
 			}
 
-			return database.add('feedItems', {
-				...item,
-				feedId,
-				read: false
-			});
+			return database.add('feedItems', Database.#asSavedFeedItem(item, feedId));
 		}));
 	}
 
@@ -126,20 +186,7 @@ export class Database {
 
 		await Database.saveFeedItems(feed.id, feed.items);
 
-		return database.put('feeds', {
-			feedUrl: feed.feedUrl,
-			id: feed.id,
-			name: feed.name,
-			categories: [...feed.categories],
-			type: feed.type,
-			displayType: feed.displayType,
-			siteUrl: feed.siteUrl,
-			description: feed.description,
-			icon: feed.icon,
-			lastUpdated: feed.lastUpdated,
-			backgroundColor: feed.backgroundColor ?? '',
-			color: feed.color ?? ''
-		});
+		return database.put('feeds', Database.#asSavedFeed(feed));
 	}
 
 	static async updateFeed(feedId: string, items: FeedItem[]) {
@@ -153,10 +200,10 @@ export class Database {
 
 		await Database.saveFeedItems(feedId, items);
 
-		return database.put('feeds', {
-			...feed,
+		return database.put('feeds', Database.#asSavedFeed({
+			...(feed as Feed),
 			lastUpdated: new Date()
-		});
+		}));
 	}
 
 	static async markFeedItemRead(itemId: string) {
@@ -170,7 +217,7 @@ export class Database {
 
 		return database.put('feedItems', {
 			...item,
-			read: true
+			read: 1
 		});
 	}
 
@@ -185,7 +232,7 @@ export class Database {
 
 		return database.put('feedItems', {
 			...item,
-			read: false
+			read: 0
 		});
 	}
 
