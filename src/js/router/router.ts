@@ -19,16 +19,25 @@ export interface RouteLocation<Path = string> {
 	hash?: string
 }
 
-type RouteHandler<DestinationPath = string, OriginPath = string> = (origin: RouteLocation<OriginPath>, destination: RouteLocation<DestinationPath>) => void | Promise<void>;
+type RenderHandler<DestinationPath = string, OriginPath = string> = (origin: RouteLocation<OriginPath>, destination: RouteLocation<DestinationPath>) => void | Promise<void>;
 
 // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 type RouteGuardReturnTypes = false | RouteLocation | void | Promise<false | RouteLocation | void>;
 
 type RouteGuardHandler<DestinationPath = string, OriginPath = string> = (origin: OriginPath, destination: DestinationPath) => RouteGuardReturnTypes;
 
+export interface View {
+	readonly template: string,
+	readonly rootElement: HTMLElement,
+	render: RenderHandler
+}
+
+type ViewImplementation = new (rootElement: HTMLElement) => View;
+
+
 interface RouteDefinition<Path = string> {
 	path: Path,
-	handler: RouteHandler<Path>,
+	view: ViewImplementation,
 	guard?: RouteGuardHandler<Path>
 }
 
@@ -37,19 +46,23 @@ interface RouterConfig {
 	baseUrl: string,
 	attribute?: string,
 	beforeEach?: RouteGuardHandler,
-	fallback?: RouteHandler
+	fallback?: View
 }
 
 export class Router {
-	static #routes: [URLPattern, RouteHandler][] = [];
+	static #routes: [URLPattern, View][] = [];
 	static #beforeEach: RouteGuardHandler | undefined;
-	static #fallback: RouteHandler | undefined;
+	static #fallback: View | undefined;
 	static readonly #fallbackPattern = new URLPattern({ pathname: '*' });
 	static #selectorAttribute = 'router-link';
 	static #baseUrl: string;
 
 	static #currentPath = '';
 	static #currentLocation: RouteLocation;
+
+	static get selectorAttribute() {
+		return this.#selectorAttribute;
+	}
 
 	// @ts-expect-error
 	static get beforeEach(): RouteGuardHandler | undefined {
@@ -61,16 +74,18 @@ export class Router {
 	}
 
 	// @ts-expect-error
-	static get fallback(): RouteHandler | undefined {
+	static get fallback(): View | undefined {
 		return Router.#fallback;
 	}
 
-	static set fallback(handler: RouteHandler) {
-		Router.#fallback = handler;
+	static set fallback(view: View) {
+		Router.#fallback = view;
 	}
 
-	static add(path: string, handler: RouteHandler) {
-		Router.#routes.push([new URLPattern({ pathname: path }), handler]);
+	static add<T extends ViewImplementation>(path: string, ViewClass: T) {
+		const view = new ViewClass(document.createElement('main'));
+
+		Router.#routes.push([new URLPattern({ pathname: path }), view]);
 	}
 
 	static async navigate(path: string) {
@@ -87,9 +102,9 @@ export class Router {
 
 			const pathToSearch = guardResult?.path ?? path;
 
-			const [matcher, handler] = Router.#routes.find(([pattern]) => pattern.test(pathToSearch, this.#baseUrl)) ?? [Router.#fallbackPattern, Router.fallback];
+			const [matcher, view] = Router.#routes.find(([pattern]) => pattern.test(pathToSearch, this.#baseUrl)) ?? [];
 
-			if (handler) {
+			if (matcher && view) {
 				const destinationMatcher = matcher.exec(pathToSearch, Router.#baseUrl);
 				const destination: RouteLocation = {
 					path: pathToSearch,
@@ -98,7 +113,9 @@ export class Router {
 					hash: destinationMatcher?.hash.input
 				};
 
-				await handler(Router.#currentLocation, destination);
+				await view.render(Router.#currentLocation, destination);
+
+				document.querySelector('main')?.replaceWith(view.rootElement);
 
 				/* eslint-disable require-atomic-updates */
 				Router.#currentPath = pathToSearch;
@@ -125,7 +142,7 @@ export class Router {
 			hash: currentMatcher?.hash.input
 		};
 
-		routes.forEach(({ path, handler }) => Router.add(path, handler));
+		routes.forEach(({ path, view }) => Router.add(path, view));
 
 		if (attribute) {
 			Router.#selectorAttribute = attribute;
@@ -168,5 +185,56 @@ export class Router {
 
 		// eslint-disable-next-line no-console
 		console.info('[⛵️] Router initialized');
+
+		void Router.navigate(window.location.href);
 	}
 }
+
+export class RouterLink extends HTMLElement {
+	static get observedAttributes() { return [Router.selectorAttribute]; }
+
+	#root: ShadowRoot;
+
+	constructor(link = '/') {
+		super();
+
+		const template = document.createElement('template');
+
+		template.innerHTML = `<a ${Router.selectorAttribute} href="${link}"></a>`;
+
+		this.#root = this.attachShadow({ mode: 'closed' });
+		this.#root.appendChild(template.content.cloneNode(true));
+
+		this.#root.querySelector('a')?.addEventListener('click', (evt) => {
+			evt.preventDefault();
+			evt.stopPropagation();
+
+			const target = evt.target as HTMLAnchorElement;
+			const path = target.getAttribute(Router.selectorAttribute) ?? target.getAttribute('href');
+
+			if (path) {
+				void Router.navigate(path);
+			} else {
+				console.warn(`[⛵️] RouterLink is missing attribute "${Router.selectorAttribute}" or "href"`);
+			}
+		});
+
+		this.setAttribute(Router.selectorAttribute, link);
+	}
+
+	get [Router.selectorAttribute]() {
+		return this.getAttribute(Router.selectorAttribute);
+	}
+
+	set [Router.selectorAttribute](value: string) {
+		this.setAttribute(Router.selectorAttribute, value);
+	}
+
+	attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+		if (name === Router.selectorAttribute && oldValue !== newValue) {
+			this.#root.querySelector('a')?.setAttribute(Router.selectorAttribute, newValue);
+		}
+	}
+}
+
+customElements.define('router-link', RouterLink);
