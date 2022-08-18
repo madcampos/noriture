@@ -102,11 +102,33 @@ export function parseFeed(feedText: string, url: string, id?: string) {
 	return feed;
 }
 
-export async function fetchFeed(url: string) {
+export async function fetchFeed(url: string, redirectCount = 0) {
+	const MAX_REDIRECTS = 5;
 	const response = await get(url);
 
+	if (!response.ok) {
+		throw new Error(`Could not fetch feed: ${response.status} ${response.statusText}`);
+	}
+
 	const text = await response.text();
-	const feed = parseFeed(text, url);
+	let feed: Feed;
+
+	if (text.startsWith('<?xml')) {
+		feed = parseFeed(text, url);
+	} else {
+		const siteHtml = new window.DOMParser().parseFromString(text, 'text/html');
+		const parsedFeedUrl = siteHtml.querySelector('link[type="application/rss+xml"], linke[type="application/atom+xml"]')?.getAttribute('href');
+
+		if (!parsedFeedUrl) {
+			throw new Error('Could not find feed URL');
+		}
+
+		if (redirectCount > MAX_REDIRECTS) {
+			throw new Error('Too many redirects');
+		}
+
+		feed = await fetchFeed(parsedFeedUrl, redirectCount + 1);
+	}
 
 	return feed;
 }
