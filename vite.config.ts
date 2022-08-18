@@ -122,6 +122,7 @@ export default defineConfig(({ mode }) => {
 			})
 		],
 		envPrefix: 'APP_',
+		envDir: '../',
 		root: 'src',
 		publicDir: '../public',
 		assetsInclude: ['locales/*.json'],
@@ -129,7 +130,8 @@ export default defineConfig(({ mode }) => {
 		server: {
 			https: sslOptions,
 			open: false,
-			cors: true
+			cors: true,
+			port: 3000
 		},
 		build: {
 			minify: true,
