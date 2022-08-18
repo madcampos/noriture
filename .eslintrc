@@ -356,7 +356,7 @@
 		"@typescript-eslint/naming-convention": ["error",
 			{
 				"selector": "default",
-				"format": ["camelCase"],
+				"format": ["PascalCase", "camelCase"],
 				"leadingUnderscore": "allow",
 				"trailingUnderscore": "forbid",
 				"filter": {
