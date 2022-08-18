@@ -6,10 +6,7 @@ import { HomeView } from '../views/HomeView/HomeView';
 import { Router } from './router';
 
 Router.init({
-	baseUrl: import.meta.env.APP_BASE_URL,
-	beforeEach: () => {
-		// TODO: load locale messages
-	},
+	baseUrl: import.meta.env.APP_PUBLIC_URL,
 	routes: [
 		{
 			path: '/',
@@ -32,8 +29,4 @@ Router.init({
 			view: FeedItemView
 		}
 	]
-});
-
-document.querySelector('button')?.addEventListener('click', async () => {
-	await Router.navigate('/feeds');
 });

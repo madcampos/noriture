@@ -19,7 +19,7 @@ export interface RouteLocation<Path = string> {
 	hash?: string
 }
 
-type RenderHandler<DestinationPath = string, OriginPath = string> = (origin: RouteLocation<OriginPath>, destination: RouteLocation<DestinationPath>) => void | Promise<void>;
+type RenderHandler<DestinationPath = string, OriginPath = string> = (origin: RouteLocation<OriginPath>, destination: RouteLocation<DestinationPath>) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 type RouteGuardReturnTypes = false | RouteLocation | void | Promise<false | RouteLocation | void>;
@@ -113,7 +113,7 @@ export class Router {
 					hash: destinationMatcher?.hash.input
 				};
 
-				await view.render(Router.#currentLocation, destination);
+				view.render(Router.#currentLocation, destination);
 
 				document.querySelector('main')?.replaceWith(view.rootElement);
 
@@ -191,7 +191,7 @@ export class Router {
 }
 
 export class RouterLink extends HTMLElement {
-	static get observedAttributes() { return [Router.selectorAttribute]; }
+	static get observedAttributes() { return ['to']; }
 
 	#root: ShadowRoot;
 
@@ -200,7 +200,7 @@ export class RouterLink extends HTMLElement {
 
 		const template = document.createElement('template');
 
-		template.innerHTML = `<a ${Router.selectorAttribute} href="${link}"></a>`;
+		template.innerHTML = `<a href="${link}"><slot></slot></a>`;
 
 		this.#root = this.attachShadow({ mode: 'closed' });
 		this.#root.appendChild(template.content.cloneNode(true));
@@ -210,28 +210,28 @@ export class RouterLink extends HTMLElement {
 			evt.stopPropagation();
 
 			const target = evt.target as HTMLAnchorElement;
-			const path = target.getAttribute(Router.selectorAttribute) ?? target.getAttribute('href');
+			const path = target.getAttribute('href');
 
 			if (path) {
 				void Router.navigate(path);
 			} else {
-				console.warn(`[⛵️] RouterLink is missing attribute "${Router.selectorAttribute}" or "href"`);
+				console.warn('[⛵️] RouterLink is missing "to" attribute');
 			}
 		});
 
 		this.setAttribute(Router.selectorAttribute, link);
 	}
 
-	get [Router.selectorAttribute]() {
-		return this.getAttribute(Router.selectorAttribute);
+	get to() {
+		return this.getAttribute(Router.selectorAttribute) ?? '';
 	}
 
-	set [Router.selectorAttribute](value: string) {
+	set to(value: string) {
 		this.setAttribute(Router.selectorAttribute, value);
 	}
 
 	attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-		if (name === Router.selectorAttribute && oldValue !== newValue) {
+		if (name === 'to' && oldValue !== newValue) {
 			this.#root.querySelector('a')?.setAttribute(Router.selectorAttribute, newValue);
 		}
 	}
