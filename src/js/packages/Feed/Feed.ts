@@ -1,5 +1,5 @@
 import { get } from '../../util/fetch';
-import { extractItems, extractUnreadItemsIds, type FeedItem } from './feedItem';
+import { extractItems, extractUnreadItemsIds, type FeedItem } from './FeedItem';
 
 type FeedType = 'rss' | 'atom' | 'youtube';
 
