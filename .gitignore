@@ -32,6 +32,7 @@ coverage
 .env
 
 # server certificates
+certs
 *.pem
 *.crt
 *.key

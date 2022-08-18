@@ -9,8 +9,8 @@ import { createHtmlPlugin } from 'vite-plugin-html';
 import { VitePWA as vitePWA } from 'vite-plugin-pwa';
 
 const sslOptions = {
-	cert: readFileSync('./server.crt'),
-	key: readFileSync('./server.key')
+	cert: readFileSync('./certs/server.crt'),
+	key: readFileSync('./certs/server.key')
 };
 
 const packageJson: PackageJsonVariables = JSON.parse(readFileSync('./package.json', { encoding: 'utf8' }));
