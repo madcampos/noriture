@@ -57,7 +57,10 @@ interface ImportMetaEnv {
 	/** The _large_ icon used for all other devices. */
 	readonly APP_LARGE_ICON: string,
 	/** The _large_ icon used for all other devices, with maskable background. */
-	readonly APP_LARGE_ICON_BG: string
+	readonly APP_LARGE_ICON_BG: string,
+
+	/** The app's database version. */
+	readonly APP_DB_VERSION?: string
 }
 
 interface ImportMeta {

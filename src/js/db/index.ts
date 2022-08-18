@@ -1,18 +1,10 @@
 import { openDB } from 'idb/with-async-ittr';
 import type { IDBPDatabase } from 'idb/with-async-ittr';
-import type { Feed } from '../components/feeds/feed';
-import type { FeedItem } from '../components/feeds/feedItem';
+import type { Feed } from '../packages/Feed/Feed';
+import type { FeedItem } from '../packages/Feed/FeedItem';
+import { asFeed, asFeedItem, asSavedFeed, asSavedFeedItem, type SavedFeed, type SavedFeedItem } from './feed-mapper';
 
-const DATABASE_VERSION = Number.parseInt(import.meta.env.APP_VERSION.replaceAll('.', ''));
-
-type SavedFeed = Omit<Feed, 'items' | 'unreadCount' | 'unreadItemIds' | 'lastUpdated'> & {
-	lastUpdated: string
-};
-
-type SavedFeedItem = Omit<FeedItem, 'date' | 'read'> & {
-	date?: string,
-	read: 0 | 1
-};
+const DATABASE_VERSION = Number.parseInt(import.meta.env.APP_DB_VERSION ?? '1');
 
 export class Database {
 	static #database: IDBPDatabase<{
@@ -60,71 +52,25 @@ export class Database {
 		return this.#database;
 	}
 
-	static #asSavedFeed(feed: Feed): SavedFeed {
-		return {
-			feedUrl: feed.feedUrl,
-			id: feed.id,
-			name: feed.name,
-			categories: [...feed.categories],
-			type: feed.type,
-			displayType: feed.displayType,
-			siteUrl: feed.siteUrl,
-			description: feed.description,
-			icon: feed.icon,
-			lastUpdated: typeof feed.lastUpdated === 'string' ? feed.lastUpdated : feed.lastUpdated.toISOString(),
-			backgroundColor: feed.backgroundColor,
-			color: feed.color
-		};
-	}
-
-	static #asFeed(feed: SavedFeed, items: FeedItem[]): Feed {
-		const unreadItems = items.filter((item) => !item.read);
-
-		return {
-			...feed,
-			lastUpdated: new Date(feed.lastUpdated),
-			items,
-			unreadCount: unreadItems.length,
-			unreadItemIds: unreadItems.map((item) => item.id)
-		};
-	}
-
-	static #asSavedFeedItem(item: FeedItem, feedId: string): SavedFeedItem {
-		return {
-			...item,
-			feedId,
-			date: item.date ? item.date.toISOString() : undefined,
-			read: item.read ? 1 : 0
-		};
-	}
-
-	static #asFeedItem(item: SavedFeedItem): FeedItem {
-		return {
-			...item,
-			date: item.date ? new Date(item.date) : undefined,
-			read: item.read === 1
-		};
-	}
-
 	static async listFeeds() {
 		const database = await this.#getConnection();
 		const feeds = await database.getAll('feeds');
 
-		return feeds.map((feed) => Database.#asFeed(feed, []));
+		return feeds.map((feed) => asFeed(feed, []));
 	}
 
 	static async listFeedItems(feedId: string) {
 		const database = await this.#getConnection();
 		const feedItems = await database.getAll('feedItems', IDBKeyRange.only(feedId));
 
-		return feedItems.map((item) => Database.#asFeedItem(item));
+		return feedItems.map((item) => asFeedItem(item));
 	}
 
 	static async listUnreadFeedItems(feedId: string) {
 		const database = await this.#getConnection();
 		const feedItems = await database.getAllFromIndex('feedItems', 'isRead', IDBKeyRange.only([feedId, 0]));
 
-		return feedItems.map((item) => Database.#asFeedItem(item));
+		return feedItems.map((item) => asFeedItem(item));
 	}
 
 	static async getFeedItem(itemId: string) {
@@ -136,7 +82,7 @@ export class Database {
 			throw new Error(`Feed item with id ${itemId} does not exist`);
 		}
 
-		return Database.#asFeedItem(feedItem);
+		return asFeedItem(feedItem);
 	}
 
 	static async getFeed(feedId: string): Promise<Feed> {
@@ -154,7 +100,7 @@ export class Database {
 
 		const items = await Database.listFeedItems(feedId);
 
-		return Database.#asFeed(feed, items);
+		return asFeed(feed, items);
 	}
 
 	static async saveFeedItems(feedId: string, items: FeedItem[]) {
@@ -171,7 +117,7 @@ export class Database {
 				item.read = false;
 			}
 
-			return database.add('feedItems', Database.#asSavedFeedItem(item, feedId));
+			return database.add('feedItems', asSavedFeedItem(item, feedId));
 		}));
 	}
 
@@ -186,7 +132,7 @@ export class Database {
 
 		await Database.saveFeedItems(feed.id, feed.items);
 
-		return database.put('feeds', Database.#asSavedFeed(feed));
+		return database.put('feeds', asSavedFeed(feed));
 	}
 
 	static async updateFeed(feedId: string, items: FeedItem[]) {
@@ -200,7 +146,7 @@ export class Database {
 
 		await Database.saveFeedItems(feedId, items);
 
-		return database.put('feeds', Database.#asSavedFeed({
+		return database.put('feeds', asSavedFeed({
 			...(feed as Feed),
 			lastUpdated: new Date()
 		}));
