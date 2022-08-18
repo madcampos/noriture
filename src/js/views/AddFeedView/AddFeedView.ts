@@ -1,7 +1,8 @@
-import { fetchFeed, parseFeed } from '../../packages/Feed/Feed';
+import { fetchFeed } from '../../packages/Feed/Feed';
 import type { Feed } from '../../packages/Feed/Feed';
 import type { View } from '../../router/router';
 import templateString from './AddFeedView.html?raw';
+import { sanitize } from '../../plugins/sanitization';
 
 export class AddFeedView implements View {
 	#root: HTMLElement;
@@ -60,7 +61,12 @@ export class AddFeedView implements View {
 			this.#newFeedIcon.hidden = true;
 		}
 
-		this.#newFeedDescription.textContent = feed.description ?? 'This feed has no description.';
+		this.#newFeedDescription.innerHTML = sanitize(feed.description ?? 'This feed has no description.');
+
+		this.#newFeedDescription.querySelectorAll('a').forEach((link) => {
+			link.setAttribute('target', '_blank');
+			link.setAttribute('rel', 'noopener noreferrer');
+		});
 
 		if (feed.lastUpdated instanceof Date) {
 			this.#newFeedDate.textContent = feed.lastUpdated.toLocaleString();
@@ -75,26 +81,8 @@ export class AddFeedView implements View {
 		try {
 			this.#searchButton.disabled = true;
 
-			void new URL(this.#feedUrl.value);
-
-			const response = await fetch(`https://thingproxy.freeboard.io/fetch/${this.#feedUrl.value}`, {
-				method: 'GET',
-				credentials: 'omit',
-				redirect: 'follow'
-			});
-
-			const text = await response.text();
-
-			let feed: Feed;
-
-			if (text.startsWith('<?xml')) {
-				feed = parseFeed(text, this.#feedUrl.value);
-			} else {
-				const siteHtml = new window.DOMParser().parseFromString(text, 'text/html');
-				const parsedFeedUrl = siteHtml.querySelector('link[type="application/rss+xml"], linke[type="application/atom+xml"]')?.getAttribute('href') ?? '';
-
-				feed = await fetchFeed(parsedFeedUrl);
-			}
+			const url = new URL(this.#feedUrl.value);
+			const feed = await fetchFeed(url.href);
 
 			this.renderFeed(feed);
 		} catch (err) {
@@ -106,5 +94,6 @@ export class AddFeedView implements View {
 
 	render() {
 		this.#newFeedResult.hidden = true;
+		this.#feedUrl.value = '';
 	}
 }
