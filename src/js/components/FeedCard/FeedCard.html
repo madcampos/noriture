@@ -1,10 +1,11 @@
 <article>
 	<picture id="icon">
-		<img src="{{image}}" alt="{{title}}">
+		<slot name="image"></slot>
 	</picture>
-	<a router-link="{{feedLink}}">
+	<router-link to="">
 		<h1 id="title"><slot name="title"></slot></h1>
 		<span id="unread-count">{{unreadCount}}</span>
-	</a>
+		<span><slot name="last-updated"></slot></span>
+	</router-link>
 	<p id="description"><slot name="description"></slot></p>
 </article>
