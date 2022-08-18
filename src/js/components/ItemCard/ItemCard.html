@@ -1,0 +1,22 @@
+<section>
+	<header>
+		<h2>{{title}}</h2>
+		<aside>
+			<span>{{author}}</span>
+			<span id="author-date-separator">●</span>
+			<span>{{date}}</span>
+		</aside>
+	</header>
+	<div>
+		<article id="content">
+			<!-- TODO: sanitize html? -->
+			<slot></slot>
+		</article>
+
+		<aside id="tags"></aside>
+	</div>
+	<footer>
+		<a router-link href="{{itemLink}}">Read Item</a>
+		<!-- TODO: add buttons for share, mark as read, bookmark and "options" (?) -->
+	</footer>
+</section>
