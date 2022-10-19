@@ -13,3 +13,4 @@
 - https://xkcd.com/rss.xml
 - https://feeds.feedburner.com/bingimages
 - https://feeds.bbci.co.uk/news/rss.xml
+- https://peapix.com/bing/rss
