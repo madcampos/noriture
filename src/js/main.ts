@@ -5,4 +5,8 @@ import { Router } from './router/router';
 
 (async () => {
 	await I18n.init();
+
+	document.querySelector('#config-button')?.addEventListener('click', () => {
+		void Router.navigate('/add-feed');
+	});
 })();
