@@ -131,7 +131,7 @@ export default defineConfig(({ mode }) => {
 			https: sslOptions,
 			open: false,
 			cors: true,
-			port: 3000
+			port: 5000
 		},
 		build: {
 			minify: true,
