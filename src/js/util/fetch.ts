@@ -18,7 +18,7 @@ export const proxyUrl = (new Proxy({ proxy: '' }, {
 })).proxy;
 
 export async function get(url: string) {
-	const response = await fetch(`${proxyUrl}${url}`, {
+	const response = await fetch(`${proxyUrl}?url=${url}`, {
 		method: 'GET',
 		credentials: 'omit',
 		redirect: 'follow'
