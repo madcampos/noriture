@@ -45,8 +45,8 @@
 		"test:coverage": "vitest run --coverage"
 	},
 	"dependencies": {
-		"@mozilla/readability": "^0.4.4",
-		"@types/node": "^20.10.1",
+		"@mozilla/readability": "^0.5.0",
+		"@types/node": "^20.10.6",
 		"cors-anywhere": "^0.4.4",
 		"dompurify": "^3.0.6",
 		"idb": "^8.0.0",
@@ -56,20 +56,20 @@
 		"@commitlint/cli": "^18.4.3",
 		"@commitlint/config-conventional": "^18.4.3",
 		"@types/dompurify": "^3.0.5",
-		"@typescript-eslint/eslint-plugin": "^6.13.1",
-		"@typescript-eslint/parser": "^6.13.1",
+		"@typescript-eslint/eslint-plugin": "^6.17.0",
+		"@typescript-eslint/parser": "^6.17.0",
 		"c8": "^8.0.1",
-		"eslint": "^8.54.0",
+		"eslint": "^8.56.0",
 		"husky": "^8.0.3",
-		"lint-staged": "^15.1.0",
+		"lint-staged": "^15.2.0",
 		"pwa-asset-generator": "^6.3.1",
-		"stylelint": "^15.11.0",
-		"typescript": "^5.3.2",
-		"vite": "^5.0.4",
+		"stylelint": "^16.1.0",
+		"typescript": "^5.3.3",
+		"vite": "^5.0.10",
 		"vite-plugin-chunk-split": "^0.5.0",
-		"vite-plugin-html": "^3.2.0",
-		"vite-plugin-pwa": "^0.17.2",
-		"vitest": "^0.34.6"
+		"vite-plugin-html": "^3.2.1",
+		"vite-plugin-pwa": "^0.17.4",
+		"vitest": "^1.1.1"
 	},
 	"engines": {
 		"node": ">=17.0.0"
