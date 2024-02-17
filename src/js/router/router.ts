@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-invalid-void-type */
 if (!('URLPattern' in globalThis)) {
 	await import('urlpattern-polyfill');
 }
@@ -5,7 +6,7 @@ if (!('URLPattern' in globalThis)) {
 type IsParameter<Part> = Part extends `:${infer ParamName}` ? ParamName : never;
 
 type FilteredParts<Path> = Path extends `${infer PartA}/${infer PartB}`
-	? FilteredParts<PartB> | IsParameter<PartA>
+	? IsParameter<PartA> | FilteredParts<PartB>
 	: IsParameter<Path>;
 
 type Params<Path> = {
@@ -19,26 +20,18 @@ export interface RouteLocation<Path = string> {
 	hash?: string
 }
 
-type RenderHandler<DestinationPath = string, OriginPath = string> = (origin: RouteLocation<OriginPath>, destination: RouteLocation<DestinationPath>) => void;
+type RouteGuardHandler = (origin: string, destination: string) => false | RouteLocation | void | Promise<false | RouteLocation | void>;
 
-// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-type RouteGuardReturnTypes = Promise<RouteLocation | false | void> | RouteLocation | false | void;
-
-type RouteGuardHandler<DestinationPath = string, OriginPath = string> = (origin: OriginPath, destination: DestinationPath) => RouteGuardReturnTypes;
-
-export interface View {
-	readonly template: string,
-	readonly rootElement: HTMLElement,
-	render: RenderHandler
+export interface RouterView {
+	navigate(destination: RouteLocation, origin: RouteLocation): string | void | Promise<string | void>
 }
 
-type ViewImplementation = new (rootElement: HTMLElement) => View;
+type ViewImplementation = new () => RouterView;
 
-
-interface RouteDefinition<Path = string> {
-	path: Path,
+interface RouteDefinition {
+	path: string,
 	view: ViewImplementation,
-	guard?: RouteGuardHandler<Path>
+	guard?: RouteGuardHandler
 }
 
 interface RouterConfig {
@@ -46,19 +39,23 @@ interface RouterConfig {
 	baseUrl: string,
 	attribute?: string,
 	beforeEach?: RouteGuardHandler,
-	fallback?: View
+	fallback?: RouterView
 }
 
 export class Router {
-	static #routes: [URLPattern, View][] = [];
+	static #routes: [URLPattern, RouterView][] = [];
 	static #beforeEach: RouteGuardHandler | undefined;
-	static #fallback: View | undefined;
+	static #fallback: RouterView | undefined;
 	static readonly #fallbackPattern = new URLPattern({ pathname: '*' });
 	static #selectorAttribute = 'router-link';
 	static #baseUrl: string;
 
 	static #currentPath = '';
 	static #currentLocation: RouteLocation;
+
+	static get currentPath() {
+		return this.#currentPath;
+	}
 
 	static get selectorAttribute() {
 		return this.#selectorAttribute;
@@ -72,37 +69,41 @@ export class Router {
 		Router.#beforeEach = handler;
 	}
 
-	static get fallback(): View | undefined {
+	static get fallback(): RouterView | undefined {
 		return Router.#fallback;
 	}
 
-	static set fallback(view: View) {
+	static set fallback(view: RouterView) {
 		Router.#fallback = view;
 	}
 
 	static add<T extends ViewImplementation>(path: string, ViewClass: T) {
-		const view = new ViewClass(document.createElement('main'));
+		const view = new ViewClass();
 
 		Router.#routes.push([new URLPattern({ pathname: path }), view]);
+
+		document.body.appendChild(view as unknown as Node);
 	}
 
 	static async navigate(path: string) {
-		try {
-			if (Router.#currentPath === path) {
+	try {
+			const newPath = new URL(path, Router.#baseUrl).pathname;
+
+			if (Router.#currentPath === newPath) {
 				return;
 			}
 
-			const guardResult = await Router.#beforeEach?.(this.#currentPath, path);
+			const guardResult = await Router.#beforeEach?.(this.#currentPath, newPath);
 
 			if (guardResult === false) {
 				return;
 			}
 
-			const pathToSearch = guardResult?.path ?? path;
+			const pathToSearch = guardResult?.path ?? newPath;
 
 			const [matcher, view] = Router.#routes.find(([pattern]) => pattern.test(pathToSearch, this.#baseUrl)) ?? [];
 
-			if (matcher && view) {
+			if (matcher !== undefined && view) {
 				const destinationMatcher = matcher.exec(pathToSearch, Router.#baseUrl);
 				const destination: RouteLocation = {
 					path: pathToSearch,
@@ -111,16 +112,23 @@ export class Router {
 					hash: destinationMatcher?.hash.input
 				};
 
-				view.render(Router.#currentLocation, destination);
-
-				document.querySelector('main')?.replaceWith(view.rootElement);
+				const title = await view.navigate(destination, Router.#currentLocation);
 
 				/* eslint-disable require-atomic-updates */
 				Router.#currentPath = pathToSearch;
 				Router.#currentLocation = destination;
 				/* eslint-enable require-atomic-updates */
 
-				window.history.pushState(null, '', path);
+				const basePath = new URL(Router.#baseUrl).pathname.replace(/\/$/u, '');
+				const normalizedPath = new URL(`${basePath}${path}`, Router.#baseUrl).pathname;
+
+				window.history.pushState(null, '', normalizedPath);
+
+				if (title) {
+					window.document.title = `${title} · Shadowrun Catalog`;
+				} else {
+					window.document.title = 'Shadowrun Catalog';
+				}
 			}
 		} catch (err) {
 			console.error(`[⛵️] Error while navigating to ${path}:`, err);
@@ -130,9 +138,13 @@ export class Router {
 	static init({ routes, baseUrl, attribute, beforeEach, fallback }: RouterConfig) {
 		Router.#baseUrl = baseUrl;
 
+		if (Router.#baseUrl === '/') {
+			Router.#baseUrl = new URL('./', import.meta.env.BASE_URL).toString();
+		}
+
 		const currentMatcher = Router.#fallbackPattern.exec(window.location.href, Router.#baseUrl);
 
-		Router.#currentPath = currentMatcher?.pathname.input ?? '';
+		Router.#currentPath = '';
 		Router.#currentLocation = {
 			path: Router.#currentPath,
 			params: currentMatcher?.pathname.groups ?? {},
@@ -188,53 +200,4 @@ export class Router {
 	}
 }
 
-export class RouterLink extends HTMLElement {
-	static get observedAttributes() { return ['to']; }
-
-	#root: ShadowRoot;
-
-	constructor(link = '/') {
-		super();
-
-		const template = document.createElement('template');
-
-		template.innerHTML = `<a href="${link}"><slot></slot></a>`;
-
-		this.#root = this.attachShadow({ mode: 'closed' });
-		this.#root.appendChild(template.content.cloneNode(true));
-
-		this.#root.querySelector('a')?.addEventListener('click', (evt) => {
-			evt.preventDefault();
-			evt.stopPropagation();
-
-			const target = evt.target as HTMLAnchorElement;
-			const path = target.getAttribute('href');
-
-			if (path) {
-				void Router.navigate(path);
-			} else {
-				console.warn('[⛵️] RouterLink is missing "to" attribute');
-			}
-		});
-
-		this.setAttribute(Router.selectorAttribute, link);
-	}
-
-	// eslint-disable-next-line id-length
-	get to() {
-		return this.getAttribute(Router.selectorAttribute) ?? '';
-	}
-
-	// eslint-disable-next-line id-length
-	set to(value: string) {
-		this.setAttribute(Router.selectorAttribute, value);
-	}
-
-	attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-		if (name === 'to' && oldValue !== newValue) {
-			this.#root.querySelector('a')?.setAttribute(Router.selectorAttribute, newValue);
-		}
-	}
-}
-
-customElements.define('router-link', RouterLink);
+import './router-link';

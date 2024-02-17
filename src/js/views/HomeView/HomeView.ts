@@ -1,55 +1,62 @@
-import type { FeedCard } from '../../components/FeedCard/FeedCard';
+import type { Feed } from '../../packages/Feed/Feed';
+import type { RouterView } from '../../router/router';
+
+import { html, LitElement } from 'lit';
+import { customElement, state } from 'lit/decorators.js';
+
 import { Database } from '../../db';
-import type { View } from '../../router/router';
-import templateString from './HomeView.html?raw';
 
-export class HomeView implements View {
-	#root: HTMLElement;
+declare global {
+	interface GlobalEventHandlersEventMap {
+		itemloaded: CustomEvent<{
+			index: number,
+			total: number,
+			name: string
+		}>,
+		apploaded: CustomEvent<undefined>
+	}
+}
 
-	#feedCardTemplate: HTMLTemplateElement;
+@customElement('n-home-view')
+export class HomeView extends LitElement implements RouterView {
+	static shadowRootOptions = { ...LitElement.shadowRootOptions, delegatesFocus: true };
 
-	constructor(rootElement: HTMLElement) {
-		const template = document.createElement('template');
+	@state() private feeds: Feed[] = [];
 
-		template.innerHTML = templateString;
+	constructor() {
+		super();
 
-		this.#root = rootElement;
-		this.#root.appendChild(template.content.cloneNode(true));
-
-		this.#feedCardTemplate = this.#root.querySelector('#feed-card') as HTMLTemplateElement;
-
-		this.#root.removeChild(this.#feedCardTemplate);
+		this.hidden = false;
 	}
 
-	get template() {
-		return templateString;
+	createRenderRoot() {
+		return this;
 	}
 
-	get rootElement() {
-		return this.#root;
-	}
-
-	async #loadCards() {
-		const feeds = await Database.listFeeds();
-
-		for (const feed of feeds) {
-			const template = this.#feedCardTemplate.content.cloneNode(true) as HTMLElement;
-			const card = template.querySelector('feed-card') as FeedCard;
-
-			card.feedId = `/feed/${feed.id}`;
-			card.unreadCount = feed.unreadCount;
-
-			(card.querySelector('[slot=title]') as HTMLSpanElement).textContent = feed.name;
-			(card.querySelector('[slot=description]') as HTMLSpanElement).textContent = feed.description ?? '';
-			(card.querySelector('[slot=last-updated]') as HTMLSpanElement).textContent = feed.lastUpdated.toLocaleString();
-			(card.querySelector('[slot=image]') as HTMLImageElement).src = feed.icon ?? '';
-
-			this.#root.appendChild(card);
-		}
+	navigate() {
+		this.hidden = false;
 	}
 
 	render() {
-		this.#root.querySelectorAll('feed-card').forEach((card) => card.remove());
-		void this.#loadCards();
+		return html`
+			<h1>Home</h1>
+
+			${this.feeds.map((feed) => html`
+				<feed-card feed-id="/feed/${feed.id}" unread-count="${feed.unreadCount}">
+					<span slot="title">${feed.name}</span>
+					<span slot="image">${feed.icon}</span>
+					<span slot="description">${feed.description}</span>
+					<span slot="last-updated">${feed.lastUpdated}</span>
+				</feed-card>
+			`)}
+		`;
+	}
+
+	async connectedCallback() {
+		super.connectedCallback();
+		this.requestUpdate();
+
+		this.feeds = await Database.listFeeds();
+		this.dispatchEvent(new CustomEvent('apploaded', { bubbles: true, composed: true }));
 	}
 }

@@ -4,7 +4,7 @@ import type { Feed } from '../packages/Feed/Feed';
 import type { FeedItem } from '../packages/Feed/FeedItem';
 import { asFeed, asFeedItem, asSavedFeed, asSavedFeedItem, type SavedFeed, type SavedFeedItem } from './feed-mapper';
 
-const DATABASE_VERSION = Number.parseInt(import.meta.env.APP_DB_VERSION ?? '1');
+const DATABASE_VERSION = 1;
 
 export class Database {
 	static #database: IDBPDatabase<{

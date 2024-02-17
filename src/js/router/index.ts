@@ -6,7 +6,7 @@ import { HomeView } from '../views/HomeView/HomeView';
 import { Router } from './router';
 
 Router.init({
-	baseUrl: import.meta.env.APP_PUBLIC_URL,
+	baseUrl: document.location.href,
 	routes: [
 		{
 			path: '/',

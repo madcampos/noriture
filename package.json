@@ -43,6 +43,7 @@
 		"dompurify": "^3.0.8",
 		"hono": "^4.0.3",
 		"idb": "^8.0.0",
+		"lit": "^3.1.2",
 		"tsx": "^4.7.1",
 		"urlpattern-polyfill": "^10.0.0"
 	},
