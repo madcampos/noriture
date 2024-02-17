@@ -16,9 +16,7 @@
 		"shared-node-browser": true
 	},
 	"ignorePatterns": ["dist/**"],
-	"plugins": [
-		"@typescript-eslint"
-	],
+	"plugins": ["@typescript-eslint"],
 	"rules": {
 		"accessor-pairs": "error",
 		"array-callback-return": "error",

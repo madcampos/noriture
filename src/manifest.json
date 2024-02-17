@@ -1,0 +1,49 @@
+{
+	"id": "/?id=b4f0ee06-787e-43f1-8f4e-0c3988fae609",
+	"scope": "/?utm_source=pwa&utm_medium=install&utm_campaign=web_app_manifest",
+	"name": "Noriture",
+	"short_name": "Noriture",
+	"lang": "en-US",
+	"dir": "ltr",
+	"description": "Feed reader for the thirsty",
+	"categories": ["news", "feed-reader"],
+	"display": "standalone",
+	"orientation": "portrait",
+	"display_override": ["window-controls-overlay"],
+	"background_color": "#252525",
+	"theme_color": "#ffa500",
+	"prefer_related_applications": false,
+	"icons": [
+		{
+			"src": "/icons/transparent/manifest-icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/maskable/manifest-icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "/icons/transparent/manifest-icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/maskable/manifest-icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	],
+	"handle_links": "preffered",
+	"launch_handler": {
+		"client_mode": "navigate-existing"
+	},
+	"edge_side_panel": {
+		"preffer_width": 460
+	}
+}
