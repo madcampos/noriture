@@ -2,9 +2,6 @@
 	"name": "noriture",
 	"private": true,
 	"version": "1.0.0",
-	"displayName": "Noriture",
-	"shortName": "Noriture",
-	"description": "Feed reader for the thirsty",
 	"homepage": "https://madcampos.github.io/noriture/",
 	"keywords": [
 		"app",
@@ -27,6 +24,7 @@
 	"scripts": {
 		"postinstall": "husky install",
 		"start": "vite",
+		"start-server": "tsx watch server/index.ts",
 		"typecheck": "tsc --noEmit",
 		"lint": "npm run typecheck && npm run lint:js && npm run lint:css",
 		"lint:js": "eslint ./ --ext .js,.mjs,.ts,.mts --fix --ignore-path .gitignore",
