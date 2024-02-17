@@ -5,7 +5,7 @@ if (!('URLPattern' in globalThis)) {
 type IsParameter<Part> = Part extends `:${infer ParamName}` ? ParamName : never;
 
 type FilteredParts<Path> = Path extends `${infer PartA}/${infer PartB}`
-	? IsParameter<PartA> | FilteredParts<PartB>
+	? FilteredParts<PartB> | IsParameter<PartA>
 	: IsParameter<Path>;
 
 type Params<Path> = {
@@ -22,7 +22,7 @@ export interface RouteLocation<Path = string> {
 type RenderHandler<DestinationPath = string, OriginPath = string> = (origin: RouteLocation<OriginPath>, destination: RouteLocation<DestinationPath>) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-type RouteGuardReturnTypes = false | RouteLocation | void | Promise<false | RouteLocation | void>;
+type RouteGuardReturnTypes = Promise<RouteLocation | false | void> | RouteLocation | false | void;
 
 type RouteGuardHandler<DestinationPath = string, OriginPath = string> = (origin: OriginPath, destination: DestinationPath) => RouteGuardReturnTypes;
 
@@ -64,7 +64,6 @@ export class Router {
 		return this.#selectorAttribute;
 	}
 
-	// @ts-expect-error
 	static get beforeEach(): RouteGuardHandler | undefined {
 		return Router.#beforeEach;
 	}
@@ -73,7 +72,6 @@ export class Router {
 		Router.#beforeEach = handler;
 	}
 
-	// @ts-expect-error
 	static get fallback(): View | undefined {
 		return Router.#fallback;
 	}
@@ -222,10 +220,12 @@ export class RouterLink extends HTMLElement {
 		this.setAttribute(Router.selectorAttribute, link);
 	}
 
+	// eslint-disable-next-line id-length
 	get to() {
 		return this.getAttribute(Router.selectorAttribute) ?? '';
 	}
 
+	// eslint-disable-next-line id-length
 	set to(value: string) {
 		this.setAttribute(Router.selectorAttribute, value);
 	}

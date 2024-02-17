@@ -1,7 +1,9 @@
 /// <reference types="urlpattern-polyfill" />
 /// <reference types="vite/client" />
 
-type Serializable = string | number | boolean | Serializable[] | { [key: string]: Serializable };
+/// <reference types="vite-plugin-pwa/client" />
+
+type Serializable = Serializable[] | boolean | number | string | { [key: string]: Serializable };
 
 interface PackageJsonVariables {
 	homepage: string,

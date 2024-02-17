@@ -52,11 +52,11 @@ export class I18n {
 		};
 	}
 
-	static setMessage(key: string, message: string) {
+	static setMessage(key: keyof Messages, message: string) {
 		I18n.#messages[key] = message;
 	}
 
-	static t(key: string) {
+	static t(key: keyof Messages) {
 		const message = I18n.#messages[key] as string | undefined;
 
 		if (!message) {

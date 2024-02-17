@@ -2,10 +2,8 @@
 // eslint-env node
 import { readFileSync } from 'fs';
 
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
 import { loadEnv } from 'vite';
-import { chunkSplitPlugin } from 'vite-plugin-chunk-split';
-import { createHtmlPlugin } from 'vite-plugin-html';
 import { VitePWA as vitePWA } from 'vite-plugin-pwa';
 
 const sslOptions = {
@@ -39,13 +37,6 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		plugins: [
-			chunkSplitPlugin({ strategy: 'unbundle' }),
-			createHtmlPlugin({
-				minify: true,
-				inject: {
-					data: env
-				}
-			}),
 			vitePWA({
 				registerType: 'prompt',
 				minify: true,

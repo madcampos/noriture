@@ -96,6 +96,7 @@ function extractItemDate(item: Element) {
 	const publicationDate = item.querySelector('pubDate, published')?.textContent?.trim();
 	const lastModified = item.querySelector('lastBuildDate, updated')?.textContent?.trim();
 
+	// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 	if (publicationDate || lastModified) {
 		return new Date(publicationDate ?? lastModified ?? '');
 	}

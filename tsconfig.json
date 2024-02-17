@@ -1,5 +1,5 @@
 {
-	"include": ["globals.d.ts", "src/**/*", "src/**/*.json", "vite.config.ts"],
+	"include": ["globals.d.ts", "src/**/*", "src/**/*.json", "vite.config.ts", "server/**/*.ts"],
 	"exclude": ["src/**/__tests__/*", "./node_modules/**/*", "./dist/**/*"],
 	"compilerOptions": {
 		"tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
@@ -13,10 +13,8 @@
 		"target": "ESNext",
 		"strict": true,
 		"noImplicitThis": true,
-		"preserveValueImports": true,
-		"importsNotUsedAsValues": "error",
+		"verbatimModuleSyntax": true,
 		"useDefineForClassFields": true,
-		"suppressImplicitAnyIndexErrors": true,
 		"useUnknownInCatchVariables": false,
 		"sourceMap": false,
 		"isolatedModules": true,

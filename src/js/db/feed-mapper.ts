@@ -2,7 +2,7 @@ import type { Feed } from '../packages/Feed/Feed';
 import type { FeedItem } from '../packages/Feed/FeedItem';
 
 
-export type SavedFeed = Omit<Feed, 'items' | 'unreadCount' | 'unreadItemIds' | 'lastUpdated'> & {
+export type SavedFeed = Omit<Feed, 'items' | 'lastUpdated' | 'unreadCount' | 'unreadItemIds'> & {
 	lastUpdated: string
 };
 
@@ -43,7 +43,7 @@ export function asFeed(feed: SavedFeed, items: FeedItem[]): Feed {
 export function asSavedFeedItem(item: FeedItem, feedId: string): SavedFeedItem {
 	return {
 		...item,
-		feedId,
+		feedId: feedId as SavedFeedItem['feedId'],
 		date: item.date ? item.date.toISOString() : undefined,
 		read: item.read ? 1 : 0
 	};

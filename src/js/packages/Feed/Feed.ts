@@ -1,9 +1,9 @@
 import { get } from '../../util/fetch';
 import { extractItems, extractUnreadItemsIds, type FeedItem } from './FeedItem';
 
-type FeedType = 'rss' | 'atom' | 'youtube';
+type FeedType = 'atom' | 'rss' | 'youtube';
 
-type FeedDisplayType = 'list' | 'thumbs' | 'podcast' | 'video' | 'comics';
+type FeedDisplayType = 'comics' | 'list' | 'podcast' | 'thumbs' | 'video';
 
 type FeedLastUpdated = Date | 'DownloadError' | 'ParseError';
 
@@ -78,13 +78,14 @@ function extractFeedIcon(feed: Document) {
 }
 
 export function parseFeed(feedText: string, url: string, id?: string) {
+	// TODO: throw parse errors/validate feed
 	const feedId = id ?? crypto.randomUUID();
 	const xml = new window.DOMParser().parseFromString(feedText, 'text/xml');
 	const items = extractItems(xml, feedId);
 	const unreadItemIds = extractUnreadItemsIds(items);
 
 	const feed: Feed = {
-		id: feedId,
+		id: feedId as Feed['id'],
 		type: extractFeedType(xml),
 		name: extractFeedName(xml),
 		description: extractFeedDescription(xml),
