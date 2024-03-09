@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
 	const baseUrl = mode === 'production' ? 'https://noriture.madcampos.dev/' : 'https://localhost:3000/';
 
 	const sslOptions = mode === 'production'
-		? false
+		? undefined
 		: {
 			cert: readFileSync('./certs/server.crt', 'utf-8'),
 			key: readFileSync('./certs/server.key', 'utf-8')
@@ -49,7 +49,6 @@ export default defineConfig(({ mode }) => {
 		clearScreen: false,
 		server: {
 			host: 'localhost',
-			// @ts-expect-error
 			https: sslOptions,
 			open: false,
 			cors: true,
@@ -70,7 +69,6 @@ export default defineConfig(({ mode }) => {
 			}
 		},
 		preview: {
-			// @ts-expect-error
 			https: sslOptions,
 			open: true
 		}
