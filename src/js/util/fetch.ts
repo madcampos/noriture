@@ -17,16 +17,16 @@ export const proxyUrl = (new Proxy({ proxy: '' }, {
 	}
 })).proxy;
 
+export function resolveUrl(url: string) {
+	return `${proxyUrl}?url=${encodeURI(url)}`;
+}
+
 export async function get(url: string) {
-	const response = await fetch(`${proxyUrl}?url=${url}`, {
+	const response = await fetch(resolveUrl(url), {
 		method: 'GET',
 		credentials: 'omit',
 		redirect: 'follow'
 	});
 
 	return response;
-}
-
-export function resolveUrl(url: string) {
-	return `${proxyUrl}${url}`;
 }
