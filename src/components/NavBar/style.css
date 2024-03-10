@@ -1,0 +1,23 @@
+nav {
+	background-color: #2c2c2c;
+	padding: 0.5rem;
+}
+
+ul {
+	list-style: none;
+	display: flex;
+	margin: 0;
+	padding: 0;
+	gap: 1rem;
+}
+
+li[role="separator"] {
+	flex-grow: 1;
+
+	hr { border: none; }
+}
+
+iconify-icon {
+	font-size: 1.5rem;
+	color: white;
+}

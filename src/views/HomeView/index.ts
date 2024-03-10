@@ -6,24 +6,13 @@ import { customElement, state } from 'lit/decorators.js';
 
 import { Database } from '../../db';
 
-declare global {
-	interface GlobalEventHandlersEventMap {
-		itemloaded: CustomEvent<{
-			index: number,
-			total: number,
-			name: string
-		}>,
-		apploaded: CustomEvent<undefined>
-	}
-}
-
 @customElement('n-home-view')
 export class HomeView extends LitElement implements RouterView {
 	static shadowRootOptions = { ...LitElement.shadowRootOptions, delegatesFocus: true };
 
 	@state() private feeds: Feed[] = [];
 
-	constructor () {
+	constructor() {
 		super();
 
 		this.hidden = false;
@@ -33,22 +22,21 @@ export class HomeView extends LitElement implements RouterView {
 		return this;
 	}
 
-	navigate() {
-		this.hidden = false;
-	}
-
 	render() {
 		return html`
-			<h1>Home</h1>
-
-			${this.feeds.map((feed) => html`
-				<feed-card feed-id="/feed/${feed.id}" unread-count="${feed.unreadCount}">
-					<span slot="title">${feed.name}</span>
-					<span slot="image">${feed.icon}</span>
-					<span slot="description">${feed.description}</span>
-					<span slot="last-updated">${feed.lastUpdated}</span>
-				</feed-card>
-			`)}
+			<n-main-layout>
+				<h1 slot="header">Home</h1>
+				${this.feeds.length > 0
+					? this.feeds.map((feed) => html`
+						<feed-card feed-id="/feed/${feed.id}" unread-count="${feed.unreadCount}">
+							<span slot="title">${feed.name}</span>
+							<span slot="image">${feed.icon}</span>
+							<span slot="description">${feed.description}</span>
+							<span slot="last-updated">${feed.lastUpdated}</span>
+						</feed-card>
+					`)
+					: html`<p>No feeds yet, try <router-link to="/add-feed">adding a new feed</router-link>.</p>`}
+			</n-main-layout>
 		`;
 	}
 
@@ -57,6 +45,5 @@ export class HomeView extends LitElement implements RouterView {
 		this.requestUpdate();
 
 		this.feeds = await Database.listFeeds();
-		this.dispatchEvent(new CustomEvent('apploaded', { bubbles: true, composed: true }));
 	}
 }
