@@ -23,7 +23,7 @@ export interface RouteLocation<Path = string> {
 type RouteGuardHandler = (origin: string, destination: string) => Promise<RouteLocation | false | void> | RouteLocation | false | void;
 
 export interface RouterView extends HTMLElement {
-	navigate(destination: RouteLocation, origin: RouteLocation): Promise<string | void> | string | void
+	navigate?(destination: RouteLocation, origin: RouteLocation): Promise<string | void> | string | void
 }
 
 type ViewImplementation = new () => RouterView;
@@ -117,7 +117,7 @@ export class Router {
 					hash: destinationMatcher?.hash.input
 				};
 
-				const title = await view.navigate(destination, Router.#currentLocation);
+				const title = await view.navigate?.(destination, Router.#currentLocation) ?? undefined;
 
 				Router.#routes.forEach(([, otherView]) => {
 					delete otherView.dataset.activeView;
