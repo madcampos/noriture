@@ -28,10 +28,7 @@ app.get('/proxy', async (context) => {
 		return context.text('url is required', BAD_REQUEST);
 	}
 
-	try {
-		// eslint-disable-next-line no-new
-		new URL(url);
-	} catch {
+	if (!URL.canParse(url)) {
 		return context.text('url is invalid', BAD_REQUEST);
 	}
 

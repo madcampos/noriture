@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-/* eslint-disable @typescript-eslint/prefer-includes */
-
 async function getManifest(baseUrl: string, manifestPath?: string | null) {
 	const manifestUrl = new URL(manifestPath ?? '/app.webmanifest', baseUrl);
 	let manifestResponse = await fetch(manifestUrl.href);
@@ -56,6 +53,7 @@ export async function extractIcon(html: string, baseUrl: string) {
 		icons.push({
 			href: new URL(ieIcon.getAttribute('content') as string, baseUrl).href,
 			type: 'image/png',
+			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 			sizes: ieIcon.getAttribute('name')?.replace(/^msapplication-(?:square|wide)(.+)(?:-TileImage|logo)$/giu, '$1') || '256x256'
 		});
 	});
@@ -105,8 +103,8 @@ export async function extractIcon(html: string, baseUrl: string) {
 
 	return icons.sort((first, second) => {
 		const typePrecedence = ['image/svg+xml', 'image/png', 'image/x-icon', 'image/gif', 'image/jpeg'];
-		const aTypeIndex = typePrecedence.indexOf(first.type) === -1 ? typePrecedence.length : typePrecedence.indexOf(first.type);
-		const bTypeIndex = typePrecedence.indexOf(second.type) === -1 ? typePrecedence.length : typePrecedence.indexOf(second.type);
+		const aTypeIndex = !typePrecedence.includes(first.type) ? typePrecedence.length : typePrecedence.indexOf(first.type);
+		const bTypeIndex = !typePrecedence.includes(second.type) ? typePrecedence.length : typePrecedence.indexOf(second.type);
 		const typeDifference = aTypeIndex - bTypeIndex;
 
 		const aSizes = first.sizes.split('x').map((size) => Number.parseInt(size));

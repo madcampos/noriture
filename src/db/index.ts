@@ -30,7 +30,6 @@ export class Database {
 	}>;
 
 	static async #getConnection() {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
 		this.#database ||= await openDB('noriture', DATABASE_VERSION, {
 			upgrade(database) {
 				const feedsStore = database.createObjectStore('feeds', { keyPath: 'id' });

@@ -1,10 +1,10 @@
-/* eslint-disable camelcase, @typescript-eslint/no-magic-numbers */
 // eslint-env node
 import { readFileSync } from 'fs';
 
-import { defineConfig, type UserConfig } from 'vite';
-import { type ManifestOptions, VitePWA as vitePWA } from 'vite-plugin-pwa';
 import { resolve } from 'path';
+import { defineConfig, type UserConfig } from 'vite';
+import type { ManifestOptions } from 'vite-plugin-pwa';
+import { VitePWA as vitePWA } from 'vite-plugin-pwa';
 import { externalResources, internalResources } from './src/service-worker';
 
 const manifest: Partial<ManifestOptions> = JSON.parse(readFileSync('./src/manifest.json', { encoding: 'utf8' }));
@@ -31,10 +31,7 @@ export default defineConfig(({ mode }) => {
 					cleanupOutdatedCaches: true,
 					clientsClaim: true,
 					navigationPreload: false,
-					runtimeCaching: [
-						internalResources,
-						externalResources
-					]
+					runtimeCaching: [internalResources, externalResources]
 				},
 				devOptions: {
 					enabled: false
