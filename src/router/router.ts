@@ -56,6 +56,10 @@ export class Router {
 
 	static appTitle = 'App';
 
+	static get baseUrl() {
+		return this.#baseUrl;
+	}
+
 	static get currentPath() {
 		return this.#currentPath;
 	}
@@ -154,8 +158,14 @@ export class Router {
 	static init({ routes, baseUrl, appTitle, linkSelectorAttribute, renderTarget, beforeEach, fallback }: RouterConfig) {
 		Router.#baseUrl = baseUrl;
 
-		if (Router.#baseUrl === '/' || Router.#baseUrl === '') {
+		if (Router.#baseUrl.startsWith('/') || Router.#baseUrl.startsWith('./')) {
+			Router.#baseUrl = new URL(Router.#baseUrl, window.location.origin).toString();
+		} else if (Router.#baseUrl === '') {
 			Router.#baseUrl = new URL('/', window.location.origin).toString();
+		} else if (!Router.#baseUrl.startsWith(window.location.origin)) {
+			throw new Error('The base URL must be on the same origin as the app');
+		} else {
+			throw new Error('The base URL must be an absolute path or a relative path starting with / or ./');
 		}
 
 		const currentMatcher = Router.#fallbackPattern.exec(window.location.href, Router.#baseUrl);
