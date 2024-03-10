@@ -80,6 +80,8 @@ export class Router {
 	static add<T extends ViewImplementation>(path: string, ViewClass: T) {
 		const view = new ViewClass();
 
+		view.dataset.routerView = '';
+
 		Router.#routes.push([new URLPattern({ pathname: path }), view]);
 
 		document.body.appendChild(view as unknown as Node);
@@ -114,6 +116,12 @@ export class Router {
 
 				const title = await view.navigate(destination, Router.#currentLocation);
 
+				Router.#routes.forEach(([, otherView]) => {
+					delete otherView.dataset.activeView;
+				});
+
+				view.dataset.activeView = '';
+
 				/* eslint-disable require-atomic-updates */
 				Router.#currentPath = pathToSearch;
 				Router.#currentLocation = destination;
@@ -138,8 +146,8 @@ export class Router {
 	static init({ routes, baseUrl, attribute, beforeEach, fallback }: RouterConfig) {
 		Router.#baseUrl = baseUrl;
 
-		if (Router.#baseUrl === '/') {
-			Router.#baseUrl = new URL('./', import.meta.env.BASE_URL).toString();
+		if (Router.#baseUrl === '/' || Router.#baseUrl === '') {
+			Router.#baseUrl = new URL('/', window.location.origin).toString();
 		}
 
 		const currentMatcher = Router.#fallbackPattern.exec(window.location.href, Router.#baseUrl);
@@ -192,6 +200,8 @@ export class Router {
 				}
 			}
 		});
+
+		document.body.insertAdjacentHTML('beforebegin', '<style>[data-router-view]:not([data-active-view]) { display: none; }</style>');
 
 		// eslint-disable-next-line no-console
 		console.info('[⛵️] Router initialized');

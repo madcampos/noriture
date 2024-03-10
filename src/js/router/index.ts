@@ -6,7 +6,7 @@ import { HomeView } from '../views/HomeView/HomeView';
 import { Router } from './router';
 
 Router.init({
-	baseUrl: document.location.href,
+	baseUrl: '/',
 	routes: [
 		{
 			path: '/',
