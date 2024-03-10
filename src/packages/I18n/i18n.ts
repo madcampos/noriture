@@ -1,4 +1,4 @@
-import type * as defaultTranslation from '../../../locales/en-US.json';
+import type * as defaultTranslation from '../../locales/en-US.json';
 export type Messages = typeof defaultTranslation;
 
 export const DEFAULT_LOCALE = 'en-US';

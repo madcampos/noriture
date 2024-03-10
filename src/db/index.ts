@@ -1,5 +1,5 @@
-import { openDB } from 'idb';
 import type { IDBPDatabase } from 'idb';
+import { openDB } from 'idb';
 import type { Feed } from '../packages/Feed/Feed';
 import type { FeedItem } from '../packages/Feed/FeedItem';
 import { asFeed, asFeedItem, asSavedFeed, asSavedFeedItem, type SavedFeed, type SavedFeedItem } from './feed-mapper';
@@ -32,20 +32,20 @@ export class Database {
 	static async #getConnection() {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions
 		this.#database ||= await openDB('noriture', DATABASE_VERSION, {
-				upgrade(database) {
-					const feedsStore = database.createObjectStore('feeds', { keyPath: 'id' });
-					const feedItemsStore = database.createObjectStore('feedItems', { keyPath: 'id' });
+			upgrade(database) {
+				const feedsStore = database.createObjectStore('feeds', { keyPath: 'id' });
+				const feedItemsStore = database.createObjectStore('feedItems', { keyPath: 'id' });
 
-					feedsStore.createIndex('feedUrl', 'feedUrl', { unique: true });
-					feedsStore.createIndex('siteUrl', 'siteUrl');
-					feedsStore.createIndex('feedCategories', 'categories', { multiEntry: true });
+				feedsStore.createIndex('feedUrl', 'feedUrl', { unique: true });
+				feedsStore.createIndex('siteUrl', 'siteUrl');
+				feedsStore.createIndex('feedCategories', 'categories', { multiEntry: true });
 
-					feedItemsStore.createIndex('feedId', 'feedId');
-					feedItemsStore.createIndex('itemUrl', 'url');
-					feedItemsStore.createIndex('itemTags', 'tags', { multiEntry: true });
-					feedItemsStore.createIndex('isRead', ['feedId', 'read'], { unique: false });
-				}
-			});
+				feedItemsStore.createIndex('feedId', 'feedId');
+				feedItemsStore.createIndex('itemUrl', 'url');
+				feedItemsStore.createIndex('itemTags', 'tags', { multiEntry: true });
+				feedItemsStore.createIndex('isRead', ['feedId', 'read'], { unique: false });
+			}
+		});
 
 		return this.#database;
 	}

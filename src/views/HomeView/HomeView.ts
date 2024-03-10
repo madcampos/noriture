@@ -23,7 +23,7 @@ export class HomeView extends LitElement implements RouterView {
 
 	@state() private feeds: Feed[] = [];
 
-	constructor() {
+	constructor () {
 		super();
 
 		this.hidden = false;
