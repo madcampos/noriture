@@ -1,11 +1,11 @@
 import type { Feed } from '../../packages/Feed/Feed';
 import type { RouterView } from '../../router/router';
 
-import { html, LitElement } from 'lit';
+import { html, LitElement, nothing } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-import { sanitize } from '../../js/plugins/sanitization';
+import { when } from 'lit/directives/when.js';
 import { fetchFeed } from '../../packages/Feed/Feed';
 
 @customElement('n-add-feed-view')
@@ -22,61 +22,72 @@ export class AddFeedView extends LitElement implements RouterView {
 		return this;
 	}
 
-	render() {
+	async #loadFeed(evt: SubmitEvent) {
+		evt.preventDefault();
+
+		try {
+			this.isLoadingFeed = true;
+
+			const url = new URL(this.feedUrl);
+
+			this.newFeed = await fetchFeed(url.href);
+		} catch (err) {
+			console.error(err);
+		} finally {
+			this.isLoadingFeed = false;
+		}
+	}
+
+	#addFeed() {
+		// TODO: add feed to the database
+		console.log('Add feed');
+	}
+
+	#updateFeedUrl(evt: InputEvent) {
+		const target = evt.target as HTMLInputElement;
+
+		this.feedUrl = target.value;
+	}
+
+	override render() {
 		return html`
-			<header>
-				<h1>Add feed</h1>
-				<section>
-					<input type="url" placeholder="Feed URL" @input="${(evt: InputEvent) => {
-				const target = evt.target as HTMLInputElement;
+			<n-main-layout>
+				<h1 slot="header">Add feed</h1>
+				<section slot="header">
+					<form @submit="${this.#loadFeed}">
+						<input type="url" placeholder="Feed URL" @input="${this.#updateFeedUrl}"/>
 
-				this.feedUrl = target.value;
-			}}"/>
-
-					<button type="button" ?disabled="${!this.feedUrl && !this.isLoadingFeed}" @click="${async () => {
-				try {
-					this.isLoadingFeed = true;
-
-					const url = new URL(this.feedUrl);
-					this.newFeed = await fetchFeed(url.href);
-				} catch (err) {
-					console.error(err);
-				} finally {
-					this.isLoadingFeed = false;
-				}
-
-			}}">🔎</button>
+						<button ?disabled="${!this.feedUrl && !this.isLoadingFeed}">
+							<iconify-icon icon="fluent:search-24-regular" title="Search Feed"></iconify-icon>
+						</button>
+					</form>
 				</section>
-			</header>
 
-			<article ?hidden="${this.newFeed === null}">
-				<header>
-					<picture>
+				<progress ?hidden="${!this.isLoadingFeed}">Loading feed...</progress>
+
+				<n-feed-card
+					?hidden="${this.newFeed === null}"
+					last-updated="${this.newFeed?.lastUpdated.toLocaleString() ?? nothing}"
+					total-count="${this.newFeed?.items.length ?? nothing}"
+					unread-count="${this.newFeed?.unreadCount ?? nothing}"
+				>
+					${when(this.newFeed?.icon, () => html`
 						<img
 							?hidden="${!this.newFeed?.icon}"
 							src="${this.newFeed?.icon ?? ''}"
 							alt="${this.newFeed?.name ?? ''}"
+							slot="icon"
 						>
-					</picture>
-					<h1>${this.newFeed?.name ?? ''}</h1>
-					<button type="button" @click="${() => {
-				// TODO: add feed to the database
-				console.log('Add feed');
-			}}">Add Feed</button>
-					<aside>
-						<span>${this.newFeed?.lastUpdated?.toLocaleString() ?? 'Never updated'}</span>
-					</aside>
-				</header>
-				<p
-					@click="${(evt: MouseEvent) => {
-				const target = evt.target as HTMLElement;
+					`)}
+					${when(this.newFeed?.name, () => html`<span slot="title">${this.newFeed?.name ?? ''}</span>`)}
 
-				if (target.matches('a')) {
-					evt.preventDefault();
-				}
-			}}"
-				>${unsafeHTML(sanitize(this.newFeed?.description ?? 'This feed has no description.'))}</p>
-			</article>
+					<button type="button" @click="${this.#addFeed}" slot="aside">
+						<iconify-icon icon="fluent:star-add-24-regular" title="Add Feed"></iconify-icon>
+					</button>
+
+					${when(this.newFeed?.description, () => unsafeHTML(this.newFeed?.description ?? ''))}
+				</n-feed-card>
+			</n-main-layout>
 		`;
 	}
 }
