@@ -5,9 +5,9 @@ import style from './style.css?inline' assert { type: 'css' };
 
 @customElement('n-main-layout')
 export class MainLayout extends LitElement {
-	static readonly styles = unsafeCSS(style);
+	static override readonly styles = unsafeCSS(style);
 
-	render() {
+	override render() {
 		return html`
 			<n-nav-bar></n-nav-bar>
 			<section class="main-section">

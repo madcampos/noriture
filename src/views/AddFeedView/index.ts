@@ -18,7 +18,7 @@ export class AddFeedView extends LitElement implements RouterView {
 		return 'Add Feed';
 	}
 
-	createRenderRoot() {
+	override createRenderRoot() {
 		return this;
 	}
 

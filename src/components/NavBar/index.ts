@@ -5,11 +5,11 @@ import style from './style.css?inline' assert { type: 'css' };
 
 @customElement('n-nav-bar')
 export class NavBar extends LitElement {
-	static readonly styles = unsafeCSS(style);
+	static override readonly styles = unsafeCSS(style);
 
-	@property({ type: String }) feedId = '';
+	@property({ type: String, reflect: true, attribute: 'feed-id' }) feedId = '';
 
-	render() {
+	override render() {
 		return html`<nav>
 			<ul>
 				<slot name="back-button">

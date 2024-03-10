@@ -487,8 +487,14 @@
 		"@stylistic/function-paren-newline": [ "warn", "multiline-arguments" ],
 		"@stylistic/generator-star-spacing": [ "warn", { "before": true, "after": false } ],
 		"@stylistic/implicit-arrow-linebreak": [ "warn", "beside" ],
-		"@stylistic/indent": [ "warn", "tab", {
-				"ignoredNodes": [ "TemplateLiteral > ConditionalExpression" ],
+		"@stylistic/indent": [ "off", "tab", {
+				"ignoredNodes": [
+					"TaggedTemplateExpression",
+					"TemplateLiteral",
+					"TemplateElement",
+					"TemplateLiteral > ArrowFunctionExpression",
+					"TemplateLiteral > ConditionalExpression"
+				],
 				"SwitchCase": 1,
 				"VariableDeclarator": "first",
 				"outerIIFEBody": 1,

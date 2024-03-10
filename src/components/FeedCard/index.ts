@@ -8,7 +8,7 @@ import style from './style.css?inline' assert { type: 'css' };
 export class FeedCard extends LitElement {
 	static override readonly styles = unsafeCSS(style);
 
-	@property({ type: String, reflect: true, attribute: 'feed-id' }) feedId = '';
+	@property({ type: String, reflect: true, attribute: 'feed-id' }) feedId?: string;
 	@property({ type: Number, reflect: true, attribute: 'unread-count' }) unreadCount = 0;
 	@property({ type: Number, reflect: true, attribute: 'total-count' }) totalCount = 0;
 	@property({ type: String, reflect: true, attribute: 'last-updated' }) lastUpdated = 'Never Updated';

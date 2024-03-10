@@ -8,7 +8,7 @@ export class FeedView extends LitElement implements RouterView {
 		return 'Feed';
 	}
 
-	render() {
+	override render() {
 		// TODO: Add the actual data binding
 		return html`<header>
 			<h1>{{title}}</h1>

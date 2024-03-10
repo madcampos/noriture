@@ -8,7 +8,7 @@ export class ConfigureFeedView extends LitElement implements RouterView {
 		return 'Configure Feed';
 	}
 
-	render() {
+	override render() {
 		return html`<h1>Configure feed</h1>`;
 	}
 }

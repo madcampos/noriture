@@ -8,7 +8,7 @@ export class FeedItemView extends LitElement implements RouterView {
 		return 'Feed Item';
 	}
 
-	render() {
+	override render() {
 		// TODO: Add the actual data binding
 		return html`<header>
 			<router-link to="/">Back</router-link>
