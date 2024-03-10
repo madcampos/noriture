@@ -23,7 +23,7 @@ export interface RouteLocation<Path = string> {
 type RouteGuardHandler = (origin: string, destination: string) => Promise<RouteLocation | false | void> | RouteLocation | false | void;
 
 export interface RouterView extends HTMLElement {
-	navigate?(destination: RouteLocation, origin: RouteLocation): Promise<string | void> | string | void
+	navigate?<Path extends string = string, PreviousPath extends string = string>(destination: RouteLocation<Path>, origin: RouteLocation<PreviousPath>): Promise<string | void> | string | void
 }
 
 type ViewImplementation = new () => RouterView;
@@ -134,10 +134,8 @@ export class Router {
 
 				view.dataset.activeView = '';
 
-				/* eslint-disable require-atomic-updates */
 				Router.#currentPath = pathToSearch;
 				Router.#currentLocation = destination;
-				/* eslint-enable require-atomic-updates */
 
 				const basePath = new URL(Router.#baseUrl).pathname.replace(/\/$/u, '');
 				const normalizedPath = new URL(`${basePath}${path}`, Router.#baseUrl).pathname;
