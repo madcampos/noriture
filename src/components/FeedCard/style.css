@@ -1,0 +1,23 @@
+header {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	color: var(--primary-color);
+
+	h2 { margin: 0; }
+
+	iconify-icon {
+		font-size: 1.5rem;
+		color: currentcolor;
+	}
+}
+
+aside {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+#description {
+	margin-block-start: 1rem;
+}

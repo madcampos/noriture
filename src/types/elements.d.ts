@@ -9,6 +9,7 @@ import type { FeedItemView } from '../views/FeedItemView/';
 import type { FeedView } from '../views/FeedView/';
 import type { HomeView } from '../views/HomeView/';
 
+import type { FeedCard } from '../components/FeedCard';
 import type { MainLayout } from '../components/MainLayout';
 import type { NavBar } from '../components/NavBar';
 
@@ -17,14 +18,15 @@ declare global {
 		'router-link': RouterLink,
 
 		// Views
-		'n-home-view': HomeView,
 		'n-add-feed-view': AddFeedView,
-		'n-feed-view': FeedView,
 		'n-configure-feed-view': ConfigureFeedView,
 		'n-feed-item-view': FeedItemView,
+		'n-feed-view': FeedView,
+		'n-home-view': HomeView,
 
 		// Components
-		'n-nav-bar': NavBar,
-		'n-main-layout': MainLayout
+		'n-feed-card': FeedCard,
+		'n-main-layout': MainLayout,
+		'n-nav-bar': NavBar
 	}
 }
