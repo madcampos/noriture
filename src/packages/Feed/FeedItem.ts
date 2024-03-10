@@ -1,3 +1,5 @@
+import { sanitize } from '../../js/util/sanitization.ts';
+
 export const MEDIA_TYPES = ['image', 'video', 'audio', 'document', 'executable', 'unknown'] as const;
 
 export interface FeedMedia {
@@ -120,7 +122,7 @@ function extractItemContents(item: Element) {
 	// TODO: parse differently depending on the content type
 	const content = item.querySelector('description, content')?.textContent ?? item.querySelector('summary')?.textContent ?? '';
 
-	return content.trim();
+	return sanitize(content.trim());
 }
 
 export function extractItems(feed: Document, feedId: string) {
