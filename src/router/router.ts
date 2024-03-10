@@ -23,6 +23,7 @@ export interface RouteLocation<Path = string> {
 type RouteGuardHandler = (origin: string, destination: string) => Promise<RouteLocation | false | void> | RouteLocation | false | void;
 
 export interface RouterView extends HTMLElement {
+	// eslint-disable-next-line @stylistic/max-len
 	navigate?<Path extends string = string, PreviousPath extends string = string>(destination: RouteLocation<Path>, origin: RouteLocation<PreviousPath>): Promise<string | void> | string | void
 }
 
@@ -153,7 +154,13 @@ export class Router {
 		}
 	}
 
-	static init({ routes, baseUrl, appTitle, linkSelectorAttribute, renderTarget, beforeEach, fallback }: RouterConfig) {
+	static init({
+		routes,
+		baseUrl, appTitle,
+		linkSelectorAttribute,
+		renderTarget,
+		beforeEach, fallback
+	}: RouterConfig) {
 		Router.#baseUrl = baseUrl;
 
 		if (Router.#baseUrl.startsWith('/') || Router.#baseUrl.startsWith('./')) {

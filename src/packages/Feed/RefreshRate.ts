@@ -15,7 +15,15 @@ export const DEFAULT_REFRESH_RATE_LIST = [
 	-1 // Manually
 ];
 export const DEFAULT_ITEM_UPDATE_COUNT = 100;
-export const DEFAULT_ITEM_UPDATE_COUNT_LIST = [100, 200, 500, 1000, 2000, 5000, 10000];
+export const DEFAULT_ITEM_UPDATE_COUNT_LIST = [
+	100,
+	200,
+	500,
+	1000,
+	2000,
+	5000,
+	10000
+];
 /* eslint-enable @typescript-eslint/no-magic-numbers, no-inline-comments, line-comment-position */
 
 export const feedRefreshRate = new Proxy<Record<string, number>>({}, {

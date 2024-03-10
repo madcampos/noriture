@@ -617,7 +617,7 @@
 		"@stylistic/switch-colon-spacing": [ "warn", { "after": true, "before": false } ],
 		"@stylistic/template-curly-spacing": [ "warn", "never" ],
 		"@stylistic/template-tag-spacing": [ "warn", "never" ],
-		"@stylistic/type-annotation-spacing": [ "warn", { "before": false, "after": true } ],
+		"@stylistic/type-annotation-spacing": [ "warn", { "before": false, "after": true, "overrides": { "arrow": { "before": true, "after": true } } } ],
 		"@stylistic/type-generic-spacing": [ "warn" ],
 		"@stylistic/type-named-tuple-spacing": [ "warn" ],
 		"@stylistic/wrap-iife": [ "warn", "inside", { "functionPrototypeMethods": true } ],
