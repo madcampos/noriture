@@ -1,33 +1,38 @@
-import type { View } from '../../router/router';
-import templateString from './FeedView.html?raw';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type { RouterView } from '../../router/router';
 
-export class FeedView implements View {
-	#root: HTMLElement;
-
-	#itemCardTemplate: HTMLTemplateElement;
-
-	constructor(rootElement: HTMLElement) {
-		const template = document.createElement('template');
-
-		template.innerHTML = templateString;
-
-		this.#root = rootElement;
-		this.#root.appendChild(template.content.cloneNode(true));
-
-		this.#itemCardTemplate = this.#root.querySelector('#item-card') as HTMLTemplateElement;
-
-		this.#root.removeChild(this.#itemCardTemplate);
-	}
-
-	get template() {
-		return templateString;
-	}
-
-	get rootElement() {
-		return this.#root;
+@customElement('n-feed-view')
+export class FeedView extends LitElement implements RouterView {
+	navigate() {
+		return 'Feed';
 	}
 
 	render() {
-		// TODO: render the item cards
+		// TODO: Add the actual data binding
+		return html`<header>
+			<h1>{{title}}</h1>
+			<aside>
+				<!-- TODO: add unread count -->
+				<span>{{date}}</span>
+				<p>{{description}}</p>
+				<!-- TODO: add feed buttons -->
+			</aside>
+			<picture>
+				<img src="{{image}}" alt="{{title}}">
+			</picture>
+		</header>
+		<template id="item-card">
+			<item-card
+				title="{{title}}"
+				image="{{image}}"
+				link="{{link}}"
+				author="{{author}}"
+				date="{{date}}"
+				tags="{{tags}}"
+			>
+				{{content}}
+			</item-card>
+		</template>`;
 	}
 }

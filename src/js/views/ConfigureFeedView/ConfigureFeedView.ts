@@ -1,27 +1,14 @@
-import type { View } from '../../router/router';
-import templateString from './ConfigureFeedView.html?raw';
+import { html, LitElement } from 'lit';
+import { customElement } from 'lit/decorators.js';
+import type { RouterView } from '../../router/router';
 
-export class ConfigureFeedView implements View {
-	#root: HTMLElement;
-
-	constructor(rootElement: HTMLElement) {
-		const template = document.createElement('template');
-
-		template.innerHTML = templateString;
-
-		this.#root = rootElement;
-		this.#root.appendChild(template.content.cloneNode(true));
-	}
-
-	get template() {
-		return templateString;
-	}
-
-	get rootElement() {
-		return this.#root;
+@customElement('n-configure-feed-view')
+export class ConfigureFeedView extends LitElement implements RouterView {
+	navigate() {
+		return 'Configure Feed';
 	}
 
 	render() {
-		// TODO: render the content
+		return html`<h1>Configure feed</h1>`;
 	}
 }

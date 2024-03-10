@@ -1,14 +1,14 @@
-import type { RouterView } from '../../router/router'
 import type { Feed } from '../../packages/Feed/Feed';
+import type { RouterView } from '../../router/router';
 
 import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { fetchFeed } from '../../packages/Feed/Feed';
 import { sanitize } from '../../plugins/sanitization';
-import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
-@customElement('r-add-feed-view')
+@customElement('n-add-feed-view')
 export class AddFeedView extends LitElement implements RouterView {
 	@state() private isLoadingFeed = false;
 	@state() private newFeed: Feed | null = null;
