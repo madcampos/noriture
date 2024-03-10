@@ -23,3 +23,5 @@ export const externalResources: RuntimeCaching = {
 	urlPattern: new RegExp(`^(?!${baseUrl}).*`, 'iu'),
 	handler: 'NetworkOnly'
 };
+
+// TODO: add periodic refresh for feeds

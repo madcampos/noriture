@@ -59,8 +59,6 @@ export class I18n {
 	static t(key: keyof Messages) {
 		const message = I18n.#messages[key] as string | undefined;
 
-		if (!message) {
-			return key;
-		}
+		return message ?? key;
 	}
 }

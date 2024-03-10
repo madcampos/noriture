@@ -6,7 +6,7 @@ if (!('URLPattern' in globalThis)) {
 type IsParameter<Part> = Part extends `:${infer ParamName}` ? ParamName : never;
 
 type FilteredParts<Path> = Path extends `${infer PartA}/${infer PartB}`
-	? IsParameter<PartA> | FilteredParts<PartB>
+	? FilteredParts<PartB> | IsParameter<PartA>
 	: IsParameter<Path>;
 
 type Params<Path> = {
@@ -20,10 +20,10 @@ export interface RouteLocation<Path = string> {
 	hash?: string
 }
 
-type RouteGuardHandler = (origin: string, destination: string) => false | RouteLocation | void | Promise<false | RouteLocation | void>;
+type RouteGuardHandler = (origin: string, destination: string) => Promise<RouteLocation | false | void> | RouteLocation | false | void;
 
-export interface RouterView {
-	navigate(destination: RouteLocation, origin: RouteLocation): string | void | Promise<string | void>
+export interface RouterView extends HTMLElement {
+	navigate(destination: RouteLocation, origin: RouteLocation): Promise<string | void> | string | void
 }
 
 type ViewImplementation = new () => RouterView;

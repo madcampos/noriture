@@ -98,8 +98,10 @@ function extractItemDate(item: Element) {
 
 	// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 	if (publicationDate || lastModified) {
-		return new Date(publicationDate ?? lastModified ?? '');
+		return new Date((publicationDate ?? lastModified) as string);
 	}
+
+	return new Date();
 }
 
 function extractItemCategories(item: Element) {
