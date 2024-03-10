@@ -8,6 +8,7 @@ import { HomeView } from '../views/HomeView';
 
 Router.init({
 	baseUrl: '/',
+	appTitle: 'Noriture',
 	routes: [
 		{
 			path: '/',

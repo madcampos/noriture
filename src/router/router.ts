@@ -37,7 +37,8 @@ interface RouteDefinition {
 interface RouterConfig {
 	routes: RouteDefinition[],
 	baseUrl: string,
-	attribute?: string,
+	appTitle?: string,
+	selectorAttribute?: string,
 	beforeEach?: RouteGuardHandler,
 	fallback?: RouterView
 }
@@ -52,6 +53,8 @@ export class Router {
 
 	static #currentPath = '';
 	static #currentLocation: RouteLocation;
+
+	static appTitle = 'App';
 
 	static get currentPath() {
 		return this.#currentPath;
@@ -133,9 +136,9 @@ export class Router {
 				window.history.pushState(null, '', normalizedPath);
 
 				if (title) {
-					window.document.title = `${title} · Shadowrun Catalog`;
+					window.document.title = `${title} · ${Router.appTitle}`;
 				} else {
-					window.document.title = 'Shadowrun Catalog';
+					window.document.title = Router.appTitle;
 				}
 			}
 		} catch (err) {
@@ -143,7 +146,7 @@ export class Router {
 		}
 	}
 
-	static init({ routes, baseUrl, attribute, beforeEach, fallback }: RouterConfig) {
+	static init({ routes, baseUrl, appTitle, selectorAttribute, beforeEach, fallback }: RouterConfig) {
 		Router.#baseUrl = baseUrl;
 
 		if (Router.#baseUrl === '/' || Router.#baseUrl === '') {
@@ -162,8 +165,12 @@ export class Router {
 
 		routes.forEach(({ path, view }) => Router.add(path, view));
 
-		if (attribute) {
-			Router.#selectorAttribute = attribute;
+		if (selectorAttribute) {
+			Router.#selectorAttribute = selectorAttribute;
+		}
+
+		if (appTitle) {
+			Router.appTitle = appTitle;
 		}
 
 		if (beforeEach) {
