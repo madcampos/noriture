@@ -38,18 +38,18 @@ interface RouterConfig {
 	routes: RouteDefinition[],
 	baseUrl: string,
 	appTitle?: string,
-	selectorAttribute?: string,
+	linkSelectorAttribute?: string,
 	beforeEach?: RouteGuardHandler,
-	fallback?: RouterView
+	fallback?: RouterView,
+	renderTarget?: HTMLElement
 }
 
 export class Router {
 	static #routes: [URLPattern, RouterView][] = [];
-	static #beforeEach: RouteGuardHandler | undefined;
-	static #fallback: RouterView | undefined;
 	static readonly #fallbackPattern = new URLPattern({ pathname: '*' });
-	static #selectorAttribute = 'router-link';
+	static #linkSelectorAttribute = 'router-link';
 	static #baseUrl: string;
+	static #renderTarget: HTMLElement | undefined;
 
 	static #currentPath = '';
 	static #currentLocation: RouteLocation;
@@ -60,24 +60,29 @@ export class Router {
 		return this.#currentPath;
 	}
 
-	static get selectorAttribute() {
-		return this.#selectorAttribute;
+	static get linkSelectorAttribute() {
+		return this.#linkSelectorAttribute;
 	}
 
-	static get beforeEach(): RouteGuardHandler | undefined {
-		return Router.#beforeEach;
+	static beforeEach: RouteGuardHandler | undefined;
+
+	static fallback: RouterView | undefined;
+
+	static get renderTarget() {
+		return Router.#renderTarget ?? document.body;
 	}
 
-	static set beforeEach(handler: RouteGuardHandler) {
-		Router.#beforeEach = handler;
-	}
+	static set renderTarget(target: HTMLElement) {
+		const previousRenderTarget = Router.renderTarget;
 
-	static get fallback(): RouterView | undefined {
-		return Router.#fallback;
-	}
+		Router.#renderTarget = target;
 
-	static set fallback(view: RouterView) {
-		Router.#fallback = view;
+		Router.#routes.forEach(([, view]) => {
+			if (previousRenderTarget.contains(view)) {
+				previousRenderTarget.removeChild(view);
+				target.appendChild(view);
+			}
+		});
 	}
 
 	static add<T extends ViewImplementation>(path: string, ViewClass: T) {
@@ -87,18 +92,18 @@ export class Router {
 
 		Router.#routes.push([new URLPattern({ pathname: path }), view]);
 
-		document.body.appendChild(view as unknown as Node);
+		Router.renderTarget.appendChild(view as unknown as Node);
 	}
 
 	static async navigate(path: string) {
-	try {
+		try {
 			const newPath = new URL(path, Router.#baseUrl).pathname;
 
 			if (Router.#currentPath === newPath) {
 				return;
 			}
 
-			const guardResult = await Router.#beforeEach?.(this.#currentPath, newPath);
+			const guardResult = await Router.beforeEach?.(this.#currentPath, newPath);
 
 			if (guardResult === false) {
 				return;
@@ -146,7 +151,7 @@ export class Router {
 		}
 	}
 
-	static init({ routes, baseUrl, appTitle, selectorAttribute, beforeEach, fallback }: RouterConfig) {
+	static init({ routes, baseUrl, appTitle, linkSelectorAttribute, renderTarget, beforeEach, fallback }: RouterConfig) {
 		Router.#baseUrl = baseUrl;
 
 		if (Router.#baseUrl === '/' || Router.#baseUrl === '') {
@@ -165,8 +170,12 @@ export class Router {
 
 		routes.forEach(({ path, view }) => Router.add(path, view));
 
-		if (selectorAttribute) {
-			Router.#selectorAttribute = selectorAttribute;
+		if (linkSelectorAttribute) {
+			Router.#linkSelectorAttribute = linkSelectorAttribute;
+		}
+
+		if (renderTarget) {
+			Router.renderTarget = renderTarget;
 		}
 
 		if (appTitle) {
@@ -195,12 +204,12 @@ export class Router {
 		window.addEventListener('click', async (evt) => {
 			const element = evt.target as HTMLElement;
 
-			if (element.matches(`a[${Router.#selectorAttribute}]`)) {
+			if (element.matches(`a[${Router.#linkSelectorAttribute}]`)) {
 				evt.preventDefault();
 				evt.stopPropagation();
 
 				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-				const path = element.getAttribute(Router.#selectorAttribute) || element.getAttribute('href');
+				const path = element.getAttribute(Router.#linkSelectorAttribute) || element.getAttribute('href');
 
 				if (path) {
 					await Router.navigate(path);
