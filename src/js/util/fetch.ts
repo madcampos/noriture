@@ -18,7 +18,7 @@ export const proxyUrl = (new Proxy({ proxy: '' }, {
 })).proxy;
 
 export function resolveUrl(url: string) {
-	return `${proxyUrl}?url=${encodeURI(url)}`;
+	return `${proxyUrl}?url=${encodeURIComponent(url)}`;
 }
 
 export async function get(url: string) {
