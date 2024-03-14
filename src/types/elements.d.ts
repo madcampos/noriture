@@ -11,6 +11,7 @@ import type { HomeView } from '../views/HomeView/';
 
 import type { ErrorMessage } from '../components/ErrorMessage/index.ts';
 import type { FeedCard } from '../components/FeedCard';
+import type { ItemCard } from '../components/ItemCard/ItemCard.ts';
 import type { MainLayout } from '../components/MainLayout';
 import type { NavBar } from '../components/NavBar';
 
@@ -28,6 +29,7 @@ declare global {
 		// Components
 		'n-error-message': ErrorMessage,
 		'n-feed-card': FeedCard,
+		'n-item-card': ItemCard,
 		'n-main-layout': MainLayout,
 		'n-nav-bar': NavBar
 	}
