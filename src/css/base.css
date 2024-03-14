@@ -37,3 +37,8 @@ p, h1, h2, h3, h4, h5, h6 {
 main {
 	isolation: isolate;
 }
+
+[aria-disabled] {
+	cursor: not-allowed;
+	opacity: 0.5;
+}
