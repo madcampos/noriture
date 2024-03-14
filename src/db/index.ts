@@ -58,7 +58,7 @@ export class Database {
 
 	static async listFeedItems(feedId: string) {
 		const database = await this.#getConnection();
-		const feedItems = await database.getAll('feedItems', IDBKeyRange.only(feedId));
+		const feedItems = await database.getAllFromIndex('feedItems', 'feedId', IDBKeyRange.only(feedId));
 
 		return feedItems.map((item) => asFeedItem(item));
 	}
@@ -98,6 +98,12 @@ export class Database {
 		const items = await Database.listFeedItems(feedId);
 
 		return asFeed(feed, items);
+	}
+
+	static async hasFeed(feedUrl: string) {
+		const database = await this.#getConnection();
+
+		return (await database.getFromIndex('feeds', 'feedUrl', feedUrl)) !== undefined;
 	}
 
 	static async saveFeedItems(feedId: string, items: FeedItem[]) {
