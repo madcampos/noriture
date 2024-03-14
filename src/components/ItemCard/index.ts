@@ -11,7 +11,6 @@ export class ItemCard extends LitElement {
 	@property({ type: String, reflect: true }) feedId = '';
 	@property({ type: String, reflect: true }) itemId = '';
 	@property({ type: String, reflect: true }) override title = '';
-	@property({ type: String, reflect: true }) link = '';
 	@property({ type: String, reflect: true }) author = '';
 	@property({ type: String, reflect: true }) date = '';
 	@property({ type: Array }) tags: string[] = [];
@@ -49,7 +48,7 @@ export class ItemCard extends LitElement {
 					<aside id="tags">
 						${this.tags.map((tag) => html`<small>${tag}</small>`)}
 					</aside>
-					<router-link to="${this.link}">
+					<router-link to="${this.feedId && this.itemId ? `/feed/${this.feedId}/item/${this.itemId}` : nothing}">
 						<iconify-icon icon="fluent:link-20-regular" inline></iconify-icon>
 						Read item
 					</router-link>
