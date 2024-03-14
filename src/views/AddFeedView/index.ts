@@ -13,6 +13,7 @@ export class AddFeedView extends LitElement implements RouterView {
 	@state() private isLoadingFeed = false;
 	@state() private newFeed: Feed | null = null;
 	@state() private feedUrl = '';
+	@state() private error = '';
 
 	navigate() {
 		return 'Add Feed';
@@ -32,6 +33,7 @@ export class AddFeedView extends LitElement implements RouterView {
 
 			this.newFeed = await fetchFeed(url.href);
 		} catch (err) {
+			this.error = err.message;
 			console.error(err);
 		} finally {
 			this.isLoadingFeed = false;
@@ -64,6 +66,8 @@ export class AddFeedView extends LitElement implements RouterView {
 				</section>
 
 				<progress ?hidden="${!this.isLoadingFeed}">Loading feed...</progress>
+
+				${when(this.error, () => html`<n-error-message>${this.error}</n-error-message>`)}
 
 				<n-feed-card
 					?hidden="${this.newFeed === null}"

@@ -113,7 +113,7 @@ export async function fetchFeed(url: string, redirectCount = 0) {
 	const response = await get(url);
 
 	if (!response.ok) {
-		throw new Error(`Could not fetch feed: ${response.status} ${response.statusText}`);
+		throw new Error(`Could not fetch feed: ${response.status} ${await response.text()}`);
 	}
 
 	const text = await response.text();
