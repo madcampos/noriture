@@ -18,6 +18,8 @@ export class FeedCard extends LitElement {
 
 		if (target.matches('a')) {
 			evt.preventDefault();
+
+			window.open((target as HTMLAnchorElement).href, '_blank');
 		}
 	}
 
