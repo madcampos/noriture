@@ -83,9 +83,13 @@ function extractFeedIcon(feed: Document) {
 }
 
 export function parseFeed(feedText: string, url: string, id?: string) {
-	// TODO: throw parse errors/validate feed
 	const feedId = id ?? crypto.randomUUID();
 	const xml = new window.DOMParser().parseFromString(feedText, 'text/xml');
+
+	if (xml.querySelector('parsererror')) {
+		throw new Error('Invalid XML');
+	}
+
 	const items = extractItems(xml, feedId);
 	const unreadItemIds = extractUnreadItemsIds(items);
 

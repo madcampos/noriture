@@ -19,7 +19,12 @@ export interface FeedItem {
 	/** The item's title that will be displayed to the user. */
 	title?: string,
 	/** The item's author. */
-	author?: string,
+	author?: {
+		/** The author's name. */
+		name: string,
+		/** The author's email. */
+		email?: string
+	},
 	/** The item's date */
 	date?: Date,
 	/** The item's image */
@@ -52,10 +57,17 @@ function extractItemTitle(item: Element) {
 
 function extractItemAuthor(item: Element) {
 	const authorNestedTag = item.querySelector('author > name, contributor > name');
-	// TODO: parse author email/name format
 	const authorDirectTag = item.querySelector('author, creator');
+	const authorText = (authorNestedTag ?? authorDirectTag)?.textContent?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
 
-	return (authorNestedTag ?? authorDirectTag)?.textContent?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
+	if (authorText) {
+		const { name, email } = (/(?<email>.+?) \((?<name>.+?)\)/u).exec(authorText)?.groups ?? {};
+
+		return {
+			name: name ?? authorText,
+			email
+		};
+	}
 }
 
 function extractMediaContent(item: Element) {
@@ -119,7 +131,6 @@ function extractItemCategories(item: Element) {
 }
 
 function extractItemContents(item: Element) {
-	// TODO: parse differently depending on the content type
 	const content = item.querySelector('description, content')?.textContent ?? item.querySelector('summary')?.textContent ?? '';
 
 	return sanitize(content.trim());
