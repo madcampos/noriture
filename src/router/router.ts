@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
+
 if (!('URLPattern' in globalThis)) {
 	await import('urlpattern-polyfill');
 }
@@ -23,8 +24,7 @@ export interface RouteLocation<Path = string> {
 type RouteGuardHandler = (origin: string, destination: string) => Promise<RouteLocation | false | void> | RouteLocation | false | void;
 
 export interface RouterView extends HTMLElement {
-	// eslint-disable-next-line @stylistic/max-len
-	navigate?<Path extends string = string, PreviousPath extends string = string>(destination: RouteLocation<Path>, origin: RouteLocation<PreviousPath>): Promise<string | void> | string | void
+	navigate?(destination: RouteLocation, origin: RouteLocation): Promise<string | void> | string | void
 }
 
 type ViewImplementation = new () => RouterView;
