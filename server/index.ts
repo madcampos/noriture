@@ -11,6 +11,7 @@ app.get('/', (context) => context.text('Hello proxy!'));
 
 function getCorsHeaders(request: HonoRequest) {
 	return {
+		// TODO: block other origins
 		'Access-Control-Allow-Origin': request.header('Origin') ?? '*',
 		'Access-Control-Allow-Methods': request.header('Access-Control-Request-Method') ?? 'GET, OPTIONS',
 		'Access-Control-Allow-Headers': request.header('Access-Control-Request-Headers') ?? 'Content-Type',
@@ -25,25 +26,25 @@ app.get('/proxy', async (context) => {
 	const url = context.req.query('url');
 
 	if (!url) {
-		return context.text('url is required', BAD_REQUEST);
+		return context.text('url is required', BAD_REQUEST, getCorsHeaders(context.req));
 	}
 
 	if (!URL.canParse(url)) {
-		return context.text('url is invalid', BAD_REQUEST);
+		return context.text('url is invalid', BAD_REQUEST, getCorsHeaders(context.req));
 	}
 
 	try {
 		const response = await fetch(url);
 
 		if (!response.ok) {
-			return context.text('proxy failed', INTERNAL_SERVER_ERROR);
+			return context.text('proxy failed', INTERNAL_SERVER_ERROR, getCorsHeaders(context.req));
 		}
 
 		const validContentTypes = ['text/xml', 'application/xml', 'application/rss+xml', 'application/atom+xml'];
 		const contentType = response.headers.get('content-type') ?? '';
 
 		if (!validContentTypes.some((type) => contentType.startsWith(type))) {
-			return context.text('invalid content type', BAD_REQUEST);
+			return context.text('invalid content type', BAD_REQUEST, getCorsHeaders(context.req));
 		}
 
 		const text = await response.text();
@@ -53,7 +54,7 @@ app.get('/proxy', async (context) => {
 			'Content-Type': 'text/xml'
 		});
 	} catch (err) {
-		return context.text(err.message, INTERNAL_SERVER_ERROR);
+		return context.text(err.message, INTERNAL_SERVER_ERROR, getCorsHeaders(context.req));
 	}
 });
 
