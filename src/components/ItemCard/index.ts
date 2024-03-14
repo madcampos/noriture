@@ -45,10 +45,10 @@ export class ItemCard extends LitElement {
 						<p>This item has no content.</p>
 					</slot>
 				</div>
-				<aside id="tags">
-					${this.tags.map((tag) => html`<small>${tag}</small>`)}
-				</aside>
 				<footer>
+					<aside id="tags">
+						${this.tags.map((tag) => html`<small>${tag}</small>`)}
+					</aside>
 					<router-link to="${this.link}">
 						<iconify-icon icon="fluent:link-20-regular" inline></iconify-icon>
 						Read item
