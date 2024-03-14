@@ -1,25 +1,30 @@
 import type { Feed } from '../../packages/Feed/Feed';
 import type { RouterView } from '../../router/router';
 
-import { html, LitElement } from 'lit';
+import { html, LitElement, nothing } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { when } from 'lit/directives/when.js';
 import { Database } from '../../db';
 
 @customElement('n-home-view')
 export class HomeView extends LitElement implements RouterView {
-	static override shadowRootOptions = { ...LitElement.shadowRootOptions, delegatesFocus: true };
-
 	@state() private feeds: Feed[] = [];
-
-	constructor() {
-		super();
-
-		this.hidden = false;
-	}
 
 	override createRenderRoot() {
 		return this;
+	}
+
+	async #loadFeeds() {
+		this.requestUpdate();
+		this.feeds = await Database.listFeeds();
+	}
+
+	navigate() {
+		void this.#loadFeeds();
+
+		return 'Home';
 	}
 
 	override render() {
@@ -28,11 +33,15 @@ export class HomeView extends LitElement implements RouterView {
 				<h1 slot="header">Home</h1>
 				${this.feeds.length > 0
 					? this.feeds.map((feed) => html`
-						<n-feed-card feed-id="/feed/${feed.id}" unread-count="${feed.unreadCount}">
-							<span slot="title">${feed.name}</span>
-							<span slot="image">${feed.icon}</span>
-							<span slot="description">${feed.description}</span>
-							<span slot="last-updated">${feed.lastUpdated}</span>
+						<n-feed-card
+							feed-id="${feed.id}"
+							unread-count="${feed.unreadCount}"
+							total-count="${feed.items.length}"
+							last-updated="${feed.lastUpdated?.toLocaleString() ?? nothing}"
+						>
+							${when(feed.name, () => html`<span slot="title">${feed.name}</span>`)}
+							${when(feed.icon, () => html`<img slot="icon" src="${feed.icon ?? ''}" alt="${feed.name ?? ''}" />`)}
+							${when(feed.description, () => unsafeHTML(feed.description))}
 						</n-feed-card>
 					`)
 					: html`<p>No feeds yet, try <router-link to="/add-feed">adding a new feed</router-link>.</p>`}
@@ -42,8 +51,7 @@ export class HomeView extends LitElement implements RouterView {
 
 	override async connectedCallback() {
 		super.connectedCallback();
-		this.requestUpdate();
 
-		this.feeds = await Database.listFeeds();
+		await this.#loadFeeds();
 	}
 }
