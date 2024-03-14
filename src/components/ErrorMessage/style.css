@@ -1,0 +1,11 @@
+div {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+
+	border: 0.1rem solid #721c24;
+	border-radius: 0.3rem;
+	background-color: #f8d7da;
+	color: #721c24;
+	padding: 0.5rem;
+}
