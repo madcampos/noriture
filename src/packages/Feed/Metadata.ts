@@ -118,6 +118,8 @@ export async function extractIcon(html: string, baseUrl: string) {
 }
 
 export function extractMedatada(html: string) {
+	// TODO: add support for oembed
+
 	const parser = new DOMParser();
 	const parsedDocument = parser.parseFromString(html, 'text/html');
 
