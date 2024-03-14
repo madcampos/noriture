@@ -9,9 +9,9 @@ import type { FeedItemView } from '../views/FeedItemView/';
 import type { FeedView } from '../views/FeedView/';
 import type { HomeView } from '../views/HomeView/';
 
-import type { ErrorMessage } from '../components/ErrorMessage/index.ts';
+import type { ErrorMessage } from '../components/ErrorMessage';
 import type { FeedCard } from '../components/FeedCard';
-import type { ItemCard } from '../components/ItemCard/ItemCard.ts';
+import type { ItemCard } from '../components/ItemCard';
 import type { MainLayout } from '../components/MainLayout';
 import type { NavBar } from '../components/NavBar';
 
