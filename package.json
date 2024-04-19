@@ -35,7 +35,7 @@
 		"preview": "vite preview --port 3000"
 	},
 	"dependencies": {
-		"@hono/node-server": "^1.8.2",
+		"@hono/node-server": "^1.10.1",
 		"@mozilla/readability": "^0.5.0",
 		"@types/node": "^20.11.25",
 		"dompurify": "^3.0.9",
