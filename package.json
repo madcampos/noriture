@@ -39,7 +39,7 @@
 		"@mozilla/readability": "^0.5.0",
 		"@types/node": "^20.11.25",
 		"dompurify": "^3.0.9",
-		"hono": "^4.0.10",
+		"hono": "^4.2.7",
 		"iconify-icon": "^2.0.0",
 		"idb": "^8.0.0",
 		"lit": "^3.1.2",
