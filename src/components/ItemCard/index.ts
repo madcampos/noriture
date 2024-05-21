@@ -15,13 +15,27 @@ export class ItemCard extends LitElement {
 	@property({ type: String, reflect: true }) date = '';
 	@property({ type: Array }) tags: string[] = [];
 
+	#interceptLinkClick(evt: MouseEvent) {
+		const target = evt.target as HTMLElement;
+
+		if (target.matches('a')) {
+			evt.preventDefault();
+
+			window.open((target as HTMLAnchorElement).href, '_blank');
+		}
+	}
+
 	override render() {
 		return html`
 			<article>
 				<picture>
 					<router-link to="${this.feedId && this.itemId ? `/feed/${this.feedId}/item/${this.itemId}` : nothing}">
 						<slot name="icon">
-							<iconify-icon icon="fluent:star-48-regular" inline></iconify-icon>
+							<iconify-icon
+								icon="fluent:star-48-regular"
+								inline
+								width="3rem"
+							></iconify-icon>
 						</slot>
 					</router-link>
 				</picture>
@@ -39,7 +53,7 @@ export class ItemCard extends LitElement {
 						</span>
 					</aside>
 				</header>
-				<div id="content">
+				<div id="content" @click="${this.#interceptLinkClick}">
 					<slot>
 						<p>This item has no content.</p>
 					</slot>

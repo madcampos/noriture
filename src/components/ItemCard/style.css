@@ -1,5 +1,39 @@
 article {
 	display: grid;
 	grid-template-columns: 5rem 1fr;
-	grid-template-rows: 5rem auto auto;
+	grid-template-rows: auto auto auto;
+	gap: 1rem;
+	grid-template-areas:
+		"image header"
+		"content content"
+		"footer footer";
 }
+
+picture {
+	grid-area: image;
+	place-self: center;
+
+	& > router-link {
+		display: flex;
+		place-items: center;
+		width: 100%;
+		height: 100%;
+	}
+
+	::slotted(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+}
+
+header { grid-area: header; }
+
+#content {
+	grid-area: content;
+	-webkit-line-clamp: 5;
+	overflow: hidden;
+	max-height: 10rem;
+}
+
+footer { grid-area: footer; }
