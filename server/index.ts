@@ -58,15 +58,12 @@ app.get('/proxy', async (context) => {
 	}
 });
 
-
-const HOST = 'localhost';
 const PORT = 3000;
 
 serve({
 	fetch: app.fetch,
-	port: PORT,
-	hostname: HOST
+	port: PORT
 }).on('listening', () => {
 	// eslint-disable-next-line no-console
-	console.info(`Server is listening on http://${HOST}:${PORT}`);
+	console.info(`Server is listening on port: ${PORT}`);
 });
