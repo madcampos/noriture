@@ -11,11 +11,16 @@ import { fetchFeed } from '../../packages/Feed/Feed';
 
 @customElement('n-add-feed-view')
 export class AddFeedView extends LitElement implements RouterView {
-	@state() private isLoadingFeed = false;
-	@state() private newFeed: Feed | null = null;
-	@state() private feedUrl = '';
-	@state() private error = '';
-	@state() private hasFeed = false;
+	@state()
+	private isLoadingFeed = false;
+	@state()
+	private newFeed: Feed | null = null;
+	@state()
+	private feedUrl = '';
+	@state()
+	private error = '';
+	@state()
+	private hasFeed = false;
 
 	navigate() {
 		this.hasFeed = false;
@@ -108,14 +113,17 @@ export class AddFeedView extends LitElement implements RouterView {
 					total-count="${this.newFeed?.items.length ?? nothing}"
 					unread-count="${this.newFeed?.unreadCount ?? nothing}"
 				>
-					${when(this.newFeed?.icon, () => html`
+					${
+			when(this.newFeed?.icon, () =>
+				html`
 						<img
 							?hidden="${!this.newFeed?.icon}"
 							src="${this.newFeed?.icon ?? ''}"
 							alt="${this.newFeed?.name ?? ''}"
 							slot="icon"
 						>
-					`)}
+					`)
+		}
 					${when(this.newFeed?.name, () => html`<span slot="title">${this.newFeed?.name ?? ''}</span>`)}
 
 					<button

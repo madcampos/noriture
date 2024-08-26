@@ -10,35 +10,35 @@ type FeedLastUpdated = Date | 'DownloadError' | 'ParseError';
 
 export interface Feed {
 	/** The feed's unique identifier. */
-	id: ReturnType<typeof crypto.randomUUID>,
+	id: ReturnType<typeof crypto.randomUUID>;
 	/** The feed's title that will be displayed to the user. */
-	name: string,
+	name: string;
 	/** The feed's description that will be displayed to the user. */
-	description?: string,
+	description?: string;
 	/** The feed's URL that will be displayed to the user. */
-	siteUrl?: string,
+	siteUrl?: string;
 	/** The feed's URL. */
-	feedUrl: string,
+	feedUrl: string;
 	/** The feed's icon that will be displayed to the user. */
-	icon?: string,
+	icon?: string;
 	/** The feed's color that will be displayed to the user. */
-	color?: string,
+	color?: string;
 	/** The feed's background color that will be displayed to the user. */
-	backgroundColor?: string,
+	backgroundColor?: string;
 	/** The feed's categories that will be displayed to the user. */
-	categories: string[],
+	categories: string[];
 	/** The feed's type. */
-	type: FeedType,
+	type: FeedType;
 	/** The feed's display type. */
-	displayType: FeedDisplayType,
+	displayType: FeedDisplayType;
 	/** The feeds's last updated date. */
-	lastUpdated: FeedLastUpdated,
+	lastUpdated: FeedLastUpdated;
 	/** The number of unread items. */
-	unreadCount: number,
+	unreadCount: number;
 	/** The list of ids for the unread items. */
-	unreadItemIds: ReturnType<typeof crypto.randomUUID>[],
+	unreadItemIds: ReturnType<typeof crypto.randomUUID>[];
 	/** The list of items in the feed. */
-	items: FeedItem[]
+	items: FeedItem[];
 }
 
 function extractFeedType(feed: Document) {
@@ -75,7 +75,9 @@ function extractFeedCategories(feed: Document) {
 	const rssCategories = [...feed.querySelectorAll('channel > category')].map((category) => category.textContent);
 	const atomCategories = [...feed.querySelectorAll('feed > category')].map((category) => category.getAttribute('term'));
 
-	return [...new Set([...rssCategories, ...atomCategories].map((category) => category?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1')).filter((category) => category))] as string[];
+	return [
+		...new Set([...rssCategories, ...atomCategories].map((category) => category?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1')).filter((category) => category))
+	] as string[];
 }
 
 function extractFeedIcon(feed: Document) {

@@ -17,20 +17,20 @@ import type { NavBar } from '../components/NavBar';
 
 declare global {
 	interface HTMLElementTagNameMap {
-		'router-link': RouterLink,
+		'router-link': RouterLink;
 
 		// Views
-		'n-add-feed-view': AddFeedView,
-		'n-configure-feed-view': ConfigureFeedView,
-		'n-feed-item-view': FeedItemView,
-		'n-feed-view': FeedView,
-		'n-home-view': HomeView,
+		'n-add-feed-view': AddFeedView;
+		'n-configure-feed-view': ConfigureFeedView;
+		'n-feed-item-view': FeedItemView;
+		'n-feed-view': FeedView;
+		'n-home-view': HomeView;
 
 		// Components
-		'n-error-message': ErrorMessage,
-		'n-feed-card': FeedCard,
-		'n-item-card': ItemCard,
-		'n-main-layout': MainLayout,
-		'n-nav-bar': NavBar
+		'n-error-message': ErrorMessage;
+		'n-feed-card': FeedCard;
+		'n-item-card': ItemCard;
+		'n-main-layout': MainLayout;
+		'n-nav-bar': NavBar;
 	}
 }

@@ -7,7 +7,8 @@ import style from './style.css?inline' assert { type: 'css' };
 export class MainLayout extends LitElement {
 	static override readonly styles = unsafeCSS(style);
 
-	@property({ type: String, reflect: true, attribute: 'feed-id' }) feedId = '';
+	@property({ type: String, reflect: true, attribute: 'feed-id' })
+	feedId = '';
 
 	override render() {
 		return html`

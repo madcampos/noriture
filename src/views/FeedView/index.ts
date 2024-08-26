@@ -10,7 +10,8 @@ import { Database } from '../../db/index.ts';
 
 @customElement('n-feed-view')
 export class FeedView extends LitElement implements RouterView {
-	@state() private feed?: Feed;
+	@state()
+	private feed?: Feed;
 
 	async #loadFeed(feedId: string) {
 		this.feed = await Database.getFeed(feedId);
@@ -37,11 +38,13 @@ export class FeedView extends LitElement implements RouterView {
 			<n-main-layout feed-id="${this.feed?.id ? this.feed.id : nothing}">
 				<div slot="header">
 					<picture>
-						${when(
-							this.feed?.icon,
-							() => html`<img src="${this.feed?.icon ?? ''}" alt="${this.feed?.name ?? ''}" />`,
-							() => html`<iconify-icon icon="fluent:star-48-regular" inline></iconify-icon>`
-						)}
+						${
+			when(
+				this.feed?.icon,
+				() => html`<img src="${this.feed?.icon ?? ''}" alt="${this.feed?.name ?? ''}" />`,
+				() => html`<iconify-icon icon="fluent:star-48-regular" inline></iconify-icon>`
+			)
+		}
 					</picture>
 					<h1>${this.feed?.name ?? 'No title'}</h1>
 					<aside>
@@ -52,14 +55,18 @@ export class FeedView extends LitElement implements RouterView {
 					</aside>
 				</div>
 				<div id="description" @click="${this.#interceptLinkClick}">
-					${when(
-						this.feed?.description,
-						() => unsafeHTML(this.feed?.description ?? ''),
-						() => html`<p>This feed has no description.</p>`
-					)}
+					${
+			when(
+				this.feed?.description,
+				() => unsafeHTML(this.feed?.description ?? ''),
+				() => html`<p>This feed has no description.</p>`
+			)
+		}
 				</div>
 				<ul>
-					${this.feed?.items.map((item) => html`
+					${
+			this.feed?.items.map((item) =>
+				html`
 						<li>
 							<n-item-card
 								feed-id="${this.feed?.id ?? ''}"
@@ -68,14 +75,18 @@ export class FeedView extends LitElement implements RouterView {
 								author="${item.author ?? ''}"
 								date="${item.date?.toLocaleString() ?? ''}"
 							>
-								${when(
-									item.image,
-									() => html`<img src="${item.image ?? ''}" alt="${item.title ?? 'No title'}" />`
-								)}
+								${
+					when(
+						item.image,
+						() => html`<img src="${item.image ?? ''}" alt="${item.title ?? 'No title'}" />`
+					)
+				}
 								${unsafeHTML(item.content)}
 							</n-item-card>
 						</li>
-					`)}
+					`
+			)
+		}
 				</ul>
 			</n-main-layout>
 		`;

@@ -150,10 +150,13 @@ export class Database {
 
 		await Database.saveFeedItems(feedId, items);
 
-		return database.put('feeds', asSavedFeed({
-			...(feed as Feed),
-			lastUpdated: new Date()
-		}));
+		return database.put(
+			'feeds',
+			asSavedFeed({
+				...(feed as Feed),
+				lastUpdated: new Date()
+			})
+		);
 	}
 
 	static async markFeedItemRead(itemId: string) {

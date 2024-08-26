@@ -6,7 +6,8 @@ import { Router } from './router';
 @customElement('router-link')
 export class RouterLink extends LitElement {
 	// eslint-disable-next-line id-length
-	@property({ type: String, reflect: true }) to?: string;
+	@property({ type: String, reflect: true })
+	to?: string;
 
 	#click(evt: MouseEvent) {
 		evt.preventDefault();

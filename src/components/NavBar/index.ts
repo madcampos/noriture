@@ -7,7 +7,8 @@ import style from './style.css?inline' assert { type: 'css' };
 export class NavBar extends LitElement {
 	static override readonly styles = unsafeCSS(style);
 
-	@property({ type: String, reflect: true, attribute: 'feed-id' }) feedId = '';
+	@property({ type: String, reflect: true, attribute: 'feed-id' })
+	feedId = '';
 
 	override render() {
 		return html`<nav>
@@ -26,15 +27,17 @@ export class NavBar extends LitElement {
 				</li>
 				<li role="separator"><hr role="presentation" /></li>
 
-				${this.feedId
-					? html`
+				${
+			this.feedId
+				? html`
 						<li id="feed-config">
 							<router-link to="/feed/${this.feedId}/configure">
 								<iconify-icon icon="fluent:settings-24-regular" title="Configure Feed"></iconify-icon>
 							</router-link>
 						</li>
 					`
-					: ''}
+				: ''
+		}
 			</ul>
 		</nav>`;
 	}

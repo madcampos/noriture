@@ -35,7 +35,9 @@ export async function extractIcon(html: string, baseUrl: string) {
 	const parser = new DOMParser();
 	const parsedDocument = parser.parseFromString(html, 'text/html');
 
-	const iconLinks = parsedDocument.querySelectorAll('link[rel~="icon"], link[rel^="apple-touch-icon"], link[rel="apple-touch-startup-image"], link[rel="mask-icon"], link[rel="fluid-icon"]');
+	const iconLinks = parsedDocument.querySelectorAll(
+		'link[rel~="icon"], link[rel^="apple-touch-icon"], link[rel="apple-touch-startup-image"], link[rel="mask-icon"], link[rel="fluid-icon"]'
+	);
 	const ieIcons = parsedDocument.querySelectorAll('meta[name="msapplication-TileImage"], meta[name^="msapplication-square"], meta[name^="msapplication-wide"]');
 
 	const ieConfig = parsedDocument.querySelector('meta[name="msapplication-config"]');

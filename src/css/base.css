@@ -1,14 +1,13 @@
 @import url('./variables.css');
 
 :root {
+	accent-color: orange;
+	color: snow;
+	color-scheme: dark;
 	font-family: system-ui, sans-serif;
 	font-size: 20px;
 	line-height: 1.2;
 	text-rendering: optimizelegibility;
-
-	color-scheme: dark;
-	accent-color: orange;
-	color: snow;
 }
 
 *, *::before, *::after {
@@ -21,22 +20,16 @@ html, body {
 	margin: 0;
 }
 
-body {
-	background: radial-gradient(circle at bottom, darkslategray, black);
-}
+body { background: radial-gradient(circle at bottom, darkslategray, black); }
 
 img, picture, video, canvas, svg {
 	display: block;
 	max-width: 100%;
 }
 
-p, h1, h2, h3, h4, h5, h6 {
-	overflow-wrap: break-word;
-}
+p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
 
-main {
-	isolation: isolate;
-}
+main { isolation: isolate; }
 
 [aria-disabled] {
 	cursor: not-allowed;

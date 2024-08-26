@@ -4,43 +4,43 @@ export const MEDIA_TYPES = ['image', 'video', 'audio', 'document', 'executable',
 
 export interface FeedMedia {
 	/** The media's type. */
-	type: typeof MEDIA_TYPES[number],
+	type: typeof MEDIA_TYPES[number];
 	/** The media's URL. */
-	url: string,
+	url: string;
 	/** The media's mime type. */
-	mimeType: string,
+	mimeType: string;
 	/** The media's size in bytes. */
-	size: number
+	size: number;
 }
 
 export interface FeedItem {
 	/** The item's unique identifier. */
-	id: ReturnType<typeof crypto.randomUUID>,
+	id: ReturnType<typeof crypto.randomUUID>;
 	/** The item's title that will be displayed to the user. */
-	title?: string,
+	title?: string;
 	/** The item's author. */
 	author?: {
 		/** The author's name. */
 		name: string,
 		/** The author's email. */
 		email?: string
-	},
+	};
 	/** The item's date */
-	date?: Date,
+	date?: Date;
 	/** The item's image */
-	image?: string,
+	image?: string;
 	/** The item's content. */
-	content: string,
+	content: string;
 	/** The item's media. */
-	media: FeedMedia[],
+	media: FeedMedia[];
 	/** The item's URL. */
-	url?: string,
+	url?: string;
 	/** The item's read status. */
-	read: boolean,
+	read: boolean;
 	/** The item's feed id. */
-	feedId: ReturnType<typeof crypto.randomUUID>,
+	feedId: ReturnType<typeof crypto.randomUUID>;
 	/** The item's tags. */
-	tags: string[]
+	tags: string[];
 }
 
 function extractItemId(item: Element) {
@@ -110,7 +110,6 @@ function extractItemDate(item: Element) {
 	const publicationDate = item.querySelector('pubDate, published')?.textContent?.trim();
 	const lastModified = item.querySelector('lastBuildDate, updated')?.textContent?.trim();
 
-	// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 	if (publicationDate || lastModified) {
 		return new Date((publicationDate ?? lastModified) as string);
 	}
@@ -120,13 +119,15 @@ function extractItemDate(item: Element) {
 
 function extractItemCategories(item: Element) {
 	return [
-		...new Set([...item.querySelectorAll('category')].map((category) => {
-			const label = category.getAttribute('label');
-			const term = category.getAttribute('term');
-			const textContent = category.textContent?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
+		...new Set(
+			[...item.querySelectorAll('category')].map((category) => {
+				const label = category.getAttribute('label');
+				const term = category.getAttribute('term');
+				const textContent = category.textContent?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
 
-			return label ?? term ?? textContent;
-		}).filter((category) => category))
+				return label ?? term ?? textContent;
+			}).filter((category) => category)
+		)
 	] as string[];
 }
 

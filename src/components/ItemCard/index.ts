@@ -1,19 +1,24 @@
 import { html, LitElement, nothing, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-
 import style from './style.css?inline' assert { type: 'css' };
 
 @customElement('n-item-card')
 export class ItemCard extends LitElement {
 	static override readonly styles = unsafeCSS(style);
 
-	@property({ type: String, reflect: true }) feedId = '';
-	@property({ type: String, reflect: true }) itemId = '';
-	@property({ type: String, reflect: true }) override title = '';
-	@property({ type: String, reflect: true }) author = '';
-	@property({ type: String, reflect: true }) date = '';
-	@property({ type: Array }) tags: string[] = [];
+	@property({ type: String, reflect: true })
+	feedId = '';
+	@property({ type: String, reflect: true })
+	itemId = '';
+	@property({ type: String, reflect: true })
+	override title = '';
+	@property({ type: String, reflect: true })
+	author = '';
+	@property({ type: String, reflect: true })
+	date = '';
+	@property({ type: Array })
+	tags: string[] = [];
 
 	#interceptLinkClick(evt: MouseEvent) {
 		const target = evt.target as HTMLElement;

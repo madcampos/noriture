@@ -1,7 +1,6 @@
 import type { Feed } from '../packages/Feed/Feed';
 import type { FeedItem } from '../packages/Feed/FeedItem';
 
-
 export type SavedFeed = Omit<Feed, 'items' | 'lastUpdated' | 'unreadCount' | 'unreadItemIds'> & {
 	lastUpdated: string
 };

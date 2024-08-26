@@ -4,20 +4,20 @@ nav {
 }
 
 ul {
-	list-style: none;
 	display: flex;
+	gap: 1rem;
+	list-style: none;
 	margin: 0;
 	padding: 0;
-	gap: 1rem;
 }
 
-li[role="separator"] {
+li[role='separator'] {
 	flex-grow: 1;
 
 	hr { border: none; }
 }
 
 iconify-icon {
-	font-size: 1.5rem;
 	color: var(--primary-color);
+	font-size: 1.5rem;
 }

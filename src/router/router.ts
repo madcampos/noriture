@@ -6,8 +6,7 @@ if (!('URLPattern' in globalThis)) {
 
 type IsParameter<Part> = Part extends `:${infer ParamName}` ? ParamName : never;
 
-type FilteredParts<Path> = Path extends `${infer PartA}/${infer PartB}`
-	? FilteredParts<PartB> | IsParameter<PartA>
+type FilteredParts<Path> = Path extends `${infer PartA}/${infer PartB}` ? FilteredParts<PartB> | IsParameter<PartA>
 	: IsParameter<Path>;
 
 type Params<Path> = {
@@ -15,34 +14,34 @@ type Params<Path> = {
 };
 
 export interface RouteLocation<Path = string> {
-	path: Path,
-	params: Params<Path>,
-	query?: Record<string, string | undefined>,
-	hash?: string
+	path: Path;
+	params: Params<Path>;
+	query?: Record<string, string | undefined>;
+	hash?: string;
 }
 
 type RouteGuardHandler = (origin: string, destination: string) => Promise<RouteLocation | false | void> | RouteLocation | false | void;
 
 export interface RouterView extends HTMLElement {
-	navigate?(destination: RouteLocation, origin: RouteLocation): Promise<string | void> | string | void
+	navigate?(destination: RouteLocation, origin: RouteLocation): Promise<string | void> | string | void;
 }
 
 type ViewImplementation = new () => RouterView;
 
 interface RouteDefinition {
-	path: string,
-	view: ViewImplementation,
-	guard?: RouteGuardHandler
+	path: string;
+	view: ViewImplementation;
+	guard?: RouteGuardHandler;
 }
 
 interface RouterConfig {
-	routes: RouteDefinition[],
-	baseUrl: string,
-	appTitle?: string,
-	linkSelectorAttribute?: string,
-	beforeEach?: RouteGuardHandler,
-	fallback?: RouterView,
-	renderTarget?: HTMLElement
+	routes: RouteDefinition[];
+	baseUrl: string;
+	appTitle?: string;
+	linkSelectorAttribute?: string;
+	beforeEach?: RouteGuardHandler;
+	fallback?: RouterView;
+	renderTarget?: HTMLElement;
 }
 
 export class Router {
@@ -156,10 +155,12 @@ export class Router {
 
 	static init({
 		routes,
-		baseUrl, appTitle,
+		baseUrl,
+		appTitle,
 		linkSelectorAttribute,
 		renderTarget,
-		beforeEach, fallback
+		beforeEach,
+		fallback
 	}: RouterConfig) {
 		Router.#baseUrl = baseUrl;
 

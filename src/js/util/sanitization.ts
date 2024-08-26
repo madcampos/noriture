@@ -1,4 +1,3 @@
-/* eslint-disable @stylistic/array-bracket-newline, @stylistic/array-element-newline */
 import DOMPurify from 'dompurify';
 
 export function sanitize(html: string) {
