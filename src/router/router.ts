@@ -92,7 +92,7 @@ export class Router {
 	static add<T extends ViewImplementation>(path: string, ViewClass: T) {
 		const view = new ViewClass();
 
-		view.dataset.routerView = '';
+		view.dataset['routerView'] = '';
 
 		Router.#routes.push([new URLPattern({ pathname: path }), view]);
 
@@ -129,10 +129,10 @@ export class Router {
 				const title = await view.navigate?.(destination, Router.#currentLocation) ?? undefined;
 
 				Router.#routes.forEach(([, otherView]) => {
-					delete otherView.dataset.activeView;
+					delete otherView.dataset['activeView'];
 				});
 
-				view.dataset.activeView = '';
+				view.dataset['activeView'] = '';
 
 				Router.#currentPath = pathToSearch;
 				Router.#currentLocation = destination;

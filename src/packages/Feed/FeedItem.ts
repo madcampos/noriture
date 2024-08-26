@@ -68,6 +68,8 @@ function extractItemAuthor(item: Element) {
 			email
 		};
 	}
+
+	return undefined;
 }
 
 function extractMediaContent(item: Element) {

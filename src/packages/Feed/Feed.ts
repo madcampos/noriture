@@ -55,6 +55,8 @@ function extractFeedDescription(feed: Document) {
 	if (descrition) {
 		return sanitize(descrition);
 	}
+
+	return undefined;
 }
 
 function extractFeedSiteUrl(feed: Document) {
