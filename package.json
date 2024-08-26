@@ -22,62 +22,49 @@
 		"url": "git+https://github.com/madcampos/sdrlog.git"
 	},
 	"scripts": {
-		"postinstall": "husky install",
+		"prepare": "husky",
 		"start": "tsx server/index.ts",
 		"dev": "vite",
 		"dev:server": "tsx watch server/index.ts",
 		"typecheck": "tsc --noEmit",
-		"lint": "npm run typecheck && npm run lint:js && npm run lint:css",
-		"lint:js": "eslint src --ext .js,.mjs,.ts,.mts --fix --ignore-path .gitignore",
-		"lint:css": "stylelint src/**/*.css --fix",
-		"lint-staged": "lint-staged",
+		"lint": "npm run typecheck && npm run lint:js",
+		"lint:js": "eslint --fix",
 		"build": "vite build",
-		"prepreview": "npm run build:app",
+		"prepreview": "npm run build",
 		"preview": "vite preview --port 3000"
 	},
 	"dependencies": {
-		"@hono/node-server": "^1.11.3",
+		"@hono/node-server": "^1.12.1",
 		"@mozilla/readability": "^0.5.0",
-		"@types/node": "^20.14.5",
-		"dompurify": "^3.1.5",
-		"hono": "^4.4.6",
+		"@types/node": "^22.5.0",
+		"dompurify": "^3.1.6",
+		"hono": "^4.5.9",
 		"iconify-icon": "^2.1.0",
 		"idb": "^8.0.0",
-		"lit": "^3.1.4",
-		"tsx": "^4.15.6",
+		"lit": "^3.2.0",
+		"tsx": "^4.18.0",
 		"urlpattern-polyfill": "^10.0.0"
 	},
 	"devDependencies": {
-		"@stylistic/eslint-plugin": "^2.2.1",
 		"@types/dompurify": "^3.0.5",
-		"@typescript-eslint/eslint-plugin": "^7.13.1",
-		"@typescript-eslint/parser": "^7.13.1",
-		"eslint": "^8.57.0",
-		"husky": "^9.0.11",
-		"stylelint": "^16.6.1",
-		"typed-query-selector": "^2.11.2",
-		"typescript": "^5.4.5",
-		"vite": "^5.3.1",
-		"vite-plugin-pwa": "^0.20.0"
+		"@typescript-eslint/eslint-plugin": "^8.3.0",
+		"@typescript-eslint/parser": "^8.3.0",
+		"eslint": "^9.9.1",
+		"husky": "^9.1.5",
+		"typed-query-selector": "^2.12.0",
+		"typescript": "^5.5.4",
+		"vite": "^5.4.2",
+		"vite-plugin-pwa": "^0.20.1"
 	},
 	"engines": {
-		"node": ">=20.0.0"
+		"node": ">=22.0.0"
 	},
 	"volta": {
-		"node": "20.11.1"
-	},
-	"lint-staged": {
-		"*.ts": "eslint --ext .ts --fix",
-		"*.js": "eslint --ext .js --fix",
-		"*.css": "stylelint --fix"
-	},
-	"commitlint": {
-		"extends": [
-			"@commitlint/config-conventional"
-		]
+		"node": "22.7.0"
 	},
 	"overrides": {
-		"hasown": "npm:@nolyfill/hasown@latest",
-		"string.prototype.matchall": "npm:@nolyfill/string.prototype.matchall@latest"
+		"hasown": "npm:@nolyfill/hasown@^1",
+		"string.prototype.matchall": "npm:@nolyfill/string.prototype.matchall@^1",
+		"is-core-module": "npm:@nolyfill/is-core-module@^1"
 	}
 }
