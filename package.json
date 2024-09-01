@@ -34,15 +34,15 @@
 		"preview": "vite preview --port 3000"
 	},
 	"dependencies": {
-		"@hono/node-server": "^1.12.1",
+		"@hono/node-server": "^1.12.2",
 		"@mozilla/readability": "^0.5.0",
-		"@types/node": "^22.5.0",
+		"@types/node": "^22.5.2",
 		"dompurify": "^3.1.6",
-		"hono": "^4.5.9",
+		"hono": "^4.5.10",
 		"iconify-icon": "^2.1.0",
 		"idb": "^8.0.0",
 		"lit": "^3.2.0",
-		"tsx": "^4.18.0",
+		"tsx": "^4.19.0",
 		"urlpattern-polyfill": "^10.0.0"
 	},
 	"devDependencies": {
@@ -54,7 +54,7 @@
 		"typed-query-selector": "^2.12.0",
 		"typescript": "^5.5.4",
 		"vite": "^5.4.2",
-		"vite-plugin-pwa": "^0.20.1"
+		"vite-plugin-pwa": "^0.20.2"
 	},
 	"engines": {
 		"node": ">=22.0.0"
