@@ -54,7 +54,7 @@
 		"globals": "^16.0.0",
 		"husky": "^9.1.7",
 		"typed-query-selector": "^2.12.0",
-		"vite": "^6.2.0",
+		"vite": "^6.2.4",
 		"vite-plugin-pwa": "^0.21.1"
 	},
 	"engines": {
