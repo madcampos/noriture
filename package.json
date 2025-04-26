@@ -23,9 +23,12 @@
 	},
 	"scripts": {
 		"prepare": "husky",
-		"start": "tsx server/index.ts",
-		"dev": "vite",
-		"dev:server": "tsx watch server/index.ts",
+		"start": "npm run dev",
+		"dev": "wrangler dev server/index.ts",
+		"dev:client": "vite",
+		"deploy:dev": "wrangler deploy --minify --env dev",
+		"deploy:prod": "wrangler deploy --minify --env production",
+		"format": "dprint fmt --staged",
 		"typecheck": "tsc --noEmit",
 		"lint": "npm run typecheck && npm run lint:js",
 		"lint:js": "eslint --fix",
@@ -34,28 +37,27 @@
 		"preview": "vite preview --port 3000"
 	},
 	"dependencies": {
-		"@hono/node-server": "^1.14.0",
 		"@mozilla/readability": "^0.6.0",
-		"dompurify": "^3.2.2",
-		"hono": "^4.7.2",
+		"dompurify": "^3.2.5",
+		"hono": "^4.7.7",
 		"iconify-icon": "^2.3.0",
-		"idb": "^8.0.0",
-		"lit": "^3.2.1",
-		"tsx": "^4.19.3",
-		"typescript": "^5.8.2",
+		"idb": "^8.0.2",
+		"lit": "^3.3.0",
+		"typescript": "^5.8.3",
 		"urlpattern-polyfill": "^10.0.0"
 	},
 	"devDependencies": {
 		"@types/dompurify": "^3.2.0",
-		"@types/node": "^22.13.0",
-		"@typescript-eslint/eslint-plugin": "^8.29.0",
-		"@typescript-eslint/parser": "^8.29.0",
-		"eslint": "^9.23.0",
+		"@types/node": "^22.15.2",
+		"@typescript-eslint/eslint-plugin": "^8.31.0",
+		"@typescript-eslint/parser": "^8.31.0",
+		"eslint": "^9.25.1",
 		"globals": "^16.0.0",
 		"husky": "^9.1.7",
 		"typed-query-selector": "^2.12.0",
-		"vite": "^6.2.6",
-		"vite-plugin-pwa": "^1.0.0"
+		"vite": "^6.3.3",
+		"vite-plugin-pwa": "^1.0.0",
+		"wrangler": "4.13.2"
 	},
 	"engines": {
 		"node": ">=22.0.0"
