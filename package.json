@@ -48,16 +48,16 @@
 	},
 	"devDependencies": {
 		"@types/dompurify": "^3.2.0",
-		"@types/node": "^24.3.1",
-		"@typescript-eslint/eslint-plugin": "^8.42.0",
+		"@types/node": "^24.6.1",
+		"@typescript-eslint/eslint-plugin": "^8.45.0",
 		"@typescript-eslint/parser": "^8.31.0",
-		"eslint": "^9.34.0",
-		"globals": "^16.3.0",
+		"eslint": "^9.36.0",
+		"globals": "^16.4.0",
 		"husky": "^9.1.7",
 		"typed-query-selector": "^2.12.0",
 		"vite": "^7.1.5",
 		"vite-plugin-pwa": "^1.0.0",
-		"wrangler": "4.34.0"
+		"wrangler": "4.40.3"
 	},
 	"engines": {
 		"node": ">=22.0.0"
