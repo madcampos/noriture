@@ -1,7 +1,6 @@
 // eslint-env node
 import { readFileSync } from 'fs';
 
-import { resolve } from 'path';
 import { defineConfig, type UserConfig } from 'vite';
 import type { ManifestOptions } from 'vite-plugin-pwa';
 import { VitePWA as vitePWA } from 'vite-plugin-pwa';
@@ -54,16 +53,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			target: 'esnext',
 			emptyOutDir: true,
-			outDir: '../dist',
-			rollupOptions: {
-				input: {
-					main: resolve('src/index.html')
-				},
-				output: {
-					generatedCode: 'es2015',
-					inlineDynamicImports: false
-				}
-			}
+			outDir: '../dist'
 		},
 		preview: {
 			https: sslOptions,

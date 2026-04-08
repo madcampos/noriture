@@ -1,0 +1,15 @@
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - "wrangler"
+  - "workerd"
+  - "miniflare"
+  - "@cloudflare/*"
+trustPolicy: "no-downgrade"
+trustPolicyExclude:
+  - "semver@6.3.1"
+preferFrozenLockfile: true
+ignoreScripts: true
+ignoreDepScripts: true
+strictDepBuilds: true
+engineStrict: false
+ignorePnpmfile: true
