@@ -10,17 +10,10 @@
 		"rss",
 		"feed"
 	],
-	"author": {
-		"name": "madcampos",
-		"email": "madcampos@outlook.com"
-	},
+	"author": "madcampos",
 	"license": "MIT",
 	"browser": "./dist/index.html",
 	"type": "module",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/madcampos/sdrlog.git"
-	},
 	"engines": {
 		"node": ">=24.0.0"
 	},
@@ -32,7 +25,7 @@
 		"format": "dprint fmt --staged",
 		"typecheck": "tsc --noEmit",
 		"lint": "npm run typecheck && npm run lint:js",
-		"lint:js": "eslint --fix",
+		"lint:js": "oxlint --fix",
 		"build": "vite build",
 		"prepreview": "npm run build",
 		"preview": "vite preview --port 3000"
@@ -40,19 +33,15 @@
 	"dependencies": {
 		"@mozilla/readability": "^0.6.0",
 		"dompurify": "^3.3.3",
-		"hono": "^4.12.9",
 		"iconify-icon": "^3.0.2",
 		"idb": "^8.0.3",
 		"lit": "^3.3.2",
-		"typescript": "^6.0.2",
-		"urlpattern-polyfill": "^10.1.0"
+		"typescript": "^6.0.2"
 	},
 	"devDependencies": {
-		"@types/node": "^25.5.0",
-		"@typescript-eslint/eslint-plugin": "^8.58.0",
-		"@typescript-eslint/parser": "^8.58.0",
-		"eslint": "^10.1.0",
-		"globals": "^17.4.0",
+		"@cloudflare/vite-plugin": "1.31.1",
+		"oxlint": "1.58.0",
+		"oxlint-tsgolint": "0.19.0",
 		"typed-query-selector": "^2.12.1",
 		"vite": "^8.0.3",
 		"vite-plugin-pwa": "^1.2.0",

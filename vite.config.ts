@@ -1,13 +1,13 @@
-// eslint-env node
+// oxlint-env node
+import { cloudflare } from '@cloudflare/vite-plugin';
 import { readFileSync } from 'fs';
-
 import { defineConfig, type UserConfig } from 'vite';
-import type { ManifestOptions } from 'vite-plugin-pwa';
-import { VitePWA as vitePWA } from 'vite-plugin-pwa';
+import { type ManifestOptions, VitePWA as vitePWA } from 'vite-plugin-pwa';
 import { externalResources, internalResources } from './src/service-worker';
 
 const manifest: Partial<ManifestOptions> = JSON.parse(readFileSync('./src/manifest.json', { encoding: 'utf8' }));
 
+// oxlint-disable-next-line import/no-default-export
 export default defineConfig(({ mode }) => {
 	const baseUrl = mode === 'production' ? 'https://noriture.madcampos.dev/' : 'https://localhost:3000/';
 
@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => {
 
 	const config: UserConfig = {
 		plugins: [
+			cloudflare(),
 			vitePWA({
 				registerType: 'prompt',
 				minify: true,

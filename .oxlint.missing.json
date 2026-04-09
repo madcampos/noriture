@@ -1,0 +1,82 @@
+{
+	"consistent-this": ["warn", "self"],
+	"func-name-matching": "error",
+	"logical-assignment-operators": ["error", "always", { "enforceForIfStatements": true }],
+	"no-implicit-globals": "warn",
+	"no-restricted-exports": "off",
+	"no-useless-assignment": "error",
+	"no-underscore-dangle": "error",
+	"no-unreachable-loop": "error",
+	"object-shorthand": "warn",
+	"one-var": ["warn", "never"],
+	"prefer-arrow-callback": "warn",
+	"prefer-regex-literals": "warn",
+	"require-unicode-regexp": "warn",
+
+	"import/no-extraneous-dependencies": "error",
+	"import/no-useless-path-segments": "warn",
+
+	"typescript/method-signature-style": ["error", "method"],
+	"typescript/prefer-destructuring": "warn",
+	"typescript/naming-convention": ["error", {
+		"selector": "default",
+		"format": ["PascalCase", "camelCase"],
+		"leadingUnderscore": "allow",
+		"trailingUnderscore": "forbid",
+		"filter": {
+			"regex": "^(_id|__v)$",
+			"match": false
+		}
+	}, {
+		"selector": "enumMember",
+		"format": ["UPPER_CASE"],
+		"leadingUnderscore": "forbid",
+		"trailingUnderscore": "forbid"
+	}, {
+		"selector": "variable",
+		"format": ["PascalCase", "camelCase", "UPPER_CASE"],
+		"leadingUnderscore": "forbid",
+		"trailingUnderscore": "forbid",
+		"filter": {
+			"regex": "^(_id|__v)$",
+			"match": false
+		}
+	}, {
+		"selector": "variable",
+		"format": ["camelCase", "UPPER_CASE"],
+		"modifiers": ["unused"],
+		"leadingUnderscore": "require",
+		"trailingUnderscore": "forbid"
+	}, {
+		"selector": "objectLiteralMethod",
+		"format": null,
+		"leadingUnderscore": "forbid",
+		"trailingUnderscore": "forbid"
+	}, {
+		"selector": "objectLiteralProperty",
+		"format": null,
+		"leadingUnderscore": "forbid",
+		"trailingUnderscore": "forbid",
+		"filter": {
+			"regex": "^(_id|__v)$",
+			"match": false
+		}
+	}, {
+		"selector": "typeProperty",
+		"format": null,
+		"leadingUnderscore": "forbid",
+		"trailingUnderscore": "forbid",
+		"filter": {
+			"regex": "^(_id|__v)$",
+			"match": false
+		}
+	}, {
+		"selector": "typeMethod",
+		"format": null,
+		"leadingUnderscore": "forbid",
+		"trailingUnderscore": "forbid"
+	}, {
+		"selector": "typeLike",
+		"format": ["PascalCase"]
+	}]
+}
