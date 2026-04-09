@@ -30,6 +30,7 @@ export class Database {
 	}>;
 
 	static async #getConnection() {
+		// oxlint-disable-next-line typescript/no-unnecessary-condition
 		this.#database ||= await openDB('noriture', DATABASE_VERSION, {
 			upgrade(database) {
 				const feedsStore = database.createObjectStore('feeds', { keyPath: 'id' });
@@ -153,8 +154,8 @@ export class Database {
 		return database.put(
 			'feeds',
 			asSavedFeed({
-				...(feed as Feed),
-				lastUpdated: new Date()
+				...feed,
+				lastUpdated: new Date().toISOString()
 			})
 		);
 	}

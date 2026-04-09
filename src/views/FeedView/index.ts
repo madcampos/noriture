@@ -18,12 +18,13 @@ export class FeedView extends LitElement implements RouterView {
 	}
 
 	#interceptLinkClick(evt: MouseEvent) {
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		const target = evt.target as HTMLElement;
 
 		if (target.matches('a')) {
 			evt.preventDefault();
 
-			window.open((target as HTMLAnchorElement).href, '_blank');
+			window.open(target.href, '_blank');
 		}
 	}
 
@@ -35,7 +36,7 @@ export class FeedView extends LitElement implements RouterView {
 
 	override render() {
 		return html`
-			<n-main-layout feed-id="${this.feed?.id ? this.feed.id : nothing}">
+			<n-main-layout feed-id="${this.feed?.id ?? nothing}">
 				<div slot="header">
 					<picture>
 						${
@@ -70,7 +71,7 @@ export class FeedView extends LitElement implements RouterView {
 						<li>
 							<n-item-card
 								feed-id="${this.feed?.id ?? ''}"
-								item-id="${item.id ?? ''}"
+								item-id="${item.id}"
 								title="${item.title ?? 'No title'}"
 								author="${item.author ?? ''}"
 								date="${item.date?.toLocaleString() ?? ''}"

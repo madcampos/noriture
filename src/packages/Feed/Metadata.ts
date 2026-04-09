@@ -1,3 +1,11 @@
+interface Manifest {
+	icons: {
+		src: string,
+		type: string,
+		sizes: string
+	}[];
+}
+
 async function getManifest(baseUrl: string, manifestPath?: string | null) {
 	const manifestUrl = new URL(manifestPath ?? '/app.webmanifest', baseUrl);
 	let manifestResponse = await fetch(manifestUrl.href);
@@ -12,7 +20,7 @@ async function getManifest(baseUrl: string, manifestPath?: string | null) {
 		throw new Error(`Failed to fetch manifest at ${manifestUrl.href}`);
 	}
 
-	return manifestResponse.json();
+	return manifestResponse.json() satisfies Promise<Manifest>;
 }
 
 async function getMsApplicationConfig(baseUrl: string, configPath?: string | null) {
@@ -45,7 +53,7 @@ export async function extractIcon(html: string, baseUrl: string) {
 
 	iconLinks.forEach((iconLink) => {
 		icons.push({
-			href: new URL(iconLink.getAttribute('href') as string, baseUrl).href,
+			href: new URL(iconLink.getAttribute('href') ?? '', baseUrl).href,
 			type: iconLink.getAttribute('type'),
 			sizes: iconLink.getAttribute('sizes')
 		});
@@ -53,7 +61,7 @@ export async function extractIcon(html: string, baseUrl: string) {
 
 	ieIcons.forEach((ieIcon) => {
 		icons.push({
-			href: new URL(ieIcon.getAttribute('content') as string, baseUrl).href,
+			href: new URL(ieIcon.getAttribute('content') ?? '', baseUrl).href,
 			type: 'image/png',
 			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 			sizes: ieIcon.getAttribute('name')?.replace(/^msapplication-(?:square|wide)(.+)(?:-TileImage|logo)$/giu, '$1') || '256x256'
@@ -66,7 +74,7 @@ export async function extractIcon(html: string, baseUrl: string) {
 
 		msconfigIcons.forEach((msconfigIcon) => {
 			icons.push({
-				href: new URL(msconfigIcon.getAttribute('src') as string, baseUrl).href,
+				href: new URL(msconfigIcon.getAttribute('src') ?? '', baseUrl).href,
 				type: 'image/png',
 				sizes: msconfigIcon.tagName.replace(/^(?:square|wide)(.+)logo$/giu, '$1') || '256x256'
 			});
@@ -78,7 +86,7 @@ export async function extractIcon(html: string, baseUrl: string) {
 	try {
 		const parsedManifest = await getManifest(baseUrl, manifest?.getAttribute('href'));
 
-		parsedManifest.icons.forEach((icon: { src: string, type: string, sizes: string }) => {
+		parsedManifest.icons.forEach((icon) => {
 			icons.push({
 				href: new URL(icon.src, baseUrl).href,
 				type: icon.type,
@@ -109,8 +117,8 @@ export async function extractIcon(html: string, baseUrl: string) {
 		const bTypeIndex = !typePrecedence.includes(second.type) ? typePrecedence.length : typePrecedence.indexOf(second.type);
 		const typeDifference = aTypeIndex - bTypeIndex;
 
-		const aSizes = first.sizes.split('x').map((size) => Number.parseInt(size));
-		const bSizes = second.sizes.split('x').map((size) => Number.parseInt(size));
+		const aSizes = first.sizes.split('x').map((size) => Number.parseInt(size, 10));
+		const bSizes = second.sizes.split('x').map((size) => Number.parseInt(size, 10));
 		const aSizesSum = aSizes.reduce((sum, size) => sum + size, 0);
 		const bSizesSum = bSizes.reduce((sum, size) => sum + size, 0);
 		const sizesDifference = aSizesSum - bSizesSum;

@@ -1,7 +1,7 @@
 import type { Feed } from '../../packages/Feed/Feed';
 import type { RouterView } from '../../router/router';
 
-import { html, LitElement, nothing } from 'lit';
+import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
@@ -40,10 +40,10 @@ export class HomeView extends LitElement implements RouterView {
 							feed-id="${feed.id}"
 							unread-count="${feed.unreadCount}"
 							total-count="${feed.items.length}"
-							last-updated="${feed.lastUpdated?.toLocaleString() ?? nothing}"
+							last-updated="${feed.lastUpdated.toString()}"
 						>
 							${when(feed.name, () => html`<span slot="title">${feed.name}</span>`)}
-							${when(feed.icon, () => html`<img slot="icon" src="${feed.icon ?? ''}" alt="${feed.name ?? ''}" />`)}
+							${when(feed.icon, () => html`<img slot="icon" src="${feed.icon ?? ''}" alt="${feed.name}" />`)}
 							${when(feed.description, () => unsafeHTML(feed.description))}
 						</n-feed-card>
 					`

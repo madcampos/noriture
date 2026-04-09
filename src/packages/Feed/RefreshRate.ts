@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-magic-numbers, no-inline-comments, line-comment-position */
+/* eslint-disable @typescript-eslint/no-magic-numbers, no-inline-comments */
 export const DEFAULT_REFRESH_RATE = 60 * 60;
 export const DEFAULT_REFRESH_RATE_LIST = [
 	60 * 1, // 1 minute
@@ -24,7 +24,7 @@ export const DEFAULT_ITEM_UPDATE_COUNT_LIST = [
 	5000,
 	10000
 ];
-/* eslint-enable @typescript-eslint/no-magic-numbers, no-inline-comments, line-comment-position */
+/* eslint-enable @typescript-eslint/no-magic-numbers, no-inline-comments */
 
 export const feedRefreshRate = new Proxy<Record<string, number>>({}, {
 	get(_target, feedId) {
@@ -34,7 +34,7 @@ export const feedRefreshRate = new Proxy<Record<string, number>>({}, {
 
 		const refreshRateFromStorage = localStorage.getItem(`refresh-rate-${feedId}`);
 
-		return Number.parseInt(refreshRateFromStorage ?? DEFAULT_REFRESH_RATE.toString());
+		return Number.parseInt(refreshRateFromStorage ?? DEFAULT_REFRESH_RATE.toString(), 10);
 	},
 	set(_target, feedId, refreshRate) {
 		if (typeof feedId !== 'string') {
@@ -67,7 +67,7 @@ export const feedItemUpdateCount = new Proxy<Record<string, number>>({}, {
 
 		const updateCountFromStorage = localStorage.getItem(`update-count-${feedId}`);
 
-		return Number.parseInt(updateCountFromStorage ?? DEFAULT_ITEM_UPDATE_COUNT.toString());
+		return Number.parseInt(updateCountFromStorage ?? DEFAULT_ITEM_UPDATE_COUNT.toString(), 10);
 	},
 	set(_target, feedId, updateCount) {
 		if (typeof feedId !== 'string') {

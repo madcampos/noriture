@@ -10,7 +10,7 @@ type FeedLastUpdated = Date | 'DownloadError' | 'ParseError';
 
 export interface Feed {
 	/** The feed's unique identifier. */
-	id: ReturnType<typeof crypto.randomUUID>;
+	id: string;
 	/** The feed's title that will be displayed to the user. */
 	name: string;
 	/** The feed's description that will be displayed to the user. */
@@ -36,7 +36,7 @@ export interface Feed {
 	/** The number of unread items. */
 	unreadCount: number;
 	/** The list of ids for the unread items. */
-	unreadItemIds: ReturnType<typeof crypto.randomUUID>[];
+	unreadItemIds: string[];
 	/** The list of items in the feed. */
 	items: FeedItem[];
 }
@@ -50,7 +50,7 @@ function extractFeedName(feed: Document) {
 }
 
 function extractFeedDescription(feed: Document) {
-	const descrition = feed.querySelector('channel > description, feed > subtitle')?.textContent?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
+	const descrition = feed.querySelector('channel > description, feed > subtitle')?.textContent.trim().replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
 
 	if (descrition) {
 		return sanitize(descrition);
@@ -60,7 +60,7 @@ function extractFeedDescription(feed: Document) {
 }
 
 function extractFeedSiteUrl(feed: Document) {
-	return feed.querySelector('channel > |link, feed > link, feed > id')?.textContent?.trim();
+	return feed.querySelector('channel > |link, feed > link, feed > id')?.textContent.trim();
 }
 
 function extractFeedLastUpdate(feed: Document) {
@@ -78,12 +78,16 @@ function extractFeedCategories(feed: Document) {
 	const atomCategories = [...feed.querySelectorAll('feed > category')].map((category) => category.getAttribute('term'));
 
 	return [
-		...new Set([...rssCategories, ...atomCategories].map((category) => category?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1')).filter((category) => category))
-	] as string[];
+		...new Set(
+			[...rssCategories, ...atomCategories]
+				.map((category) => category?.trim().replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1'))
+				.filter((category) => category !== undefined)
+		)
+	];
 }
 
 function extractFeedIcon(feed: Document) {
-	return feed.querySelector('channel > image > url, feed > icon, feed > logo')?.textContent?.trim();
+	return feed.querySelector('channel > image > url, feed > icon, feed > logo')?.textContent.trim();
 }
 
 export function parseFeed(feedText: string, url: string, id?: string) {
@@ -98,7 +102,7 @@ export function parseFeed(feedText: string, url: string, id?: string) {
 	const unreadItemIds = extractUnreadItemsIds(items);
 
 	const feed: Feed = {
-		id: feedId as Feed['id'],
+		id: feedId,
 		type: extractFeedType(xml),
 		name: extractFeedName(xml),
 		description: extractFeedDescription(xml),

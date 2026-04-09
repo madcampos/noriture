@@ -10,7 +10,7 @@ export type SavedFeedItem = Omit<FeedItem, 'date' | 'read'> & {
 	read: 0 | 1
 };
 
-export function asSavedFeed(feed: Feed): SavedFeed {
+export function asSavedFeed(feed: Feed | SavedFeed): SavedFeed {
 	return {
 		feedUrl: feed.feedUrl,
 		id: feed.id,
@@ -42,7 +42,7 @@ export function asFeed(feed: SavedFeed, items: FeedItem[]): Feed {
 export function asSavedFeedItem(item: FeedItem, feedId: string): SavedFeedItem {
 	return {
 		...item,
-		feedId: feedId as SavedFeedItem['feedId'],
+		feedId: feedId,
 		date: item.date ? item.date.toISOString() : undefined,
 		read: item.read ? 1 : 0
 	};

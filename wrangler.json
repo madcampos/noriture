@@ -17,5 +17,15 @@
 		"local_protocol": "https",
 		"upstream_protocol": "https"
 	},
+	"assets": {
+		"binding": "Assets",
+		"directory": "public",
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "404-page",
+		"run_worker_first": [
+			"/proxy",
+			"/proxy/"
+		]
+	},
 	"vars": { "NODE_ENV": "production" }
 }

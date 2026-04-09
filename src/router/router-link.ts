@@ -5,14 +5,15 @@ import { Router } from './router';
 
 @customElement('router-link')
 export class RouterLink extends LitElement {
-	 
 	@property({ type: String, reflect: true })
+	// oxlint-disable-next-line id-length
 	to?: string;
 
 	#click(evt: MouseEvent) {
 		evt.preventDefault();
 		evt.stopPropagation();
 
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		const target = evt.currentTarget as HTMLAnchorElement;
 
 		if (!target.matches('a')) {

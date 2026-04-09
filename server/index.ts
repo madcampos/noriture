@@ -1,20 +1,16 @@
-import { Hono, type HonoRequest } from 'hono';
+import { env } from 'cloudflare:workers';
 
 const INTERNAL_SERVER_ERROR = 500;
 const BAD_REQUEST = 400;
 const OKAY = 200;
 
-const app = new Hono();
-
-app.get('/', (context) => context.text('Hello proxy!'));
-
-function getDefaultHeaders(request: HonoRequest) {
+function getDefaultHeaders(request: Request) {
 	return {
 		// TODO: block other origins
-		'Access-Control-Allow-Origin': request.header('Origin') ?? '*',
-		'Access-Control-Allow-Methods': request.header('Access-Control-Request-Method') ?? 'GET, OPTIONS',
-		'Access-Control-Allow-Headers': request.header('Access-Control-Request-Headers') ?? 'Content-Type',
-		'Access-Control-Expose-Headers': [...request.raw.headers.keys()].join(', ') ?? '',
+		'Access-Control-Allow-Origin': request.headers.get('Origin') ?? '*',
+		'Access-Control-Allow-Methods': request.headers.get('Access-Control-Request-Method') ?? 'GET, OPTIONS',
+		'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers') ?? 'Content-Type',
+		'Access-Control-Expose-Headers': [...request.headers.keys()].join(', '),
 		'Access-Control-Max-Age': '86400',
 
 		'Cross-Origin-Embedder-Policy': 'credentialless',
@@ -35,60 +31,124 @@ function getDefaultHeaders(request: HonoRequest) {
 	};
 }
 
-app.options('/proxy', (context) => new Response('', { status: OKAY, headers: getDefaultHeaders(context.req) }));
-
-app.get('/proxy', async (context) => {
-	const url = context.req.query('url');
+async function proxyRequest(request: Request) {
+	const requestUrl = request.url;
+	const url = new URL(requestUrl).searchParams.get('url');
 
 	if (!url) {
-		return context.text('url is required', BAD_REQUEST, getDefaultHeaders(context.req));
+		return new Response('url is required', {
+			status: BAD_REQUEST,
+			headers: new Headers(getDefaultHeaders(request))
+		});
 	}
 
 	if (!URL.canParse(url)) {
-		return context.text('url is invalid', BAD_REQUEST, getDefaultHeaders(context.req));
+		return new Response('url is invalid', {
+			status: BAD_REQUEST,
+			headers: new Headers(getDefaultHeaders(request))
+		});
 	}
 
 	const fetchSecHeaders = {
-		site: context.req.header('Sec-Fetch-Site'),
-		mode: context.req.header('Sec-Fetch-Mode'),
-		dest: context.req.header('Sec-Fetch-Dest')
+		site: request.headers.get('Sec-Fetch-Site'),
+		mode: request.headers.get('Sec-Fetch-Mode'),
+		dest: request.headers.get('Sec-Fetch-Dest')
 	};
 
 	if (!['same-site', 'same-origin'].includes(fetchSecHeaders.site ?? 'cross-site')) {
-		return context.text('request site is invalid', BAD_REQUEST, getDefaultHeaders(context.req));
+		return new Response('request site is invalid', {
+			status: BAD_REQUEST,
+			headers: new Headers(getDefaultHeaders(request))
+		});
 	}
 
 	if (!['cors', 'same-origin'].includes(fetchSecHeaders.mode ?? 'no-cors')) {
-		return context.text('request mode is invalid', BAD_REQUEST, getDefaultHeaders(context.req));
+		return new Response('request mode is invalid', {
+			status: BAD_REQUEST,
+			headers: new Headers(getDefaultHeaders(request))
+		});
 	}
 
 	if (fetchSecHeaders.dest !== '') {
-		return context.text('request dest is invalid', BAD_REQUEST, getDefaultHeaders(context.req));
+		return new Response('request dest is invalid', {
+			status: BAD_REQUEST,
+			headers: new Headers(getDefaultHeaders(request))
+		});
 	}
 
 	try {
 		const response = await fetch(url);
 
 		if (!response.ok) {
-			return context.text('proxy failed', INTERNAL_SERVER_ERROR, getDefaultHeaders(context.req));
+			return new Response('proxy failed', {
+				status: INTERNAL_SERVER_ERROR,
+				headers: new Headers(getDefaultHeaders(request))
+			});
 		}
 
 		const validContentTypes = ['text/xml', 'application/xml', 'application/rss+xml', 'application/atom+xml'];
 		const contentType = response.headers.get('content-type') ?? '';
 
 		if (!validContentTypes.some((type) => contentType.startsWith(type))) {
-			return context.text('invalid content type', BAD_REQUEST, getDefaultHeaders(context.req));
+			return new Response('invalid content type', {
+				status: BAD_REQUEST,
+				headers: new Headers(getDefaultHeaders(request))
+			});
 		}
 
 		const text = await response.text();
 
-		return context.text(text, OKAY, {
-			...getDefaultHeaders(context.req),
-			'Content-Type': 'text/xml'
+		return new Response(text, {
+			status: OKAY,
+			headers: new Headers({
+				...getDefaultHeaders(request),
+				'Content-Type': 'text/xml'
+			})
 		});
 	} catch (err) {
-		return context.text((err as Error).message, INTERNAL_SERVER_ERROR, getDefaultHeaders(context.req));
-	}
-});
+		if (err instanceof Error) {
+			return new Response(err.message, {
+				status: INTERNAL_SERVER_ERROR,
+				headers: new Headers(getDefaultHeaders(request))
+			});
+		} else if ('toString' in err && typeof err.toString === 'function') {
+			return new Response(err.toString(), {
+				status: INTERNAL_SERVER_ERROR,
+				headers: new Headers(getDefaultHeaders(request))
+			});
+		}
 
-export default app;
+		return new Response('server error', {
+			status: INTERNAL_SERVER_ERROR,
+			headers: new Headers(getDefaultHeaders(request))
+		});
+	}
+}
+
+async function fetchHandler(request: Request) {
+	const url = new URL(request.url);
+
+	let response: Response;
+
+	if (request.method === 'OPTIONS') {
+		response = new Response('', { status: OKAY, headers: new Headers(getDefaultHeaders(request)) });
+	} else {
+		switch (url.pathname) {
+			case '/proxy':
+			case '/proxy/':
+				response = await proxyRequest(request);
+				break;
+			default: {
+				const errorPage = await env.Assets.fetch('https://assets.local/404.html');
+				response = new Response(errorPage.body, { status: 404 });
+			}
+		}
+	}
+
+	return response;
+}
+
+// oxlint-disable-next-line import/no-default-export
+export default {
+	fetch: fetchHandler
+} satisfies ExportedHandler<Env>;

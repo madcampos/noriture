@@ -5,7 +5,7 @@ export const DEFAULT_LOCALE = 'en-US';
 export const SUPPORT_LOCALES = [DEFAULT_LOCALE, 'pt-BR'];
 
 export class I18n {
-	static #messages = {} as unknown as Messages;
+	static #messages: Partial<Messages> = {};
 
 	static get locale() {
 		const storageLocale = localStorage.getItem('lang');
@@ -29,10 +29,10 @@ export class I18n {
 
 	static async #loadMessages(locale: string) {
 		if (localStorage.getItem(`messages-${locale}`)) {
-			return JSON.parse(localStorage.getItem(`messages-${locale}`) as string) as Messages;
+			return JSON.parse(localStorage.getItem(`messages-${locale}`) ?? '{}') satisfies Partial<Messages>;
 		}
 
-		const messages = await import(`../../../locales/${locale}.json`) as Messages;
+		const messages = await import(`../../../locales/${locale}.json`) satisfies Messages;
 
 		localStorage.setItem(`messages-${locale}`, JSON.stringify(messages));
 
@@ -57,7 +57,7 @@ export class I18n {
 	}
 
 	static t(key: keyof Messages) {
-		const message = I18n.#messages[key] as string | undefined;
+		const message = I18n.#messages[key];
 
 		return message ?? key;
 	}

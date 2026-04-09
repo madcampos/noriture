@@ -15,7 +15,7 @@ export interface FeedMedia {
 
 export interface FeedItem {
 	/** The item's unique identifier. */
-	id: ReturnType<typeof crypto.randomUUID>;
+	id: string;
 	/** The item's title that will be displayed to the user. */
 	title?: string;
 	/** The item's author. */
@@ -38,27 +38,27 @@ export interface FeedItem {
 	/** The item's read status. */
 	read: boolean;
 	/** The item's feed id. */
-	feedId: ReturnType<typeof crypto.randomUUID>;
+	feedId: string;
 	/** The item's tags. */
 	tags: string[];
 }
 
 function extractItemId(item: Element) {
-	return item.querySelector('guid:not([isPermaLink="true"])')?.textContent?.trim() ?? crypto.randomUUID();
+	return item.querySelector('guid:not([isPermaLink="true"])')?.textContent.trim() ?? crypto.randomUUID();
 }
 
 function extractItemUrl(item: Element) {
-	return item.querySelector('link, id, guid[isPermaLink="true"]')?.textContent?.trim() ?? item.querySelector('link')?.href;
+	return item.querySelector('link, id, guid[isPermaLink="true"]')?.textContent.trim() ?? item.querySelector('link')?.href;
 }
 
 function extractItemTitle(item: Element) {
-	return item.querySelector('title')?.textContent?.trim();
+	return item.querySelector('title')?.textContent.trim();
 }
 
 function extractItemAuthor(item: Element) {
 	const authorNestedTag = item.querySelector('author > name, contributor > name');
 	const authorDirectTag = item.querySelector('author, creator');
-	const authorText = (authorNestedTag ?? authorDirectTag)?.textContent?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
+	const authorText = (authorNestedTag ?? authorDirectTag)?.textContent.trim().replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
 
 	if (authorText) {
 		const { name, email } = (/(?<email>.+?) \((?<name>.+?)\)/u).exec(authorText)?.groups ?? {};
@@ -76,7 +76,7 @@ function extractMediaContent(item: Element) {
 	const mediaItems = [...item.getElementsByTagName('media:content')].map((mediaItem) => ({
 		url: mediaItem.getAttribute('url') ?? '',
 		mimeType: mediaItem.getAttribute('type') ?? '',
-		size: Number.parseInt(mediaItem.getAttribute('fileSize') ?? '0'),
+		size: Number.parseInt(mediaItem.getAttribute('fileSize') ?? '0', 10),
 		type: MEDIA_TYPES.find((type) => type === mediaItem.getAttribute('medium')) ?? 'unknown'
 	}));
 
@@ -84,7 +84,7 @@ function extractMediaContent(item: Element) {
 		const enclosureMedia: FeedMedia = {
 			url: item.querySelector('enclosure')?.getAttribute('url') ?? '',
 			mimeType: item.querySelector('enclosure')?.getAttribute('type') ?? '',
-			size: Number.parseInt(item.querySelector('enclosure')?.getAttribute('length') ?? '0'),
+			size: Number.parseInt(item.querySelector('enclosure')?.getAttribute('length') ?? '0', 10),
 			type: MEDIA_TYPES.find((type) => item.querySelector(`enclosure[type^=${type}]`)) ?? 'unknown'
 		};
 
@@ -92,7 +92,7 @@ function extractMediaContent(item: Element) {
 	}
 
 	const enclosureImage = item.querySelector('enclosure[type^=image]')?.getAttribute('url');
-	const mediaThumbnail = (item.getElementsByTagName('media:thumbnail')[0] as Element | null)?.getAttribute('url');
+	const mediaThumbnail = item.getElementsByTagName('media:thumbnail')[0]?.getAttribute('url');
 
 	return {
 		mediaItems,
@@ -109,11 +109,19 @@ function extractContentThumbnail(content: string) {
 }
 
 function extractItemDate(item: Element) {
-	const publicationDate = item.querySelector('pubDate, published')?.textContent?.trim();
-	const lastModified = item.querySelector('lastBuildDate, updated')?.textContent?.trim();
+	const publicationDate = item.querySelector('pubDate, published')?.textContent.trim();
+	const lastModified = item.querySelector('lastBuildDate, updated')?.textContent.trim();
 
 	if (publicationDate || lastModified) {
-		return new Date((publicationDate ?? lastModified) as string);
+		try {
+			const date = new Date((publicationDate ?? lastModified) ?? '');
+
+			if (!Number.isNaN(date.getTime())) {
+				return date;
+			}
+		} catch {
+			return new Date();
+		}
 	}
 
 	return new Date();
@@ -125,12 +133,12 @@ function extractItemCategories(item: Element) {
 			[...item.querySelectorAll('category')].map((category) => {
 				const label = category.getAttribute('label');
 				const term = category.getAttribute('term');
-				const textContent = category.textContent?.trim()?.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
+				const textContent = category.textContent.trim().replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
 
 				return label ?? term ?? textContent;
 			}).filter((category) => category)
 		)
-	] as string[];
+	];
 }
 
 function extractItemContents(item: Element) {
@@ -164,7 +172,7 @@ export function extractItems(feed: Document, feedId: string) {
 			date,
 			media: mediaItems
 		};
-	}).filter((item) => item !== undefined) as FeedItem[];
+	}).filter((item) => item !== undefined);
 
 	return items;
 }

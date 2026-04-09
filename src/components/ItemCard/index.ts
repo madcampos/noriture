@@ -1,7 +1,7 @@
 import { html, LitElement, nothing, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import style from './style.css?inline' assert { type: 'css' };
+import style from './style.css?inline' with { type: 'css' };
 
 @customElement('n-item-card')
 export class ItemCard extends LitElement {
@@ -21,12 +21,13 @@ export class ItemCard extends LitElement {
 	tags: string[] = [];
 
 	#interceptLinkClick(evt: MouseEvent) {
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		const target = evt.target as HTMLElement;
 
 		if (target.matches('a')) {
 			evt.preventDefault();
 
-			window.open((target as HTMLAnchorElement).href, '_blank');
+			window.open(target.href, '_blank');
 		}
 	}
 

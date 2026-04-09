@@ -1,7 +1,7 @@
 import { html, LitElement, nothing, unsafeCSS } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import style from './style.css?inline' assert { type: 'css' };
+import style from './style.css?inline' with { type: 'css' };
 
 @customElement('n-main-layout')
 export class MainLayout extends LitElement {

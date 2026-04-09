@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/no-invalid-void-type */
-
-if (!('URLPattern' in globalThis)) {
-	await import('urlpattern-polyfill');
-}
+/* oxlint-disable @typescript-eslint/no-invalid-void-type */
 
 type IsParameter<Part> = Part extends `:${infer ParamName}` ? ParamName : never;
 
@@ -87,14 +83,14 @@ export class Router {
 		});
 	}
 
-	static add<T extends ViewImplementation>(path: string, ViewClass: T) {
+	static add(path: string, ViewClass: ViewImplementation) {
 		const view = new ViewClass();
 
 		view.dataset['routerView'] = '';
 
 		Router.#routes.push([new URLPattern({ pathname: path }), view]);
 
-		Router.renderTarget.appendChild(view as unknown as Node);
+		Router.renderTarget.appendChild(view);
 	}
 
 	static async navigate(path: string) {
@@ -216,6 +212,7 @@ export class Router {
 		});
 
 		window.addEventListener('click', async (evt) => {
+			// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 			const element = evt.target as HTMLElement;
 
 			if (element.matches(`a[${Router.#linkSelectorAttribute}]`)) {

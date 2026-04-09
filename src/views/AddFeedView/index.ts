@@ -1,13 +1,12 @@
-import type { Feed } from '../../packages/Feed/Feed';
-import type { RouterView } from '../../router/router';
-
 import { html, LitElement, nothing } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 
-import { Database } from '../../db';
-import { fetchFeed } from '../../packages/Feed/Feed';
+import { Database } from '../../db/index.js';
+import type { Feed } from '../../packages/Feed/Feed.js';
+import { fetchFeed } from '../../packages/Feed/Feed.js';
+import type { RouterView } from '../../router/router.js';
 
 @customElement('n-add-feed-view')
 export class AddFeedView extends LitElement implements RouterView {
@@ -59,6 +58,7 @@ export class AddFeedView extends LitElement implements RouterView {
 	}
 
 	async #addFeed(evt: MouseEvent) {
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		const target = evt.currentTarget as HTMLButtonElement;
 
 		if (target.hasAttribute('aria-disabled')) {
@@ -84,6 +84,7 @@ export class AddFeedView extends LitElement implements RouterView {
 	}
 
 	#updateFeedUrl(evt: InputEvent) {
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		const target = evt.target as HTMLInputElement;
 
 		this.feedUrl = target.value;
