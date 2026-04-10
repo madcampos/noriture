@@ -43,8 +43,8 @@
 		"strict": true,
 		"target": "esnext",
 		"tsBuildInfoFile": "node_modules/.tsbuildinfo",
-		"types": ["vite/client", "vite-plugin-pwa/client"],
-		"useDefineForClassFields": true,
+		"types": ["vite/client", "typed-query-selector/strict"],
+		"useDefineForClassFields": false,
 		"useUnknownInCatchVariables": false,
 		"verbatimModuleSyntax": true
 	}

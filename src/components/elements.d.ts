@@ -1,0 +1,33 @@
+import type { RouterLink } from '../router/router-link';
+
+import type { AddFeedView } from '../views/AddFeedView';
+import type { ConfigureFeedView } from '../views/ConfigureFeedView';
+import type { FeedItemView } from '../views/FeedItemView';
+import type { FeedView } from '../views/FeedView';
+import type { HomeView } from '../views/HomeView';
+
+import type { ErrorMessage } from './ErrorMessage';
+import type { FeedCard } from './FeedCard';
+import type { ItemCard } from './ItemCard';
+import type { MainLayout } from './MainLayout';
+import type { NavBar } from './NavBar';
+
+declare global {
+	interface HTMLElementTagNameMap {
+		'router-link': RouterLink;
+
+		// Views
+		'n-add-feed-view': AddFeedView;
+		'n-configure-feed-view': ConfigureFeedView;
+		'n-feed-item-view': FeedItemView;
+		'n-feed-view': FeedView;
+		'n-home-view': HomeView;
+
+		// Components
+		'n-error-message': ErrorMessage;
+		'n-feed-card': FeedCard;
+		'n-item-card': ItemCard;
+		'n-main-layout': MainLayout;
+		'n-nav-bar': NavBar;
+	}
+}

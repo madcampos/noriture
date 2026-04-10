@@ -1,5 +1,4 @@
 import { get } from '../../js/util/fetch';
-import { sanitize } from '../../js/util/sanitization.js';
 import { extractItems, extractUnreadItemsIds, type FeedItem } from './FeedItem';
 
 type FeedType = 'atom' | 'rss' | 'youtube';
@@ -53,7 +52,7 @@ function extractFeedDescription(feed: Document) {
 	const descrition = feed.querySelector('channel > description, feed > subtitle')?.textContent.trim().replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
 
 	if (descrition) {
-		return sanitize(descrition);
+		return descrition;
 	}
 
 	return undefined;

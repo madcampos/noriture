@@ -2,14 +2,12 @@
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { readFileSync } from 'fs';
 import { defineConfig, type UserConfig } from 'vite';
-import { type ManifestOptions, VitePWA as vitePWA } from 'vite-plugin-pwa';
-import { externalResources, internalResources } from './src/service-worker';
 
-const manifest: Partial<ManifestOptions> = JSON.parse(readFileSync('./src/manifest.json', { encoding: 'utf8' }));
+import wranglerConfig from './wrangler.json' with { type: 'json' };
 
 // oxlint-disable-next-line import/no-default-export
 export default defineConfig(({ mode }) => {
-	const baseUrl = mode === 'production' ? 'https://noriture.madcampos.dev/' : 'https://localhost:3000/';
+	const baseUrl = mode === 'production' ? 'https://noriture.madcampos.dev/' : 'https://localhost:5000/';
 
 	const sslOptions = mode === 'production'
 		? undefined
@@ -19,25 +17,13 @@ export default defineConfig(({ mode }) => {
 		};
 
 	const config: UserConfig = {
-		plugins: [
-			cloudflare(),
-			vitePWA({
-				registerType: 'prompt',
-				minify: true,
-				includeAssets: ['/icons/favicon.svg'],
-				manifest,
-				scope: baseUrl,
-				workbox: {
-					cleanupOutdatedCaches: true,
-					clientsClaim: true,
-					navigationPreload: false,
-					runtimeCaching: [internalResources, externalResources]
-				},
-				devOptions: {
-					enabled: false
-				}
-			})
-		],
+		plugins: [cloudflare({
+			// @ts-expect-error
+			config: {
+				...wranglerConfig,
+				main: '../server/index.ts'
+			}
+		})],
 		base: baseUrl,
 		envPrefix: 'APP_',
 		envDir: '../',
