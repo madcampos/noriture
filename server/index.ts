@@ -1,16 +1,15 @@
-import { env } from 'cloudflare:workers';
-
 const INTERNAL_SERVER_ERROR = 500;
 const BAD_REQUEST = 400;
 const OKAY = 200;
 
 function getDefaultHeaders(request: Request) {
+	const requestUrl = new URL('/', request.url);
+
 	return {
-		// TODO: block other origins
-		'Access-Control-Allow-Origin': request.headers.get('Origin') ?? '*',
-		'Access-Control-Allow-Methods': request.headers.get('Access-Control-Request-Method') ?? 'GET, OPTIONS',
-		'Access-Control-Allow-Headers': request.headers.get('Access-Control-Request-Headers') ?? 'Content-Type',
-		'Access-Control-Expose-Headers': [...request.headers.keys()].join(', '),
+		'Access-Control-Allow-Origin': `https://${requestUrl.host}`,
+		'Access-Control-Allow-Methods': 'GET, OPTIONS',
+		'Access-Control-Allow-Headers': '*',
+		'Access-Control-Expose-Headers': '*',
 		'Access-Control-Max-Age': '86400',
 
 		'Cross-Origin-Embedder-Policy': 'credentialless',
@@ -19,15 +18,9 @@ function getDefaultHeaders(request: Request) {
 
 		'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
 		'Upgrade-Insecure-Requests': '1',
+		'Referrer-Policy': 'no-referrer',
 		'X-Content-Type-Options': 'nosniff',
-		'X-Frame-Options': 'DENY',
-		'X-Permitted-Cross-Domain-Policies': 'none',
-		'X-XSS-Protection': '1; mode=block',
-
-		'Content-Security-Policy':
-			"child-src 'none'; connect-src 'self'; default-src https:; fenced-frame-src 'none'; font-src 'none'; frame-src 'none'; img-src 'none'; manifest-src 'none'; media-src 'none'; object-src 'none'; script-src 'self'; script-src-attr 'none'; style-src 'none'; sandbox; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests;",
-
-		'Vary': 'Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site'
+		'X-Frame-Options': 'DENY'
 	};
 }
 
@@ -69,7 +62,7 @@ async function proxyRequest(request: Request) {
 		});
 	}
 
-	if (fetchSecHeaders.dest !== '') {
+	if (fetchSecHeaders.dest !== '' && fetchSecHeaders.dest !== 'empty') {
 		return new Response('request dest is invalid', {
 			status: BAD_REQUEST,
 			headers: new Headers(getDefaultHeaders(request))
@@ -139,8 +132,7 @@ async function fetchHandler(request: Request) {
 				response = await proxyRequest(request);
 				break;
 			default: {
-				const errorPage = await env.Assets.fetch('https://assets.local/404.html');
-				response = new Response(errorPage.body, { status: 404 });
+				response = new Response('Not found', { status: 404 });
 			}
 		}
 	}
