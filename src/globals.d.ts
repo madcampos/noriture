@@ -3,9 +3,6 @@ interface ImportMetaEnv {
 	readonly MODE: 'development' | 'production';
 	readonly PROD: boolean;
 	readonly DEV: boolean;
-
-	/** The proxy url to use. */
-	readonly APP_PROXY_URL: string;
 }
 
 interface ImportMeta {
