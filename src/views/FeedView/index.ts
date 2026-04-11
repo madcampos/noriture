@@ -1,12 +1,12 @@
-import type { Feed } from '../../packages/Feed/Feed.ts';
-import type { RouteLocation, RouterView } from '../../router/router';
+import type { Feed } from '../../js/Feed/Feed.ts';
+import type { RouteLocation, RouterView } from '../../js/router/router.ts';
 
 import { html, LitElement, nothing } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
-import { Database } from '../../db/index.ts';
+import { Database } from '../../js/db/index.ts';
 
 @customElement('n-feed-view')
 export class FeedView extends LitElement implements RouterView {

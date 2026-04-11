@@ -3,12 +3,8 @@ import { cloudflare } from '@cloudflare/vite-plugin';
 import { readFileSync } from 'fs';
 import { defineConfig, type UserConfig } from 'vite';
 
-import wranglerConfig from './wrangler.json' with { type: 'json' };
-
 // oxlint-disable-next-line import/no-default-export
 export default defineConfig(({ mode }) => {
-	const baseUrl = mode === 'production' ? 'https://noriture.madcampos.dev/' : 'https://localhost:5000/';
-
 	const sslOptions = mode === 'production'
 		? undefined
 		: {
@@ -17,14 +13,7 @@ export default defineConfig(({ mode }) => {
 		};
 
 	const config: UserConfig = {
-		plugins: [cloudflare({
-			// @ts-expect-error
-			config: {
-				...wranglerConfig,
-				main: '../server/index.ts'
-			}
-		})],
-		base: baseUrl,
+		plugins: [cloudflare({ configPath: '../wrangler.json' })],
 		envPrefix: 'APP_',
 		envDir: '../',
 		root: 'src',

@@ -1,6 +1,6 @@
 import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
-import type { RouterView } from '../../router/router';
+import type { RouterView } from '../../js/router/router';
 
 @customElement('n-configure-feed-view')
 export class ConfigureFeedView extends LitElement implements RouterView {

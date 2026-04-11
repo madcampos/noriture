@@ -1,4 +1,4 @@
-import { get } from '../../js/util/fetch';
+import { get } from '../util/fetch';
 import { extractItems, extractUnreadItemsIds, type FeedItem } from './FeedItem';
 
 type FeedType = 'atom' | 'rss' | 'youtube';

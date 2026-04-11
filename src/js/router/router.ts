@@ -14,25 +14,30 @@ export interface RouteLocation<Path = string> {
 	hash?: string;
 }
 
+// TODO: move guard to be a funcion on the view
+
 type RouteGuardHandler = (origin: string, destination: string) => Promise<RouteLocation | false | void> | RouteLocation | false | void;
 
 export interface RouterView extends HTMLElement {
 	navigate?(destination: RouteLocation, origin: RouteLocation): Promise<string | void> | string | void;
+	updateTitle?(): string;
 }
 
+// TODO: get the actual view and don't instantiate it
 type ViewImplementation = new () => RouterView;
 
 interface RouteDefinition {
 	path: string;
 	view: ViewImplementation;
-	guard?: RouteGuardHandler;
 }
 
 interface RouterConfig {
 	routes: RouteDefinition[];
+	// TODO: remove and use navigator.location or something?
 	baseUrl: string;
+	// TODO: move to router calls
 	appTitle?: string;
-	linkSelectorAttribute?: string;
+	// TODO: remove
 	beforeEach?: RouteGuardHandler;
 	fallback?: RouterView;
 	renderTarget?: HTMLElement;
@@ -41,7 +46,6 @@ interface RouterConfig {
 export class Router {
 	static #routes: [URLPattern, RouterView][] = [];
 	static readonly #fallbackPattern = new URLPattern({ pathname: '*' });
-	static #linkSelectorAttribute = 'router-link';
 	static #baseUrl: string;
 	static #renderTarget: HTMLElement | undefined;
 
@@ -56,10 +60,6 @@ export class Router {
 
 	static get currentPath() {
 		return this.#currentPath;
-	}
-
-	static get linkSelectorAttribute() {
-		return this.#linkSelectorAttribute;
 	}
 
 	static beforeEach: RouteGuardHandler | undefined;
@@ -151,7 +151,6 @@ export class Router {
 		routes,
 		baseUrl,
 		appTitle,
-		linkSelectorAttribute,
 		renderTarget,
 		beforeEach,
 		fallback
@@ -180,10 +179,6 @@ export class Router {
 
 		routes.forEach(({ path, view }) => Router.add(path, view));
 
-		if (linkSelectorAttribute) {
-			Router.#linkSelectorAttribute = linkSelectorAttribute;
-		}
-
 		if (renderTarget) {
 			Router.renderTarget = renderTarget;
 		}
@@ -200,6 +195,7 @@ export class Router {
 			Router.fallback = fallback;
 		}
 
+		// TODO: use navigation API
 		window.addEventListener('popstate', async (evt) => {
 			evt.preventDefault();
 			evt.stopPropagation();
@@ -215,12 +211,11 @@ export class Router {
 			// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 			const element = evt.target as HTMLElement;
 
-			if (element.matches(`a[${Router.#linkSelectorAttribute}]`)) {
+			if (element.matches(`a[href]`)) {
 				evt.preventDefault();
 				evt.stopPropagation();
 
-				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-				const path = element.getAttribute(Router.#linkSelectorAttribute) || element.getAttribute('href');
+				const path = element.getAttribute('href');
 
 				if (path) {
 					await Router.navigate(path);

@@ -1,10 +1,10 @@
 import { Router } from './router';
 
-import { AddFeedView } from '../views/AddFeedView';
-import { ConfigureFeedView } from '../views/ConfigureFeedView';
-import { FeedItemView } from '../views/FeedItemView';
-import { FeedView } from '../views/FeedView';
-import { HomeView } from '../views/HomeView';
+import { AddFeedView } from '../../views/AddFeedView';
+import { ConfigureFeedView } from '../../views/ConfigureFeedView';
+import { FeedItemView } from '../../views/FeedItemView';
+import { FeedView } from '../../views/FeedView';
+import { HomeView } from '../../views/HomeView';
 
 Router.init({
 	baseUrl: '/',

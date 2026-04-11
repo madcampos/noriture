@@ -1,4 +1,4 @@
-import type { RouterLink } from '../router/router-link';
+import type { RouterButton, RouterLink } from '../js/router/router-link';
 
 import type { AddFeedView } from '../views/AddFeedView';
 import type { ConfigureFeedView } from '../views/ConfigureFeedView';
@@ -9,12 +9,18 @@ import type { HomeView } from '../views/HomeView';
 import type { ErrorMessage } from './ErrorMessage';
 import type { FeedCard } from './FeedCard';
 import type { ItemCard } from './ItemCard';
-import type { MainLayout } from './MainLayout';
-import type { NavBar } from './NavBar';
+import type { NavBar } from './Menu';
 
 declare global {
 	interface HTMLElementTagNameMap {
+		// HTML only elements
+		'sr-only': HTMLElement;
+		'dialog-content': HTMLElement;
+		'input-wrapper': HTMLElement;
+		'input-error': HTMLElement;
+
 		'router-link': RouterLink;
+		'router-button': RouterButton;
 
 		// Views
 		'n-add-feed-view': AddFeedView;
@@ -27,7 +33,6 @@ declare global {
 		'n-error-message': ErrorMessage;
 		'n-feed-card': FeedCard;
 		'n-item-card': ItemCard;
-		'n-main-layout': MainLayout;
-		'n-nav-bar': NavBar;
+		'n-menu': NavBar;
 	}
 }

@@ -1,12 +1,12 @@
-import type { Feed } from '../../packages/Feed/Feed';
-import type { RouterView } from '../../router/router';
+import type { Feed } from '../../js/Feed/Feed';
+import type { RouterView } from '../../js/router/router';
 
 import { html, LitElement } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
-import { Database } from '../../db';
+import { Database } from '../../js/db';
 
 @customElement('n-home-view')
 export class HomeView extends LitElement implements RouterView {
@@ -30,8 +30,6 @@ export class HomeView extends LitElement implements RouterView {
 
 	override render() {
 		return html`
-			<n-main-layout>
-				<h1 slot="header">Home</h1>
 				${
 			this.feeds.length > 0
 				? this.feeds.map((feed) =>
@@ -50,7 +48,6 @@ export class HomeView extends LitElement implements RouterView {
 				)
 				: html`<p>No feeds yet, try <router-link to="/add-feed">adding a new feed</router-link>.</p>`
 		}
-			</n-main-layout>
 		`;
 	}
 

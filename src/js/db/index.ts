@@ -1,7 +1,7 @@
 import type { IDBPDatabase } from 'idb';
 import { openDB } from 'idb';
-import type { Feed } from '../packages/Feed/Feed';
-import type { FeedItem } from '../packages/Feed/FeedItem';
+import type { Feed } from '../Feed/Feed';
+import type { FeedItem } from '../Feed/FeedItem';
 import { asFeed, asFeedItem, asSavedFeed, asSavedFeedItem, type SavedFeed, type SavedFeedItem } from './feed-mapper';
 
 const DATABASE_VERSION = 1;

@@ -20,7 +20,7 @@ html, body {
 	margin: 0;
 }
 
-body { background: radial-gradient(circle at bottom, darkslategray, black); }
+body { background: radial-gradient(circle at bottom, var(--orange-10), var(--gray-12)); }
 
 img, picture, video, canvas, svg {
 	display: block;

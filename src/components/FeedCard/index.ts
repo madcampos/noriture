@@ -16,17 +16,6 @@ export class FeedCard extends LitElement {
 	@property({ type: String, reflect: true, attribute: 'last-updated' })
 	lastUpdated = 'Never Updated';
 
-	#interceptLinkClick(evt: MouseEvent) {
-		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
-		const target = evt.target as HTMLElement;
-
-		if (target.matches('a')) {
-			evt.preventDefault();
-
-			window.open(target.href, '_blank');
-		}
-	}
-
 	override render() {
 		return html`
 			<article>
@@ -43,6 +32,7 @@ export class FeedCard extends LitElement {
 							<slot name="title">No title</slot>
 						</router-link>
 					</h2>
+					<slot name="feed-action"></slot>
 				</header>
 
 				<aside>
@@ -50,14 +40,15 @@ export class FeedCard extends LitElement {
 						<small>${this.lastUpdated}</small>
 						<small>(${this.unreadCount} / ${this.totalCount})</small>
 					</span>
-					<slot name="aside"></slot>
 				</aside>
-
-				<div id="description" @click="${this.#interceptLinkClick}">
+				<card-content>
 					<slot>
 						<p>This feed has no description.</p>
 					</slot>
-				</div>
+				</card-content>
+				<footer>
+					<router-link to="${this.feedId ? `/feed/${this.feedId}` : nothing}">View Feed</router-link>
+				</footer>
 			</article>
 		`;
 	}

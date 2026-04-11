@@ -1,2 +1,2 @@
 import '../components';
-import '../router/index';
+import './router/index';
