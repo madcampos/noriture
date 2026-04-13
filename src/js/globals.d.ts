@@ -14,3 +14,6 @@ interface ImportMeta {
 	};
 	readonly env: ImportMetaEnv;
 }
+
+declare const __brand: unique symbol;
+type Brand<T, TBrand extends string> = T & { readonly [__brand]: TBrand };
