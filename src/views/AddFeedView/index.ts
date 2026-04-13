@@ -3,7 +3,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 
-import { Database } from '../../js/db/index.js';
+import { Database } from '../../js/database.js';
 import type { Feed } from '../../js/Feed/Feed.js';
 import { fetchFeed } from '../../js/Feed/Feed.js';
 import type { RouterView } from '../../js/router/router.js';

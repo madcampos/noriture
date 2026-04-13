@@ -7,7 +7,7 @@ import { customElement, state } from 'lit/decorators.js';
 import { map } from 'lit/directives/map.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
-import { Database } from '../../js/db';
+import { Database } from '../../js/database';
 
 @customElement('n-home-view')
 export class HomeView extends LitElement implements RouterView {

@@ -1,16 +1,19 @@
 import type { IDBPDatabase } from 'idb';
 import { openDB } from 'idb';
-import type { Feed } from '../Feed/Feed';
-import type { FeedItem } from '../Feed/FeedItem';
-import { asFeed, asFeedItem, asSavedFeed, asSavedFeedItem, type SavedFeed, type SavedFeedItem } from './feed-mapper';
+import type { Feed } from './Feed/Feed';
+import type { FeedItem } from './Feed/FeedItem';
 
 const DATABASE_VERSION = 1;
+
+type SavedFeedItem = Omit<FeedItem, 'isRead'> & {
+	isRead: 0 | 1
+};
 
 export class Database {
 	static #database: IDBPDatabase<{
 		feeds: {
 			key: 'id',
-			value: SavedFeed,
+			value: Feed,
 			indexes: {
 				feedUrl: string,
 				siteUrl: string,
@@ -24,28 +27,30 @@ export class Database {
 				feedId: string,
 				itemUrl: string,
 				itemTags: string[],
-				isRead: [string, 0 | 1]
+				isRead: [number, 0 | 1]
 			}
 		}
 	}>;
 
 	static async #getConnection() {
 		// oxlint-disable-next-line typescript/no-unnecessary-condition
-		this.#database ||= await openDB('noriture', DATABASE_VERSION, {
-			upgrade(database) {
-				const feedsStore = database.createObjectStore('feeds', { keyPath: 'id' });
-				const feedItemsStore = database.createObjectStore('feedItems', { keyPath: 'id' });
+		if (!this.#database) {
+			this.#database = await openDB('noriture', DATABASE_VERSION, {
+				upgrade(database) {
+					const feedsStore = database.createObjectStore('feeds', { keyPath: 'id' });
+					const feedItemsStore = database.createObjectStore('feedItems', { keyPath: 'id' });
 
-				feedsStore.createIndex('feedUrl', 'feedUrl', { unique: true });
-				feedsStore.createIndex('siteUrl', 'siteUrl');
-				feedsStore.createIndex('feedCategories', 'categories', { multiEntry: true });
+					feedsStore.createIndex('feedUrl', 'feedUrl', { unique: true });
+					feedsStore.createIndex('siteUrl', 'siteUrl');
+					feedsStore.createIndex('feedCategories', 'categories', { multiEntry: true });
 
-				feedItemsStore.createIndex('feedId', 'feedId');
-				feedItemsStore.createIndex('itemUrl', 'url');
-				feedItemsStore.createIndex('itemTags', 'tags', { multiEntry: true });
-				feedItemsStore.createIndex('isRead', ['feedId', 'read'], { unique: false });
-			}
-		});
+					feedItemsStore.createIndex('feedId', 'feedId');
+					feedItemsStore.createIndex('itemUrl', 'url');
+					feedItemsStore.createIndex('itemTags', 'tags', { multiEntry: true });
+					feedItemsStore.createIndex('isRead', ['feedId', 'read'], { unique: false });
+				}
+			});
+		}
 
 		return this.#database;
 	}
@@ -54,21 +59,30 @@ export class Database {
 		const database = await this.#getConnection();
 		const feeds = await database.getAll('feeds');
 
-		return feeds.map((feed) => asFeed(feed, []));
+		return feeds.map((feed) => ({
+			...feed,
+			lastUpdated: new Date(feed.lastUpdated)
+		} satisfies Feed));
 	}
 
 	static async listFeedItems(feedId: string) {
 		const database = await this.#getConnection();
 		const feedItems = await database.getAllFromIndex('feedItems', 'feedId', IDBKeyRange.only(feedId));
 
-		return feedItems.map((item) => asFeedItem(item));
+		return feedItems.map((item) => ({
+			...item,
+			isRead: item.isRead === 1
+		} satisfies FeedItem));
 	}
 
 	static async listUnreadFeedItems(feedId: string) {
 		const database = await this.#getConnection();
 		const feedItems = await database.getAllFromIndex('feedItems', 'isRead', IDBKeyRange.only([feedId, 0]));
 
-		return feedItems.map((item) => asFeedItem(item));
+		return feedItems.map((item) => ({
+			...item,
+			isRead: item.isRead === 1
+		} satisfies FeedItem));
 	}
 
 	static async getFeedItem(itemId: string) {
@@ -80,10 +94,13 @@ export class Database {
 			throw new Error(`Feed item with id ${itemId} does not exist`);
 		}
 
-		return asFeedItem(feedItem);
+		return {
+			...feedItem,
+			isRead: feedItem.isRead === 1
+		} satisfies FeedItem;
 	}
 
-	static async getFeed(feedId: string): Promise<Feed> {
+	static async getFeed(feedId: string) {
 		const database = await this.#getConnection();
 
 		const feed = await database.get('feeds', IDBKeyRange.only(feedId));
@@ -92,13 +109,12 @@ export class Database {
 			throw new Error(`Feed with id ${feedId} does not exist`);
 		}
 
+		// TODO: better handle error states?
 		if (feed.lastUpdated === 'DownloadError' || feed.lastUpdated === 'ParseError') {
 			throw new Error(`Feed with id ${feedId} has an error`);
 		}
 
-		const items = await Database.listFeedItems(feedId);
-
-		return asFeed(feed, items);
+		return feed;
 	}
 
 	static async hasFeed(feedUrl: string) {
@@ -119,14 +135,17 @@ export class Database {
 			if (existingItemIndex !== -1) {
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				item.id = existingItems[existingItemIndex]!.id;
-				item.read = false;
+				item.isRead = false;
 			}
 
-			return database.add('feedItems', asSavedFeedItem(item, feedId));
+			return database.add('feedItems', {
+				...item,
+				isRead: item.isRead ? 1 : 0
+			});
 		}));
 	}
 
-	static async saveFeed(feed: Feed) {
+	static async saveFeed(feed: Feed, feedItems: FeedItem[]) {
 		const database = await this.#getConnection();
 
 		const existingFeed = await database.getFromIndex('feeds', 'feedUrl', feed.feedUrl);
@@ -135,9 +154,9 @@ export class Database {
 			throw new Error(`Feed with id ${feed.id} already exists`);
 		}
 
-		await Database.saveFeedItems(feed.id, feed.items);
+		await Database.saveFeedItems(feed.id, feedItems);
 
-		return database.put('feeds', asSavedFeed(feed));
+		return database.put('feeds', feed);
 	}
 
 	static async updateFeed(feedId: string, items: FeedItem[]) {
@@ -151,13 +170,10 @@ export class Database {
 
 		await Database.saveFeedItems(feedId, items);
 
-		return database.put(
-			'feeds',
-			asSavedFeed({
-				...feed,
-				lastUpdated: new Date().toISOString()
-			})
-		);
+		return database.put('feeds', {
+			...feed,
+			lastUpdated: new Date()
+		});
 	}
 
 	static async markFeedItemRead(itemId: string) {
@@ -171,7 +187,7 @@ export class Database {
 
 		return database.put('feedItems', {
 			...item,
-			read: 1
+			isRead: 1
 		});
 	}
 
@@ -186,7 +202,7 @@ export class Database {
 
 		return database.put('feedItems', {
 			...item,
-			read: 0
+			isRead: 0
 		});
 	}
 
@@ -194,6 +210,7 @@ export class Database {
 		const database = await this.#getConnection();
 
 		await database.delete('feeds', IDBKeyRange.only(feedId));
+		// TODO: delete by index
 		await database.delete('feedItems', IDBKeyRange.only(feedId));
 	}
 

@@ -1,3 +1,5 @@
+import type { FeedId } from './Feed.ts';
+
 export const MEDIA_TYPES = ['image', 'video', 'audio', 'document', 'executable', 'unknown'] as const;
 
 export interface FeedMedia {
@@ -11,10 +13,14 @@ export interface FeedMedia {
 	size: number;
 }
 
+export type FeedItemId = Brand<string, 'feedItemId'>;
+
 export interface FeedItem {
 	/** The item's unique identifier. */
-	id: string;
+	id: FeedItemId;
 	/** The item's title that will be displayed to the user. */
+	feedId: FeedId;
+	/** The item's tags. */
 	title?: string;
 	/** The item's author. */
 	author?: {
@@ -34,26 +40,28 @@ export interface FeedItem {
 	/** The item's URL. */
 	url?: string;
 	/** The item's read status. */
-	read: boolean;
+	isRead: boolean;
 	/** The item's feed id. */
-	feedId: string;
-	/** The item's tags. */
 	tags: string[];
 }
 
-function extractItemId(item: Element) {
-	return item.querySelector('guid:not([isPermaLink="true"])')?.textContent.trim() ?? crypto.randomUUID();
+function parseItemId(item: Element) {
+	// TODO: addl ink and get a better id
+	const itemId = item.querySelector('id, guid[isPermaLink="true"]')?.textContent.trim() ?? crypto.randomUUID();
+
+	// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+	return itemId as FeedItemId;
 }
 
-function extractItemUrl(item: Element) {
+function parseItemUrl(item: Element) {
 	return item.querySelector('link, id, guid[isPermaLink="true"]')?.textContent.trim() ?? item.querySelector('link')?.href;
 }
 
-function extractItemTitle(item: Element) {
+function parseTitle(item: Element) {
 	return item.querySelector('title')?.textContent.trim();
 }
 
-function extractItemAuthor(item: Element) {
+function parseAuthor(item: Element) {
 	const authorNestedTag = item.querySelector('author > name, contributor > name');
 	const authorDirectTag = item.querySelector('author, creator');
 	const authorText = (authorNestedTag ?? authorDirectTag)?.textContent.trim().replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
@@ -70,7 +78,7 @@ function extractItemAuthor(item: Element) {
 	return undefined;
 }
 
-function extractMediaContent(item: Element) {
+function parseMediaContent(item: Element) {
 	const mediaItems = [...item.getElementsByTagName('media:content')].map((mediaItem) => ({
 		url: mediaItem.getAttribute('url') ?? '',
 		mimeType: mediaItem.getAttribute('type') ?? '',
@@ -99,14 +107,19 @@ function extractMediaContent(item: Element) {
 	};
 }
 
-function extractContentThumbnail(content: string) {
+function parseContentThumbnail(content?: string) {
+	if (!content) {
+		return;
+	}
+
+	// TODO: what if it is not html?
 	const parsedContent = new window.DOMParser().parseFromString(content, 'text/html');
 	const parsedThumbnail = parsedContent.querySelector('img')?.getAttribute('src')?.trim();
 
 	return parsedThumbnail;
 }
 
-function extractItemDate(item: Element) {
+function parseItemDate(item: Element) {
 	const publicationDate = item.querySelector('pubDate, published')?.textContent.trim();
 	const lastModified = item.querySelector('lastBuildDate, updated')?.textContent.trim();
 
@@ -125,7 +138,7 @@ function extractItemDate(item: Element) {
 	return new Date();
 }
 
-function extractItemCategories(item: Element) {
+function parseCategories(item: Element) {
 	return [
 		...new Set(
 			[...item.querySelectorAll('category')].map((category) => {
@@ -139,34 +152,33 @@ function extractItemCategories(item: Element) {
 	];
 }
 
-function extractItemContents(item: Element) {
-	const content = item.querySelector('description, content')?.textContent ?? item.querySelector('summary')?.textContent ?? '';
-
-	return content.trim();
+// TODO: split into actual content and summary
+function parseContents(item: Element) {
+	return (item.querySelector('description, content')?.textContent ?? item.querySelector('summary')?.textContent)?.trim();
 }
 
-export function extractItems(feed: Document, feedId: string) {
-	const items: FeedItem[] = [...feed.querySelectorAll('item')].map((item) => {
-		const { mediaItems, enclosureImage, mediaThumbnail } = extractMediaContent(item);
-		const content = extractItemContents(item);
-		const contentThumbnail = extractContentThumbnail(content);
-		const date = extractItemDate(item);
-		const title = extractItemTitle(item);
+export function extractItems(feed: Document, feedId: FeedId) {
+	const items: FeedItem[] = [...feed.querySelectorAll('item, entry')].map((item) => {
+		const { mediaItems, enclosureImage, mediaThumbnail } = parseMediaContent(item);
+		const content = parseContents(item);
+		const contentThumbnail = parseContentThumbnail(content);
+		const date = parseItemDate(item);
+		const title = parseTitle(item);
 
 		if (!title && !content) {
 			return undefined;
 		}
 
 		return {
-			id: extractItemId(item),
+			id: parseItemId(item),
 			feedId,
-			read: false,
+			isRead: false,
 			title,
-			author: extractItemAuthor(item),
-			content,
-			url: extractItemUrl(item),
+			author: parseAuthor(item),
+			content: content ?? '',
+			url: parseItemUrl(item),
 			image: enclosureImage ?? mediaThumbnail ?? contentThumbnail,
-			tags: extractItemCategories(item),
+			tags: parseCategories(item),
 			date,
 			media: mediaItems
 		};
@@ -176,5 +188,5 @@ export function extractItems(feed: Document, feedId: string) {
 }
 
 export function extractUnreadItemsIds(items: FeedItem[]) {
-	return items.filter((item) => !item.read).map((item) => item.id);
+	return items.filter((item) => !item.isRead).map((item) => item.id);
 }

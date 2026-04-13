@@ -6,7 +6,7 @@ import { customElement, state } from 'lit/decorators.js';
 
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
-import { Database } from '../../js/db/index.ts';
+import { Database } from '../../js/database.ts';
 
 @customElement('n-feed-view')
 export class FeedView extends LitElement implements RouterView {
