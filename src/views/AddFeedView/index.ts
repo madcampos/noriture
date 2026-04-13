@@ -8,6 +8,8 @@ import type { Feed } from '../../js/Feed/Feed.js';
 import { fetchFeed } from '../../js/Feed/Feed.js';
 import type { RouterView } from '../../js/router/router.js';
 
+// TODO: move to dialog element?
+
 @customElement('n-add-feed-view')
 export class AddFeedView extends LitElement implements RouterView {
 	@state()

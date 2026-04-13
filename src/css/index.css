@@ -3,3 +3,5 @@
 @import 'open-props/style' layer(openprops);
 @import url('./variables.css');
 @import url('./base.css');
+
+/* TODO: move component styles to css folder */

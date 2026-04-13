@@ -8,6 +8,8 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 import { Database } from '../../js/database.ts';
 
+// TODO: add better structure
+
 @customElement('n-feed-view')
 export class FeedView extends LitElement implements RouterView {
 	@state()

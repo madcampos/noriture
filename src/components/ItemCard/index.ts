@@ -3,6 +3,8 @@ import { customElement, property } from 'lit/decorators.js';
 
 import style from './style.css?inline' with { type: 'css' };
 
+// TODO: add better structure
+
 @customElement('n-item-card')
 export class ItemCard extends LitElement {
 	static override readonly styles = unsafeCSS(style);

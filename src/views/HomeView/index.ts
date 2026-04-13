@@ -9,6 +9,8 @@ import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { when } from 'lit/directives/when.js';
 import { Database } from '../../js/database';
 
+// TODO: add better fallback state
+
 @customElement('n-home-view')
 export class HomeView extends LitElement implements RouterView {
 	@state()
