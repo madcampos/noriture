@@ -8,6 +8,7 @@
 - https://beamly.com/tools/podcast-feed-validator/
 - https://podcasting2.org/docs
 - https://feedsmith.dev/reference/namespaces/googleplay
+- https://opml.org/spec2.opml
 
 # Sample RSS feeds to test
 
