@@ -21,7 +21,7 @@ export class NavBar extends LitElement {
 					</router-link>
 				</li>
 				<li>
-					<button type="button">
+					<button type="button" popovertarget="add-feed-view" popoveraction="open">
 						<sr-only>Add Feed</sr-only>
 						<iconify-icon icon="fluent:star-add-24-regular" aria-hidden="true"></iconify-icon>
 					</button>

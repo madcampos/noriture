@@ -72,7 +72,7 @@ export class AddFeedView extends LitElement implements RouterView {
 		try {
 			this.isLoadingFeed = true;
 
-			await Database.saveFeed(this.newFeed);
+			await Database.saveFeed(this.newFeed, []);
 
 			this.hasFeed = true;
 		} catch (err) {
@@ -105,8 +105,8 @@ export class AddFeedView extends LitElement implements RouterView {
 			<n-feed-card
 				?hidden="${this.newFeed === null}"
 				last-updated="${this.newFeed?.lastUpdated.toLocaleString() ?? nothing}"
-				total-count="${this.newFeed?.items.length ?? nothing}"
-				unread-count="${this.newFeed?.unreadCount ?? nothing}"
+				total-count="0"
+				unread-count="0"
 			>
 				${icon}
 				${when(this.newFeed?.name, () => html`<span slot="title">${this.newFeed?.name ?? ''}</span>`)}
