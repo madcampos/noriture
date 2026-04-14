@@ -1,14 +1,17 @@
-# CORS proxies
+# Feed specs
 
-- https://github.com/Rob--W/cors-anywhere
-- https://thingproxy.freeboard.io/fetch/
-- https://github.com/Freeboard/thingproxy
-- https://github.com/ccoenraets/cors-proxy
-- https://github.com/gnuns/allOrigins
-- https://medium.com/nodejsmadeeasy/a-simple-cors-proxy-for-javascript-applications-9b36a8d39c51
+- https://datatracker.ietf.org/doc/html/rfc4287
+- https://en.wikipedia.org/wiki/Atom_(web_standard)
+- https://www.rssboard.org/rss-specification#ltimagegtSubelementOfLtchannelgt
+- https://support.spotify.com/ca-en/creators/article/podcast-specification-doc/
+- https://podcasters.apple.com/support/823-podcast-requirements
+- https://beamly.com/tools/podcast-feed-validator/
+- https://podcasting2.org/docs
+- https://feedsmith.dev/reference/namespaces/googleplay
 
 # Sample RSS feeds to test
 
+- https://sample-feeds.rowanmanning.com/
 - https://www.rssboard.org/files/rss-enclosures-use-case-feed.xml
 - https://api.flickr.com/services/feeds/groups_pool.gne?id=40961104@N00&lang=en-us&format=rss
 - https://www.onmsft.com/feed
