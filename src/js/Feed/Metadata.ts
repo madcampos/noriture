@@ -1,3 +1,5 @@
+import { canParseXml, parseHtml, parseXhtml, parseXml } from '../utils/parsing.ts';
+
 interface Manifest {
 	icons: {
 		src: string,
@@ -7,49 +9,45 @@ interface Manifest {
 }
 
 async function getManifest(baseUrl: string, manifestPath?: string | null) {
-	const manifestUrl = new URL(manifestPath ?? '/app.webmanifest', baseUrl);
-	let manifestResponse = await fetch(manifestUrl.href);
+	const url = new URL(manifestPath ?? '/app.webmanifest', baseUrl);
+	let response = await fetch(url.href);
 
-	if (!manifestResponse.ok) {
-		const fallbackManifestUrl = new URL(manifestPath ?? '/manifest.json', baseUrl);
+	if (!response.ok) {
+		const fallbackUrl = new URL(manifestPath ?? '/manifest.json', baseUrl);
 
-		manifestResponse = await fetch(fallbackManifestUrl.href);
+		response = await fetch(fallbackUrl.href);
 	}
 
-	if (!manifestResponse.ok) {
-		throw new Error(`Failed to fetch manifest at ${manifestUrl.href}`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch manifest at ${url.href}`);
 	}
 
-	return manifestResponse.json() satisfies Promise<Manifest>;
+	return response.json() satisfies Promise<Manifest>;
 }
 
 async function getMsApplicationConfig(baseUrl: string, configPath?: string | null) {
-	const configUrl = new URL(configPath ?? '/browserconfig.xml', baseUrl);
-	const configResponse = await fetch(configUrl.href);
+	const url = new URL(configPath ?? '/browserconfig.xml', baseUrl);
+	const response = await fetch(url.href);
 
-	if (!configResponse.ok) {
-		throw new Error(`Failed to fetch config at ${configUrl.href}`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch config at ${url.href}`);
 	}
 
-	const documentParser = new DOMParser();
-	const configDocument = documentParser.parseFromString(await configResponse.text(), 'text/xml');
+	const text = await response.text();
 
-	return configDocument;
+	return parseXml(text);
 }
 
-export async function extractIcon(html: string, baseUrl: string) {
+async function extractIcon(htmlDocument: Document, baseUrl: string) {
 	const icons = [];
 
-	const parser = new DOMParser();
-	const parsedDocument = parser.parseFromString(html, 'text/html');
-
-	const iconLinks = parsedDocument.querySelectorAll(
+	const iconLinks = htmlDocument.querySelectorAll(
 		'link[rel~="icon"], link[rel^="apple-touch-icon"], link[rel="apple-touch-startup-image"], link[rel="mask-icon"], link[rel="fluid-icon"]'
 	);
-	const ieIcons = parsedDocument.querySelectorAll('meta[name="msapplication-TileImage"], meta[name^="msapplication-square"], meta[name^="msapplication-wide"]');
+	const ieIcons = htmlDocument.querySelectorAll('meta[name="msapplication-TileImage"], meta[name^="msapplication-square"], meta[name^="msapplication-wide"]');
 
-	const ieConfig = parsedDocument.querySelector('meta[name="msapplication-config"]');
-	const manifest = parsedDocument.querySelector('link[rel="manifest"]');
+	const ieConfig = htmlDocument.querySelector('meta[name="msapplication-config"]');
+	const manifest = htmlDocument.querySelector('link[rel="manifest"]');
 
 	iconLinks.forEach((iconLink) => {
 		icons.push({
@@ -76,7 +74,7 @@ export async function extractIcon(html: string, baseUrl: string) {
 			icons.push({
 				href: new URL(msconfigIcon.getAttribute('src') ?? '', baseUrl).href,
 				type: 'image/png',
-				sizes: msconfigIcon.tagName.replace(/^(?:square|wide)(.+)logo$/giu, '$1') || '256x256'
+				sizes: msconfigIcon.tagName.replace(/^(?:square|wide)(.+)logo$/giu, '$1') ?? '256x256'
 			});
 		});
 	} catch {
@@ -127,21 +125,42 @@ export async function extractIcon(html: string, baseUrl: string) {
 	})[0]?.href;
 }
 
+function parseTitle(htmlDocument: Document) {
+	// TODO: add open graph
+	const title = htmlDocument.querySelector('title')?.textContent;
+	const metaTitle = htmlDocument.querySelector('meta[name$="title"], meta[itemprop="name"]')?.getAttribute('content');
+
+	return title ?? metaTitle;
+}
+
+function parseDescription(htmlDocument: Document) {
+	// TODO: add open graph
+	const description = htmlDocument.querySelector('meta[name$="description"], meta[itemprop="description"]')?.getAttribute('content');
+
+	return description;
+}
+
+function parseImage(htmlDocument: Document) {
+	// TODO: add open graph
+	const image = htmlDocument.querySelector('meta[name$="image"], meta[itemprop="image"]')?.getAttribute('content');
+
+	return image;
+}
+
 export function extractMedatada(html: string) {
-	// TODO: add support for oembed
+	// TODO: add support for oembed?
 
-	const parser = new DOMParser();
-	const parsedDocument = parser.parseFromString(html, 'text/html');
+	let parsedDocument: Document;
 
-	const title = parsedDocument.querySelector('title')?.textContent;
-	const metaTitle = parsedDocument.querySelector('meta[name$="title"], meta[itemprop="name"]')?.getAttribute('content');
-	const description = parsedDocument.querySelector('meta[name$="description"], meta[itemprop="description"]')?.getAttribute('content');
-
-	const image = parsedDocument.querySelector('meta[name$="image"], meta[itemprop="image"]')?.getAttribute('content');
+	if (canParseXml(html)) {
+		parsedDocument = parseXhtml(html);
+	} else {
+		parsedDocument = parseHtml(html);
+	}
 
 	return {
-		title: title ?? metaTitle,
-		description,
-		image
+		title: parseTitle(parsedDocument),
+		description: parseDescription(parsedDocument),
+		image: parseImage(parsedDocument)
 	};
 }

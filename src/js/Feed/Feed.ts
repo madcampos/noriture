@@ -1,6 +1,8 @@
-export type FeedType = 'atom' | 'rss' | 'youtube';
+import { canParseXml, cleanCData, parseDate, parseHtml, parseUrl, parseXhtml, parseXml } from '../utils/parsing.ts';
 
-export type FeedDisplayType = 'comics' | 'list' | 'podcast' | 'thumbs' | 'video';
+export type FeedType = 'atom' | 'rss' | 'youtube' | 'podcast';
+
+export type FeedDisplayType = 'list' | 'podcast' | 'images' | 'video';
 
 export type FeedLastUpdated = Date | 'DownloadError' | 'ParseError';
 
@@ -33,88 +35,134 @@ export interface Feed {
 	lastUpdated: FeedLastUpdated;
 }
 
-function parseFeedType(feed: Document) {
-	return feed.querySelector('channel') ? 'rss' : 'atom';
+function parseFeedType(feed: Document): FeedType {
+	if (feed.lookupNamespaceURI('yt')) {
+		return 'youtube';
+	}
+
+	for (const namespaceUri of ['itunes', 'spotify', 'podcast', 'googleplay']) {
+		if (feed.lookupNamespaceURI(namespaceUri)) {
+			return 'podcast';
+		}
+	}
+
+	const type = feed.querySelector('channel') ? 'rss' : 'atom';
+
+	return type;
 }
 
 function parseName(feed: Document) {
-	return feed.querySelector('channel > title, feed > title')?.textContent ?? 'Untitled';
+	const rssTitle = feed.querySelector('channel > title')?.textContent;
+	const atomTitle = feed.querySelector('feed > title')?.textContent;
+
+	return cleanCData(rssTitle ?? atomTitle ?? 'Untitled');
 }
 
 function parseDescription(feed: Document) {
-	const descrition = feed.querySelector('channel > description, feed > subtitle')?.textContent.trim().replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
+	const rssDescription = feed.querySelector('channel > description')?.textContent;
+	const atomDescription = feed.querySelector('feed > subtitle')?.textContent;
 
-	if (descrition) {
-		return descrition;
-	}
-
-	return undefined;
+	return cleanCData(rssDescription ?? atomDescription ?? '');
 }
 
 function parseSiteUrl(feed: Document) {
-	return feed.querySelector('channel > |link, feed > link, feed > id')?.textContent.trim();
+	const rssUrl = feed.querySelector('channel > link')?.textContent.trim();
+	const rssIconUrl = feed.querySelector('channel > image > link')?.textContent;
+	const atomUrl = feed.querySelector('feed > link')?.textContent.trim();
+	const atomId = feed.querySelector('feed > id')?.textContent.trim();
+
+	return parseUrl(rssUrl, rssIconUrl, atomUrl, atomId);
 }
 
-function parseLastUpdate(feed: Document) {
-	const lastUpdate = new Date(feed.querySelector('channel > lastBuildDate, feed > updated, pubDate')?.textContent ?? '');
+function parseLastUpdate(feed: Document): FeedLastUpdated {
+	const rssLastUpdate = feed.querySelector('channel > lastBuildDate')?.textContent;
+	const rssPublishDate = feed.querySelector('channel > pubDate')?.textContent;
 
-	if (!Number.isNaN(lastUpdate.getTime())) {
-		return lastUpdate;
-	}
+	const atomLastUpdate = feed.querySelector('feed > updated')?.textContent;
+	const atomPublishDate = feed.querySelector('feed > published')?.textContent;
 
-	return new Date();
+	const dateToParse = (rssLastUpdate ?? rssPublishDate ?? atomLastUpdate ?? atomPublishDate)?.trim();
+
+	return parseDate(dateToParse) ?? new Date();
 }
 
 function parseCategories(feed: Document) {
 	const rssCategories = [...feed.querySelectorAll('channel > category')].map((category) => category.textContent);
-	const atomCategories = [...feed.querySelectorAll('feed > category')].map((category) => category.getAttribute('term'));
+	const atomCategories = [...feed.querySelectorAll('feed > category')].map((category) => category.getAttribute('term')).filter((category) => category !== null);
 
-	return [
-		...new Set(
-			[...rssCategories, ...atomCategories]
-				.map((category) => category?.trim().replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1'))
-				.filter((category) => category !== undefined)
-		)
-	];
+	const combinedCategories = [...rssCategories, ...atomCategories];
+	const normalizedCategories = combinedCategories.map((category) => cleanCData(category));
+	const filteredCategories = normalizedCategories.filter((category) => category);
+
+	return [...new Set(filteredCategories)];
 }
 
 function parseIcon(feed: Document) {
-	return feed.querySelector('channel > image > url, feed > icon, feed > logo')?.textContent.trim();
+	const rssImage = feed.querySelector('channel > image > url')?.textContent;
+
+	const atomIcon = feed.querySelector('feed > icon')?.textContent;
+	const atomLogo = feed.querySelector('feed > logo')?.textContent;
+
+	return parseUrl(rssImage, atomIcon, atomLogo);
 }
 
 function parseFeedId(feed: Document) {
-	const feedId = feed.querySelector('channel > link, feed > id')?.textContent.trim() ??
-		feed.querySelector('feed > link[rel=""self"]')?.href ??
-		crypto.randomUUID();
+	const rssId = feed.querySelector('channel > link')?.textContent;
+	const atomId = feed.querySelector('feed > id')?.textContent;
+	const atomSelfLink = feed.querySelector('feed > link[rel="self"], feed > link:only-of-type')?.href;
+
+	const feedId = rssId ?? atomId ?? atomSelfLink ?? crypto.randomUUID();
 
 	// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 	return feedId as FeedId;
 }
 
-export function parseFeed(feedText: string, url: string) {
-	const xml = new window.DOMParser().parseFromString(feedText, 'text/xml');
-
-	if (xml.querySelector('parsererror')) {
-		throw new Error('Invalid XML');
+function parseDefaultDsplayType(feed: Document, feedType: FeedType): FeedDisplayType {
+	if (feedType === 'youtube') {
+		return 'video';
 	}
 
+	if (feedType === 'podcast') {
+		return 'podcast';
+	}
+
+	// TODO: check for enclsures for images/video
+
+	return 'list';
+}
+
+export function parseFeed(feedDocument: XMLDocument, url: string) {
+	const feedType = parseFeedType(feedDocument);
+
 	const feed: Feed = {
-		id: parseFeedId(xml),
-		type: parseFeedType(xml),
-		name: parseName(xml),
-		description: parseDescription(xml),
-		siteUrl: parseSiteUrl(xml),
+		id: parseFeedId(feedDocument),
+		type: feedType,
+		name: parseName(feedDocument),
+		description: parseDescription(feedDocument),
+		siteUrl: parseSiteUrl(feedDocument)?.href,
 		feedUrl: url,
-		lastUpdated: parseLastUpdate(xml),
-		categories: parseCategories(xml),
-		icon: parseIcon(xml),
-		displayType: 'list'
+		lastUpdated: parseLastUpdate(feedDocument),
+		categories: parseCategories(feedDocument),
+		icon: parseIcon(feedDocument)?.href,
+		displayType: parseDefaultDsplayType(feedDocument, feedType)
 	};
+
+	// TODO: parse feed items?
 
 	return feed;
 }
 
-export async function fetchFeed(url: string, redirectCount = 0) {
+// TODO: should this return just the xml document?
+// TODO: should it return metadata and the website as well?
+// Sequence of steps:
+// 0. entrypoint: take feed url, run all the steps and terurn feed + feed items + metadata
+// 1. fecth feed, return the xml text
+// 2. parse feed take text as input and return a feed + feed items
+// 2.1 recursively parse feed items from xml document
+// 3. find site url, takes the feed url, the feed, and return the site url
+// 4. find metadata from site url
+// 5. Only update with metadata missing parts from feed
+export async function fetchFeed(url: string, redirectCount = 0): Promise<Feed | undefined> {
 	const MAX_REDIRECTS = 5;
 	const response = await fetch(`/proxy?url=${encodeURIComponent(url)}`, {
 		method: 'GET',
@@ -127,24 +175,40 @@ export async function fetchFeed(url: string, redirectCount = 0) {
 	}
 
 	const text = await response.text();
-	let feed: Feed;
 
-	if (text.startsWith('<?xml')) {
-		feed = parseFeed(text, url);
+	let siteHtml: Document | undefined = undefined;
+
+	if (canParseXml(text)) {
+		try {
+			const xml = parseXml(text);
+
+			if (xml.querySelector('html')) {
+				throw new TypeError('Document is XHTML and not a Feed');
+			}
+
+			return parseFeed(xml, url);
+		} catch (err) {
+			if (err instanceof TypeError) {
+				siteHtml = parseXhtml(text);
+			}
+
+			throw err;
+		}
 	} else {
-		const siteHtml = new window.DOMParser().parseFromString(text, 'text/html');
-		const parsedFeedUrl = siteHtml.querySelector('link[type="application/rss+xml"], link[type="application/atom+xml"]')?.getAttribute('href');
-
-		if (!parsedFeedUrl) {
-			throw new Error('Could not find feed URL');
-		}
-
-		if (redirectCount > MAX_REDIRECTS) {
-			throw new Error('Too many redirects');
-		}
-
-		feed = await fetchFeed(parsedFeedUrl, redirectCount + 1);
+		siteHtml = parseHtml(text);
 	}
 
-	return feed;
+	// TODO: parse document metadata
+
+	const parsedFeedUrl = siteHtml.querySelector('link[type="application/rss+xml"], link[type="application/atom+xml"]')?.getAttribute('href');
+
+	if (!parsedFeedUrl) {
+		throw new Error('Could not find feed URL');
+	}
+
+	if (redirectCount > MAX_REDIRECTS) {
+		throw new Error('Too many redirects');
+	}
+
+	return fetchFeed(parsedFeedUrl, redirectCount + 1);
 }

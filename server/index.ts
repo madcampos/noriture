@@ -79,7 +79,8 @@ async function proxyRequest(request: Request) {
 			});
 		}
 
-		const validContentTypes = ['text/xml', 'application/xml', 'application/rss+xml', 'application/atom+xml'];
+		// TODO: add json and other metadata types?
+		const validContentTypes = ['text/xml', 'application/xml', 'application/rss+xml', 'application/atom+xml', 'text/html', 'application/xhtml+xml'];
 		const contentType = response.headers.get('content-type') ?? '';
 
 		if (!validContentTypes.some((type) => contentType.startsWith(type))) {
