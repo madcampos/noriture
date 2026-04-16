@@ -38,10 +38,10 @@ export class HomeView extends LitElement implements RouterView {
 					feed-id="${feed.id}"
 					unread-count="${feed.unreadCount}"
 					total-count="${feed.items.length}"
-					last-updated="${feed.lastUpdated.toString()}"
+					last-updated="${feed.updatedAt.toString()}"
 				>
-					${when(feed.name, () => html`<span slot="title">${feed.name}</span>`)}
-					${when(feed.icon, () => html`<img slot="icon" src="${feed.icon ?? ''}" alt="${feed.name}" />`)}
+					${when(feed.title, () => html`<span slot="title">${feed.title}</span>`)}
+					${when(feed.icon, () => html`<img slot="icon" src="${feed.icon ?? ''}" alt="${feed.title}" />`)}
 					${when(feed.description, () => unsafeHTML(feed.description))}
 				</n-feed-card>
 			`);

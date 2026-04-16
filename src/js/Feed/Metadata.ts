@@ -1,28 +1,17 @@
-import { canParseXml, parseHtml, parseXhtml, parseXml } from '../utils/parsing.ts';
+import { canParseXml, parseHtml, parseUrl, parseXhtml, parseXml } from '../utils/parsing.ts';
 
-interface Manifest {
-	icons: {
-		src: string,
-		type: string,
-		sizes: string
-	}[];
+interface MetadataIcons {
+	url: string;
+	mimeType?: string;
+	sizes?: string;
 }
 
-async function getManifest(baseUrl: string, manifestPath?: string | null) {
-	const url = new URL(manifestPath ?? '/app.webmanifest', baseUrl);
-	let response = await fetch(url.href);
-
-	if (!response.ok) {
-		const fallbackUrl = new URL(manifestPath ?? '/manifest.json', baseUrl);
-
-		response = await fetch(fallbackUrl.href);
-	}
-
-	if (!response.ok) {
-		throw new Error(`Failed to fetch manifest at ${url.href}`);
-	}
-
-	return response.json() satisfies Promise<Manifest>;
+interface AppManifestIcons {
+	icons?: {
+		src: string,
+		type?: string,
+		sizes?: string
+	}[];
 }
 
 async function getMsApplicationConfig(baseUrl: string, configPath?: string | null) {
@@ -38,16 +27,67 @@ async function getMsApplicationConfig(baseUrl: string, configPath?: string | nul
 	return parseXml(text);
 }
 
-async function extractIcon(htmlDocument: Document, baseUrl: string) {
+async function parseManifestIcons(htmlDocument: Document, baseUrl: string) {
+	const manifestPath = htmlDocument.querySelector('link[rel="manifest"]')?.getAttribute('href');
+
+	const url = new URL(manifestPath ?? '/app.webmanifest', baseUrl);
+	let response = await fetch(url.href);
+
+	if (!response.ok) {
+		const fallbackUrl = new URL(manifestPath ?? '/manifest.json', baseUrl);
+
+		response = await fetch(fallbackUrl.href);
+	}
+
+	if (!response.ok) {
+		return [];
+	}
+
+	const manifest = await response.json<AppManifestIcons>();
+
+	const icons = manifest.icons?.map(({ src, type, sizes }) => ({
+		url: parseUrl(src)?.href,
+		mimeType: type,
+		sizes
+	}));
+
+	return icons ?? [];
+}
+
+async function parseMsApplicationIcons(baseUrl: string, configPath?: string | null) {
+	// TODO
+}
+
+function parseAppleIcons(htmlDocument: Document, baseUrl: string) {
+	// TODO
+}
+
+function parseIeIcons(htmlDocument: Document, baseUrl: string) {
+	// TODO
+}
+
+function parseFavicon(htmlDocument: Document, baseUrl: string) {
+	// TODO
+}
+
+function parseSafariMaskIcon(htmlDocument: Document, baseUrl: string) {
+	// TODO
+}
+
+async function parseIcons(htmlDocument: Document, baseUrl: string) {
+	// TODO: compose list of icons
+	// TODO: sort icons
+	// TODO: batch send HEAD requests to ping the urls (through proxy?)
 	const icons = [];
 
+	const manifestIcons = await parseManifestIcons(htmlDocument, baseUrl);
+
 	const iconLinks = htmlDocument.querySelectorAll(
-		'link[rel~="icon"], link[rel^="apple-touch-icon"], link[rel="apple-touch-startup-image"], link[rel="mask-icon"], link[rel="fluid-icon"]'
+		'link[rel~="icon"], link[rel^="apple-touch-icon"], link[rel="apple-touch-startup-image"], link[rel="mask-icon"]'
 	);
 	const ieIcons = htmlDocument.querySelectorAll('meta[name="msapplication-TileImage"], meta[name^="msapplication-square"], meta[name^="msapplication-wide"]');
 
 	const ieConfig = htmlDocument.querySelector('meta[name="msapplication-config"]');
-	const manifest = htmlDocument.querySelector('link[rel="manifest"]');
 
 	iconLinks.forEach((iconLink) => {
 		icons.push({
@@ -75,20 +115,6 @@ async function extractIcon(htmlDocument: Document, baseUrl: string) {
 				href: new URL(msconfigIcon.getAttribute('src') ?? '', baseUrl).href,
 				type: 'image/png',
 				sizes: msconfigIcon.tagName.replace(/^(?:square|wide)(.+)logo$/giu, '$1') ?? '256x256'
-			});
-		});
-	} catch {
-		// Ignore errors
-	}
-
-	try {
-		const parsedManifest = await getManifest(baseUrl, manifest?.getAttribute('href'));
-
-		parsedManifest.icons.forEach((icon) => {
-			icons.push({
-				href: new URL(icon.src, baseUrl).href,
-				type: icon.type,
-				sizes: icon.sizes
 			});
 		});
 	} catch {
@@ -126,36 +152,62 @@ async function extractIcon(htmlDocument: Document, baseUrl: string) {
 }
 
 function parseTitle(htmlDocument: Document) {
-	// TODO: add open graph
-	const title = htmlDocument.querySelector('title')?.textContent;
-	const metaTitle = htmlDocument.querySelector('meta[name$="title"], meta[itemprop="name"]')?.getAttribute('content');
+	const titleElement = htmlDocument.querySelector('title')?.textContent;
+	const openGraphTitle = htmlDocument.querySelector('meta[property="og:title"]')?.getAttribute('content');
+	const twitterTitle = htmlDocument.querySelector('meta[property="twitter:title"]')?.getAttribute('content');
 
-	return title ?? metaTitle;
+	const itempropElement = htmlDocument.querySelector('[itemprop="name"]');
+	const itempropTitle = itempropElement?.getAttribute('content') ?? itempropElement?.textContent;
+
+	return titleElement ?? openGraphTitle ?? twitterTitle ?? itempropTitle;
 }
 
 function parseDescription(htmlDocument: Document) {
-	// TODO: add open graph
-	const description = htmlDocument.querySelector('meta[name$="description"], meta[itemprop="description"]')?.getAttribute('content');
+	const metaDescription = htmlDocument.querySelector('meta[name="description"]')?.getAttribute('content');
+	const openGraphDescription = htmlDocument.querySelector('meta[name="og:description"]')?.getAttribute('content');
+	const twitterDescription = htmlDocument.querySelector('meta[name="twitter:description"]')?.getAttribute('content');
 
-	return description;
+	const itempropElement = htmlDocument.querySelector('[itemprop="name"]');
+	const itempropDescription = itempropElement?.getAttribute('content') ?? itempropElement?.textContent;
+
+	return metaDescription ?? openGraphDescription ?? twitterDescription ?? itempropDescription;
 }
 
 function parseImage(htmlDocument: Document) {
-	// TODO: add open graph
-	const image = htmlDocument.querySelector('meta[name$="image"], meta[itemprop="image"]')?.getAttribute('content');
+	const openGraphImage = htmlDocument.querySelector('meta[property="og:image]')?.getAttribute('content');
+	const openGraphImageAlt = htmlDocument.querySelector('meta[property="og:image:alt]')?.getAttribute('content');
+	const twitterImage = htmlDocument.querySelector('meta[property="twitter:image]')?.getAttribute('content');
+	const twitterImageAlt = htmlDocument.querySelector('meta[property="twitter:image:alt]')?.getAttribute('content');
 
-	return image;
+	const itempropElement = htmlDocument.querySelector('[itemprop="name"]');
+	const itempropImage = itempropElement?.getAttribute('content') ?? itempropElement?.getAttribute('src') ?? itempropElement?.getAttribute('href');
+	const itempropAlt = itempropElement?.getAttribute('alt');
+
+	return {
+		url: parseUrl(openGraphImage, twitterImage, itempropImage)?.href,
+		altText: openGraphImageAlt ?? twitterImageAlt ?? itempropAlt ?? undefined
+	};
 }
 
-export function extractMedatada(html: string) {
-	// TODO: add support for oembed?
+export async function parseMetadata(siteUrl: string) {
+	const response = await fetch(`/proxy?url=${encodeURIComponent(siteUrl)}`, {
+		method: 'GET',
+		credentials: 'omit',
+		redirect: 'follow'
+	});
+
+	if (!response.ok) {
+		throw new Error(`Could not fetch feed: ${response.status} ${await response.text()}`);
+	}
+
+	const text = await response.text();
 
 	let parsedDocument: Document;
 
-	if (canParseXml(html)) {
-		parsedDocument = parseXhtml(html);
+	if (canParseXml(text)) {
+		parsedDocument = parseXhtml(text);
 	} else {
-		parsedDocument = parseHtml(html);
+		parsedDocument = parseHtml(text);
 	}
 
 	return {

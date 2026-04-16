@@ -61,7 +61,7 @@ export class Database {
 
 		return feeds.map((feed) => ({
 			...feed,
-			lastUpdated: new Date(feed.lastUpdated)
+			updatedAt: new Date(feed.updatedAt)
 		} satisfies Feed));
 	}
 
@@ -110,7 +110,7 @@ export class Database {
 		}
 
 		// TODO: better handle error states?
-		if (feed.lastUpdated === 'DownloadError' || feed.lastUpdated === 'ParseError') {
+		if (feed.updatedAt === 'DownloadError' || feed.updatedAt === 'ParseError') {
 			throw new Error(`Feed with id ${feedId} has an error`);
 		}
 
@@ -172,7 +172,7 @@ export class Database {
 
 		return database.put('feeds', {
 			...feed,
-			lastUpdated: new Date()
+			updatedAt: new Date()
 		});
 	}
 

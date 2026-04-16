@@ -1,109 +1,159 @@
+import { canParseXml, cleanCData, parseDate, parseHtml, parseUrl, parseXhtml } from '../utils/parsing.ts';
 import type { FeedId } from './Feed.ts';
 
-export const MEDIA_TYPES = ['image', 'video', 'audio', 'document', 'executable', 'unknown'] as const;
+const MEDIA_TYPES = ['image', 'video', 'audio', 'document', 'executable', 'unknown'] as const;
+
+type MediaType = typeof MEDIA_TYPES[number];
 
 export interface FeedMedia {
-	/** The media's type. */
-	type: typeof MEDIA_TYPES[number];
-	/** The media's URL. */
+	type: MediaType;
 	url: string;
-	/** The media's mime type. */
-	mimeType: string;
-	/** The media's size in bytes. */
-	size: number;
+	mimeType?: string;
+	sizeInBytes: number;
+}
+
+export interface FeedItemAuthor {
+	name: string;
+	email?: string;
 }
 
 export type FeedItemId = Brand<string, 'feedItemId'>;
 
 export interface FeedItem {
-	/** The item's unique identifier. */
 	id: FeedItemId;
-	/** The item's title that will be displayed to the user. */
 	feedId: FeedId;
-	/** The item's tags. */
 	title?: string;
-	/** The item's author. */
-	author?: {
-		/** The author's name. */
-		name: string,
-		/** The author's email. */
-		email?: string
-	};
-	/** The item's date */
-	date?: Date;
-	/** The item's image */
+	author: FeedItemAuthor;
+	publishedAt?: Date;
+	updatedAt?: Date;
 	image?: string;
-	/** The item's content. */
-	content: string;
-	/** The item's media. */
+	summary: string;
+	content?: string;
 	media: FeedMedia[];
-	/** The item's URL. */
 	url?: string;
-	/** The item's read status. */
 	isRead: boolean;
-	/** The item's feed id. */
-	tags: string[];
+	categories: string[];
 }
 
 function parseItemId(item: Element) {
-	// TODO: addl ink and get a better id
-	const itemId = item.querySelector('id, guid[isPermaLink="true"]')?.textContent.trim() ?? crypto.randomUUID();
+	const rssGuid = item.querySelector('guid')?.textContent;
+	const rssLink = item.querySelector('link:not([href])')?.textContent;
+	const atomId = item.querySelector('id')?.textContent;
+	const atomLink = item.querySelector('link[href]:is([rel="self"], :not([rel]))')?.href;
+
+	const itemId = rssGuid ?? rssLink ?? atomId ?? atomLink ?? crypto.randomUUID();
 
 	// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 	return itemId as FeedItemId;
 }
 
 function parseItemUrl(item: Element) {
-	return item.querySelector('link, id, guid[isPermaLink="true"]')?.textContent.trim() ?? item.querySelector('link')?.href;
+	const rssLink = item.querySelector('link:not([href])')?.textContent;
+	const rssGuid = item.querySelector('guid:not([isPermaLink="false"])')?.textContent;
+	const atomLink = item.querySelector('link[href]:is([rel="self"], :not([rel]))')?.href;
+	const atomId = item.querySelector('id')?.textContent;
+
+	return parseUrl(rssLink, rssGuid, atomLink, atomId);
 }
 
 function parseTitle(item: Element) {
-	return item.querySelector('title')?.textContent.trim();
+	const title = item.querySelector('title')?.textContent;
+
+	return cleanCData(title ?? '');
 }
 
 function parseAuthor(item: Element) {
-	const authorNestedTag = item.querySelector('author > name, contributor > name');
-	const authorDirectTag = item.querySelector('author, creator');
-	const authorText = (authorNestedTag ?? authorDirectTag)?.textContent.trim().replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
+	const rssAuthor = item.querySelector('author:not(:has(> *))')?.textContent;
 
-	if (authorText) {
-		const { name, email } = (/(?<email>.+?) \((?<name>.+?)\)/u).exec(authorText)?.groups ?? {};
+	const atomAuthor = item.querySelector('author > name')?.textContent;
+	const atomEmail = item.querySelector('author > email')?.textContent;
+
+	const atomContributor = item.querySelector('contributor > name')?.textContent;
+	const atomContributorEmail = item.querySelector('contributor > email')?.textContent;
+
+	if (rssAuthor) {
+		const { name = 'No Author', email } = (/(?<email>.+?) \((?<name>.+?)\)/u).exec(cleanCData(rssAuthor))?.groups ?? {};
 
 		return {
-			name: name ?? authorText,
+			name,
 			email
-		};
+		} satisfies FeedItemAuthor;
 	}
 
-	return undefined;
+	return {
+		name: cleanCData(atomAuthor ?? atomContributor ?? 'No Author'),
+		email: (atomEmail || atomContributorEmail) ? cleanCData(atomEmail ?? atomContributorEmail ?? '') : undefined
+	} satisfies FeedItemAuthor;
+}
+
+function parseTypeFromMime(mimeType?: string) {
+	// TODO: use a map for some quirks like pdf files and such mapping to document
+	const typeFromMime = MEDIA_TYPES.find((mediaType) => mimeType?.startsWith(mediaType)) ?? 'unknown';
+
+	return typeFromMime;
+}
+
+function parseMediaItem(mediaItem: Element, item: Element) {
+	const url = mediaItem.getAttribute('url') ?? item.querySelector('player')?.getAttribute('url') ?? undefined;
+	const parsedUrl = parseUrl(url);
+
+	if (!parsedUrl) {
+		return;
+	}
+
+	const mimeType = mediaItem.getAttribute('type') ?? undefined;
+	const size = Number.parseInt(mediaItem.getAttribute('fileSize') ?? '0', 10);
+
+	// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+	const typeAttribute = mediaItem.getAttribute('medium') as MediaType | null;
+	const typeFromMime = parseTypeFromMime(mimeType);
+
+	return {
+		type: typeAttribute ?? typeFromMime,
+		url: parsedUrl.href,
+		mimeType,
+		sizeInBytes: size
+	} satisfies FeedMedia;
+}
+
+function parseEnclosure(item?: Element | null) {
+	if (!item) {
+		return;
+	}
+
+	const url = parseUrl(item.getAttribute('url'));
+
+	if (!url) {
+		return;
+	}
+
+	const mimeType = item.getAttribute('type') ?? undefined;
+	const type = parseTypeFromMime(mimeType);
+	const size = Number.parseInt(item.getAttribute('length') ?? '0', 10);
+
+	return {
+		type,
+		url: url.href,
+		mimeType,
+		sizeInBytes: size
+	} satisfies FeedMedia;
 }
 
 function parseMediaContent(item: Element) {
-	const mediaItems = [...item.getElementsByTagName('media:content')].map((mediaItem) => ({
-		url: mediaItem.getAttribute('url') ?? '',
-		mimeType: mediaItem.getAttribute('type') ?? '',
-		size: Number.parseInt(mediaItem.getAttribute('fileSize') ?? '0', 10),
-		type: MEDIA_TYPES.find((type) => type === mediaItem.getAttribute('medium')) ?? 'unknown'
-	}));
+	const mediaItems = [
+		...[...item.getElementsByTagName('media:content')].map((mediaItem) => parseMediaItem(mediaItem, item)),
+		parseEnclosure(item.querySelector('enclosure'))
+	].filter((mediaItem) => mediaItem !== undefined);
 
-	if (item.querySelector('enclosure')) {
-		const enclosureMedia: FeedMedia = {
-			url: item.querySelector('enclosure')?.getAttribute('url') ?? '',
-			mimeType: item.querySelector('enclosure')?.getAttribute('type') ?? '',
-			size: Number.parseInt(item.querySelector('enclosure')?.getAttribute('length') ?? '0', 10),
-			type: MEDIA_TYPES.find((type) => item.querySelector(`enclosure[type^=${type}]`)) ?? 'unknown'
-		};
+	const mediaThumbnail = item.querySelector('thumbnail[url]')?.getAttribute('url');
 
-		mediaItems.push(enclosureMedia);
-	}
+	const itunesImage = item.querySelector('image[url]')?.getAttribute('url');
 
-	const enclosureImage = item.querySelector('enclosure[type^=image]')?.getAttribute('url');
-	const mediaThumbnail = item.getElementsByTagName('media:thumbnail')[0]?.getAttribute('url');
+	const podcastImage = item.querySelector('image[href]')?.getAttribute('href');
 
 	return {
 		mediaItems,
-		enclosureImage,
-		mediaThumbnail
+		mainImage: parseUrl(mediaThumbnail, itunesImage, podcastImage, mediaItems.find(({ type }) => type === 'image')?.url)?.href
 	};
 }
 
@@ -112,81 +162,107 @@ function parseContentThumbnail(content?: string) {
 		return;
 	}
 
-	// TODO: what if it is not html?
-	const parsedContent = new window.DOMParser().parseFromString(content, 'text/html');
-	const parsedThumbnail = parsedContent.querySelector('img')?.getAttribute('src')?.trim();
+	let parsedContent: Document;
 
-	return parsedThumbnail;
-}
-
-function parseItemDate(item: Element) {
-	const publicationDate = item.querySelector('pubDate, published')?.textContent.trim();
-	const lastModified = item.querySelector('lastBuildDate, updated')?.textContent.trim();
-
-	if (publicationDate || lastModified) {
-		try {
-			const date = new Date((publicationDate ?? lastModified) ?? '');
-
-			if (!Number.isNaN(date.getTime())) {
-				return date;
-			}
-		} catch {
-			return new Date();
-		}
+	if (canParseXml(content)) {
+		parsedContent = parseXhtml(content);
+	} else {
+		parsedContent = parseHtml(content);
 	}
 
-	return new Date();
+	const parsedThumbnail = parsedContent.querySelector('img')?.getAttribute('src');
+
+	return parseUrl(parsedThumbnail)?.href;
+}
+
+function parsePublishedDate(item: Element) {
+	const rssPublishDate = item.querySelector('pubDate')?.textContent;
+	const atomPublishDate = item.querySelector('published')?.textContent;
+
+	return parseDate(rssPublishDate ?? atomPublishDate);
+}
+
+function parseUpdatedDate(item: Element) {
+	const atomUpdatedDate = item.querySelector('updated')?.textContent;
+
+	return parseDate(atomUpdatedDate);
 }
 
 function parseCategories(item: Element) {
-	return [
-		...new Set(
-			[...item.querySelectorAll('category')].map((category) => {
-				const label = category.getAttribute('label');
-				const term = category.getAttribute('term');
-				const textContent = category.textContent.trim().replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1');
+	// INFO: this also queries `media:category` elements
+	const rssCategories = [...item.querySelectorAll('category:has(> *)')].map((category) => {
+		const categoryText = category.textContent;
 
-				return label ?? term ?? textContent;
-			}).filter((category) => category)
-		)
-	];
+		return cleanCData(categoryText);
+	});
+
+	const atomCategories = [...item.querySelectorAll('category:empty')].map((category) => {
+		const categoryLabel = category.getAttribute('label');
+		const categoryTerm = category.getAttribute('term');
+
+		if (!categoryLabel && categoryTerm) {
+			return '';
+		}
+
+		return cleanCData(categoryLabel ?? categoryTerm ?? '');
+	});
+
+	const combinedCategories = [...rssCategories, ...atomCategories].filter((category) => category);
+
+	return [...new Set(combinedCategories)];
 }
 
-// TODO: split into actual content and summary
+function parseSummary(item: Element) {
+	// INFO: this also queries `media:description` elements
+	const rssSummary = item.querySelector('description')?.textContent;
+	const atomSummary = item.querySelector('summary')?.textContent;
+
+	// TODO: sanitize html
+	return cleanCData(rssSummary ?? atomSummary ?? '');
+}
+
 function parseContents(item: Element) {
-	return (item.querySelector('description, content')?.textContent ?? item.querySelector('summary')?.textContent)?.trim();
+	const atomExternalContent = item.querySelector('content[src]')?.getAttribute('src');
+
+	if (atomExternalContent) {
+		return parseUrl(atomExternalContent)?.href;
+	}
+
+	const atomInlineContent = item.querySelector('content:is([type="text"], [type="html"], [type="xhtml"])')?.textContent;
+	const encodedContent = item.querySelector('encoded')?.textContent;
+
+	// TODO: sanitize html
+	return cleanCData(atomInlineContent ?? encodedContent ?? '');
 }
 
-export function extractItems(feed: Document, feedId: FeedId) {
+export function parseFeedItems(feed: Document, feedId: FeedId) {
 	const items: FeedItem[] = [...feed.querySelectorAll('item, entry')].map((item) => {
-		const { mediaItems, enclosureImage, mediaThumbnail } = parseMediaContent(item);
-		const content = parseContents(item);
-		const contentThumbnail = parseContentThumbnail(content);
-		const date = parseItemDate(item);
 		const title = parseTitle(item);
+		const content = parseContents(item);
 
 		if (!title && !content) {
 			return undefined;
 		}
 
+		const { mediaItems, mainImage } = parseMediaContent(item);
+		const contentThumbnail = parseContentThumbnail(content);
+
 		return {
 			id: parseItemId(item),
 			feedId,
-			isRead: false,
 			title,
+			summary: parseSummary(item),
+			content: content,
+			isRead: false,
 			author: parseAuthor(item),
-			content: content ?? '',
-			url: parseItemUrl(item),
-			image: enclosureImage ?? mediaThumbnail ?? contentThumbnail,
-			tags: parseCategories(item),
-			date,
-			media: mediaItems
+			url: parseItemUrl(item)?.href,
+			image: mainImage ?? contentThumbnail,
+			publishedAt: parsePublishedDate(item),
+			updatedAt: parseUpdatedDate(item),
+			media: mediaItems,
+			categories: parseCategories(item)
 		};
 	}).filter((item) => item !== undefined);
 
 	return items;
-}
-
-export function extractUnreadItemsIds(items: FeedItem[]) {
-	return items.filter((item) => !item.isRead).map((item) => item.id);
 }

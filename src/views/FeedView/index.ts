@@ -44,15 +44,15 @@ export class FeedView extends LitElement implements RouterView {
 						${
 			when(
 				this.feed?.icon,
-				() => html`<img src="${this.feed?.icon ?? ''}" alt="${this.feed?.name ?? ''}" />`,
+				() => html`<img src="${this.feed?.icon ?? ''}" alt="${this.feed?.title ?? ''}" />`,
 				() => html`<iconify-icon icon="fluent:star-48-regular" inline></iconify-icon>`
 			)
 		}
 					</picture>
-					<h1>${this.feed?.name ?? 'No title'}</h1>
+					<h1>${this.feed?.title ?? 'No title'}</h1>
 					<aside>
 						<span>
-							<small>${this.feed?.lastUpdated.toLocaleString() ?? 'Never'}</small>
+							<small>${this.feed?.updatedAt.toLocaleString() ?? 'Never'}</small>
 							<small>(${this.feed?.unreadCount ?? 0} / ${this.feed?.items.length ?? 0})</small>
 						</span>
 					</aside>

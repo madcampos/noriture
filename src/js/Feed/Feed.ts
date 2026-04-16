@@ -1,4 +1,5 @@
-import { canParseXml, cleanCData, parseDate, parseHtml, parseUrl, parseXhtml, parseXml } from '../utils/parsing.ts';
+import { cleanCData, parseDate, parseUrl } from '../utils/parsing.ts';
+import { parseFeedItems } from './FeedItem.ts';
 
 export type FeedType = 'atom' | 'rss' | 'youtube' | 'podcast';
 
@@ -9,30 +10,16 @@ export type FeedLastUpdated = Date | 'DownloadError' | 'ParseError';
 export type FeedId = Brand<string, 'feedId'>;
 
 export interface Feed {
-	/** The feed's unique identifier. */
 	id: FeedId;
-	/** The feed's title that will be displayed to the user. */
-	name: string;
-	/** The feed's description that will be displayed to the user. */
+	title: string;
 	description?: string;
-	/** The feed's URL that will be displayed to the user. */
 	siteUrl?: string;
-	/** The feed's URL. */
 	feedUrl: string;
-	/** The feed's icon that will be displayed to the user. */
 	icon?: string;
-	/** The feed's color that will be displayed to the user. */
-	color?: string;
-	/** The feed's background color that will be displayed to the user. */
-	backgroundColor?: string;
-	/** The feed's categories that will be displayed to the user. */
 	categories: string[];
-	/** The feed's type. */
 	type: FeedType;
-	/** The feed's display type. */
 	displayType: FeedDisplayType;
-	/** The feeds's last updated date. */
-	lastUpdated: FeedLastUpdated;
+	updatedAt: FeedLastUpdated;
 }
 
 function parseFeedType(feed: Document): FeedType {
@@ -55,14 +42,17 @@ function parseName(feed: Document) {
 	const rssTitle = feed.querySelector('channel > title')?.textContent;
 	const atomTitle = feed.querySelector('feed > title')?.textContent;
 
-	return cleanCData(rssTitle ?? atomTitle ?? 'Untitled');
+	return cleanCData(rssTitle ?? atomTitle ?? '');
 }
 
 function parseDescription(feed: Document) {
 	const rssDescription = feed.querySelector('channel > description')?.textContent;
 	const atomDescription = feed.querySelector('feed > subtitle')?.textContent;
 
-	return cleanCData(rssDescription ?? atomDescription ?? '');
+	const encodedContent = feed.querySelector('channel > encoded')?.textContent;
+
+	// TODO: sanitize html
+	return cleanCData(rssDescription ?? atomDescription ?? encodedContent ?? '');
 }
 
 function parseSiteUrl(feed: Document) {
@@ -87,14 +77,28 @@ function parseLastUpdate(feed: Document): FeedLastUpdated {
 }
 
 function parseCategories(feed: Document) {
-	const rssCategories = [...feed.querySelectorAll('channel > category')].map((category) => category.textContent);
-	const atomCategories = [...feed.querySelectorAll('feed > category')].map((category) => category.getAttribute('term')).filter((category) => category !== null);
+	const rssCategories = [...feed.querySelectorAll('channel > category:not(:empty)')].map((category) => {
+		const categoryText = category.textContent;
 
-	const combinedCategories = [...rssCategories, ...atomCategories];
-	const normalizedCategories = combinedCategories.map((category) => cleanCData(category));
-	const filteredCategories = normalizedCategories.filter((category) => category);
+		return cleanCData(categoryText);
+	});
 
-	return [...new Set(filteredCategories)];
+	const atomCategories = [...feed.querySelectorAll('feed > category')].map((category) => {
+		const categoryLabel = category.getAttribute('label');
+		const categoryTerm = category.getAttribute('term');
+
+		if (!categoryLabel && categoryTerm) {
+			return '';
+		}
+
+		return categoryLabel ?? categoryTerm ?? '';
+	});
+
+	const itunesCategories = [...feed.querySelectorAll('channel > category[text]')].map((category) => category.getAttribute('text') ?? '');
+
+	const combinedCategories = [...rssCategories, ...atomCategories, ...itunesCategories].filter((category) => category);
+
+	return [...new Set(combinedCategories)];
 }
 
 function parseIcon(feed: Document) {
@@ -103,7 +107,11 @@ function parseIcon(feed: Document) {
 	const atomIcon = feed.querySelector('feed > icon')?.textContent;
 	const atomLogo = feed.querySelector('feed > logo')?.textContent;
 
-	return parseUrl(rssImage, atomIcon, atomLogo);
+	const itunesImage = feed.querySelector('image[url]')?.getAttribute('url');
+
+	const podcastImage = feed.querySelector('image[href]')?.getAttribute('href');
+
+	return parseUrl(rssImage, atomIcon, atomLogo, itunesImage, podcastImage);
 }
 
 function parseFeedId(feed: Document) {
@@ -117,7 +125,7 @@ function parseFeedId(feed: Document) {
 	return feedId as FeedId;
 }
 
-function parseDefaultDsplayType(feed: Document, feedType: FeedType): FeedDisplayType {
+function parseDefaultDisplayType(_feed: Document, feedType: FeedType): FeedDisplayType {
 	if (feedType === 'youtube') {
 		return 'video';
 	}
@@ -133,82 +141,25 @@ function parseDefaultDsplayType(feed: Document, feedType: FeedType): FeedDisplay
 
 export function parseFeed(feedDocument: XMLDocument, url: string) {
 	const feedType = parseFeedType(feedDocument);
+	const feedId = parseFeedId(feedDocument);
 
 	const feed: Feed = {
-		id: parseFeedId(feedDocument),
+		id: feedId,
 		type: feedType,
-		name: parseName(feedDocument),
+		title: parseName(feedDocument),
 		description: parseDescription(feedDocument),
 		siteUrl: parseSiteUrl(feedDocument)?.href,
 		feedUrl: url,
-		lastUpdated: parseLastUpdate(feedDocument),
+		updatedAt: parseLastUpdate(feedDocument),
 		categories: parseCategories(feedDocument),
 		icon: parseIcon(feedDocument)?.href,
-		displayType: parseDefaultDsplayType(feedDocument, feedType)
+		displayType: parseDefaultDisplayType(feedDocument, feedType)
 	};
 
-	// TODO: parse feed items?
+	const feedItems = parseFeedItems(feedDocument, feedId);
 
-	return feed;
-}
-
-// TODO: should this return just the xml document?
-// TODO: should it return metadata and the website as well?
-// Sequence of steps:
-// 0. entrypoint: take feed url, run all the steps and terurn feed + feed items + metadata
-// 1. fecth feed, return the xml text
-// 2. parse feed take text as input and return a feed + feed items
-// 2.1 recursively parse feed items from xml document
-// 3. find site url, takes the feed url, the feed, and return the site url
-// 4. find metadata from site url
-// 5. Only update with metadata missing parts from feed
-export async function fetchFeed(url: string, redirectCount = 0): Promise<Feed | undefined> {
-	const MAX_REDIRECTS = 5;
-	const response = await fetch(`/proxy?url=${encodeURIComponent(url)}`, {
-		method: 'GET',
-		credentials: 'omit',
-		redirect: 'follow'
-	});
-
-	if (!response.ok) {
-		throw new Error(`Could not fetch feed: ${response.status} ${await response.text()}`);
-	}
-
-	const text = await response.text();
-
-	let siteHtml: Document | undefined = undefined;
-
-	if (canParseXml(text)) {
-		try {
-			const xml = parseXml(text);
-
-			if (xml.querySelector('html')) {
-				throw new TypeError('Document is XHTML and not a Feed');
-			}
-
-			return parseFeed(xml, url);
-		} catch (err) {
-			if (err instanceof TypeError) {
-				siteHtml = parseXhtml(text);
-			}
-
-			throw err;
-		}
-	} else {
-		siteHtml = parseHtml(text);
-	}
-
-	// TODO: parse document metadata
-
-	const parsedFeedUrl = siteHtml.querySelector('link[type="application/rss+xml"], link[type="application/atom+xml"]')?.getAttribute('href');
-
-	if (!parsedFeedUrl) {
-		throw new Error('Could not find feed URL');
-	}
-
-	if (redirectCount > MAX_REDIRECTS) {
-		throw new Error('Too many redirects');
-	}
-
-	return fetchFeed(parsedFeedUrl, redirectCount + 1);
+	return {
+		feed,
+		items: feedItems
+	};
 }

@@ -92,11 +92,17 @@ export function parseUrl(...urlList: unknown[]) {
 			continue;
 		}
 
-		if (!URL.canParse(urltoParse)) {
+		if (!URL.canParse(urltoParse.trim())) {
 			continue;
 		}
 
-		return new URL(urltoParse);
+		const url = new URL(urltoParse.trim());
+
+		if (!url.protocol.startsWith('http')) {
+			continue;
+		}
+
+		return url;
 	}
 
 	return undefined;

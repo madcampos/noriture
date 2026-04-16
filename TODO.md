@@ -9,6 +9,7 @@
 - https://podcasting2.org/docs
 - https://feedsmith.dev/reference/namespaces/googleplay
 - https://opml.org/spec2.opml
+- https://github.com/Podcastindex-org/podcast-namespace/blob/main/itunes_reference.md
 
 # Sample RSS feeds to test
 

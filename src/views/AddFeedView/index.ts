@@ -96,7 +96,7 @@ export class AddFeedView extends LitElement implements RouterView {
 			<img
 				?hidden="${!this.newFeed?.icon}"
 				src="${this.newFeed?.icon ?? ''}"
-				alt="${this.newFeed?.name ?? ''}"
+				alt="${this.newFeed?.title ?? ''}"
 				slot="icon"
 			>
 		`);
@@ -104,12 +104,12 @@ export class AddFeedView extends LitElement implements RouterView {
 		const feedCard = html`
 			<n-feed-card
 				?hidden="${this.newFeed === null}"
-				last-updated="${this.newFeed?.lastUpdated.toLocaleString() ?? nothing}"
+				last-updated="${this.newFeed?.updatedAt.toLocaleString() ?? nothing}"
 				total-count="0"
 				unread-count="0"
 			>
 				${icon}
-				${when(this.newFeed?.name, () => html`<span slot="title">${this.newFeed?.name ?? ''}</span>`)}
+				${when(this.newFeed?.title, () => html`<span slot="title">${this.newFeed?.title ?? ''}</span>`)}
 
 				<button
 					type="button"
