@@ -1,25 +1,118 @@
-import { canParseXml, parseHtml, parseUrl, parseXhtml, parseXml } from '../utils/parsing.ts';
+import { canParseXml, parseHtml, parseUrl, parseUrlWithBase, parseXhtml, parseXml } from '../utils/parsing.ts';
+import type { WebManifest } from './web-app-manifest';
 
-interface MetadataIcons {
+interface MetadataIcon {
 	url: string;
-	mimeType?: string;
-	sizes?: string;
+	mimeType: string;
+	width: number;
+	height: number;
 }
 
-interface AppManifestIcons {
-	icons?: {
-		src: string,
-		type?: string,
-		sizes?: string
-	}[];
+const EXTENSION_MIME_MAP = {
+	'.svg': 'image/svg+xml',
+	'.png': 'image/png',
+	'.jpg': 'image/jpeg',
+	'.jpeg': 'image/jpeg',
+	'.ico': 'image/x-icon',
+	'.webp': 'image/webp',
+	'.avif': 'image/avif',
+	'.gif': 'image/gif'
+};
+
+function getMimeTypeFromExtension(url: string) {
+	return Object.entries(EXTENSION_MIME_MAP).find(([extension]) => url.endsWith(extension))?.[1] ?? 'image/*';
 }
 
-async function getMsApplicationConfig(baseUrl: string, configPath?: string | null) {
-	const url = new URL(configPath ?? '/browserconfig.xml', baseUrl);
-	const response = await fetch(url.href);
+function getLargestIconSize(sizes?: string) {
+	const sizeList = (sizes?.split(' ') ?? []).map((size) => {
+		const [iconWidth = '0', iconHeight = '0'] = size.split('x');
+
+		return {
+			width: Number.parseInt(iconWidth, 10),
+			height: Number.parseInt(iconHeight, 10)
+		};
+	}).sort((first, second) => {
+		if (second.width !== first.width) {
+			return second.width - first.width;
+		}
+		return second.height - first.height;
+	});
+
+	return sizeList[0] ?? {
+		width: -Infinity,
+		height: -Infinity
+	};
+}
+
+async function getApplicationManifest(htmlDocument: Document, baseUrl: string) {
+	const manifestPath = htmlDocument.querySelector('link[rel="manifest"]')?.getAttribute('href');
+
+	const manifestUrl = new URL(manifestPath ?? '/app.webmanifest', baseUrl).href;
+	let response = await fetch(`/proxy?url=${encodeURIComponent(manifestUrl)}`, {
+		method: 'GET',
+		credentials: 'omit',
+		redirect: 'follow'
+	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to fetch config at ${url.href}`);
+		const fallbackUrl = new URL(manifestPath ?? '/manifest.json', baseUrl).href;
+
+		response = await fetch(`/proxy?url=${encodeURIComponent(fallbackUrl)}`, {
+			method: 'GET',
+			credentials: 'omit',
+			redirect: 'follow'
+		});
+	}
+
+	if (!response.ok) {
+		return undefined;
+	}
+
+	return response.json<WebManifest>();
+}
+
+function parseManifestIcons(manifest: WebManifest | undefined, baseUrl: string) {
+	if (!manifest) {
+		return [];
+	}
+
+	const icons: MetadataIcon[] | undefined = manifest.icons?.map(({ src, type, sizes }) => {
+		const url = parseUrlWithBase(src, baseUrl)?.href ?? '';
+		const { width, height } = getLargestIconSize(sizes);
+
+		return {
+			url,
+			mimeType: type ?? getMimeTypeFromExtension(url),
+			width,
+			height
+		};
+	}).filter(({ url }) => url);
+
+	return icons ?? [];
+}
+
+async function getMsApplicationConfig(htmlDocument: Document, baseUrl: string) {
+	const msConfigElement = htmlDocument.querySelector('meta[name="msapplication-config"]');
+	const configPath = msConfigElement?.getAttribute('content');
+
+	const url = new URL(configPath ?? '/browserconfig.xml', baseUrl).href;
+	let response = await fetch(`/proxy?url=${encodeURIComponent(url)}`, {
+		method: 'GET',
+		credentials: 'omit',
+		redirect: 'follow'
+	});
+
+	if (!response.ok) {
+		const fallbackUrl = new URL('/ieconfig.xml', baseUrl).href;
+		response = await fetch(`/proxy?url=${encodeURIComponent(fallbackUrl)}`, {
+			method: 'GET',
+			credentials: 'omit',
+			redirect: 'follow'
+		});
+	}
+
+	if (!response.ok) {
+		return undefined;
 	}
 
 	const text = await response.text();
@@ -27,128 +120,131 @@ async function getMsApplicationConfig(baseUrl: string, configPath?: string | nul
 	return parseXml(text);
 }
 
-async function parseManifestIcons(htmlDocument: Document, baseUrl: string) {
-	const manifestPath = htmlDocument.querySelector('link[rel="manifest"]')?.getAttribute('href');
-
-	const url = new URL(manifestPath ?? '/app.webmanifest', baseUrl);
-	let response = await fetch(url.href);
-
-	if (!response.ok) {
-		const fallbackUrl = new URL(manifestPath ?? '/manifest.json', baseUrl);
-
-		response = await fetch(fallbackUrl.href);
-	}
-
-	if (!response.ok) {
+function parseMsApplicationIcons(xmlDocument: XMLDocument | undefined, baseUrl: string) {
+	if (!xmlDocument) {
 		return [];
 	}
 
-	const manifest = await response.json<AppManifestIcons>();
+	const msConfigIcons = [...xmlDocument.querySelectorAll('tile > [src]')];
 
-	const icons = manifest.icons?.map(({ src, type, sizes }) => ({
-		url: parseUrl(src)?.href,
-		mimeType: type,
-		sizes
-	}));
+	const icons: MetadataIcon[] = msConfigIcons.map((iconElement) => {
+		const href = iconElement.getAttribute('src');
+		const size = iconElement.tagName.replace(/^(?:square|wide)(.+)logo$/giu, '$1') || '256x256';
+		const { width, height } = getLargestIconSize(size);
 
-	return icons ?? [];
-}
+		return {
+			url: parseUrlWithBase(href, baseUrl)?.href ?? '',
+			mimeType: 'image/png',
+			width,
+			height
+		};
+	}).filter(({ url }) => url);
 
-async function parseMsApplicationIcons(baseUrl: string, configPath?: string | null) {
-	// TODO
-}
-
-function parseAppleIcons(htmlDocument: Document, baseUrl: string) {
-	// TODO
+	return icons;
 }
 
 function parseIeIcons(htmlDocument: Document, baseUrl: string) {
-	// TODO
+	const ieIcons = [...htmlDocument.querySelectorAll('meta[name="msapplication-TileImage"], meta[name^="msapplication-square"], meta[name^="msapplication-wide"]')];
+
+	const icons: MetadataIcon[] = ieIcons.map((iconElement) => {
+		const href = iconElement.content;
+		const size = iconElement.getAttribute('name')?.replace(/^msapplication-(?:square|wide)(.+)(?:-TileImage|logo)$/giu, '$1') ?? '256x256';
+		const { width, height } = getLargestIconSize(size);
+
+		return {
+			url: parseUrlWithBase(href, baseUrl)?.href ?? '',
+			mimeType: iconElement.getAttribute('type') ?? 'image/png',
+			width,
+			height
+		};
+	});
+
+	return icons;
+}
+
+function parseAppleIcons(htmlDocument: Document, baseUrl: string) {
+	const appleIcons = [...htmlDocument.querySelectorAll('link[rel^="apple-touch-icon"]')];
+
+	const icons: MetadataIcon[] = appleIcons.map((iconElement) => {
+		const href = iconElement.href;
+		const url = parseUrlWithBase(href, baseUrl)?.href ?? '';
+		const { width, height } = getLargestIconSize(iconElement.sizes.value);
+
+		return {
+			url,
+			mimeType: iconElement.getAttribute('type') ?? getMimeTypeFromExtension(url),
+			width,
+			height
+		};
+	}).filter(({ url }) => url);
+
+	return icons;
 }
 
 function parseFavicon(htmlDocument: Document, baseUrl: string) {
-	// TODO
-}
+	const favicon = htmlDocument.querySelector('link[rel~="icon"]');
+	const { width, height } = getLargestIconSize(favicon?.sizes.value);
+	const href = favicon?.href;
+	const url = parseUrlWithBase(href, baseUrl)?.href ?? '';
 
-function parseSafariMaskIcon(htmlDocument: Document, baseUrl: string) {
-	// TODO
-}
+	let icon: MetadataIcon = {
+		url,
+		mimeType: favicon?.getAttribute('type') ?? getMimeTypeFromExtension(url),
+		width,
+		height
+	};
 
-async function parseIcons(htmlDocument: Document, baseUrl: string) {
-	// TODO: compose list of icons
-	// TODO: sort icons
-	// TODO: batch send HEAD requests to ping the urls (through proxy?)
-	const icons = [];
+	if (!favicon) {
+		const fallbackUrl = new URL('/favicon.ico', baseUrl).href;
 
-	const manifestIcons = await parseManifestIcons(htmlDocument, baseUrl);
-
-	const iconLinks = htmlDocument.querySelectorAll(
-		'link[rel~="icon"], link[rel^="apple-touch-icon"], link[rel="apple-touch-startup-image"], link[rel="mask-icon"]'
-	);
-	const ieIcons = htmlDocument.querySelectorAll('meta[name="msapplication-TileImage"], meta[name^="msapplication-square"], meta[name^="msapplication-wide"]');
-
-	const ieConfig = htmlDocument.querySelector('meta[name="msapplication-config"]');
-
-	iconLinks.forEach((iconLink) => {
-		icons.push({
-			href: new URL(iconLink.getAttribute('href') ?? '', baseUrl).href,
-			type: iconLink.getAttribute('type'),
-			sizes: iconLink.getAttribute('sizes')
-		});
-	});
-
-	ieIcons.forEach((ieIcon) => {
-		icons.push({
-			href: new URL(ieIcon.getAttribute('content') ?? '', baseUrl).href,
-			type: 'image/png',
-			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-			sizes: ieIcon.getAttribute('name')?.replace(/^msapplication-(?:square|wide)(.+)(?:-TileImage|logo)$/giu, '$1') || '256x256'
-		});
-	});
-
-	try {
-		const msconfig = await getMsApplicationConfig(baseUrl, ieConfig?.getAttribute('content'));
-		const msconfigIcons = msconfig.querySelectorAll('tile > [src]');
-
-		msconfigIcons.forEach((msconfigIcon) => {
-			icons.push({
-				href: new URL(msconfigIcon.getAttribute('src') ?? '', baseUrl).href,
-				type: 'image/png',
-				sizes: msconfigIcon.tagName.replace(/^(?:square|wide)(.+)logo$/giu, '$1') ?? '256x256'
-			});
-		});
-	} catch {
-		// Ignore errors
+		icon = {
+			url: fallbackUrl,
+			mimeType: 'image/x-icon',
+			width: 32,
+			height: 32
+		};
 	}
 
-	try {
-		const faviconResponse = await fetch(new URL('/favicon.ico', baseUrl).href);
+	return icon;
+}
 
-		if (faviconResponse.ok) {
-			icons.push({
-				href: new URL('/favicon.ico', baseUrl).href,
-				type: 'image/x-icon',
-				sizes: '32x32'
-			});
-		}
-	} catch {
-		// Ignore errors
-	}
+function parseIcons(htmlDocument: Document, manifest: WebManifest | undefined, msconfig: XMLDocument | undefined, baseUrl: string) {
+	// TODO: send HEAD requests to ping the urls (through proxy)
+	const icons = [
+		...parseManifestIcons(manifest, baseUrl),
+		...parseAppleIcons(htmlDocument, baseUrl),
+		...parseIeIcons(htmlDocument, baseUrl),
+		...parseMsApplicationIcons(msconfig, baseUrl),
+		parseFavicon(htmlDocument, baseUrl)
+	];
+
+	const mimeTypePrecedence = [
+		'image/svg+xml',
+		'image/png',
+		'image/webp',
+		'image/x-icon',
+		'image/vnd.microsoft.icon',
+		'image/avif',
+		'image/jpeg',
+		'image/gif'
+	];
 
 	return icons.sort((first, second) => {
-		const typePrecedence = ['image/svg+xml', 'image/png', 'image/x-icon', 'image/gif', 'image/jpeg'];
-		const aTypeIndex = !typePrecedence.includes(first.type) ? typePrecedence.length : typePrecedence.indexOf(first.type);
-		const bTypeIndex = !typePrecedence.includes(second.type) ? typePrecedence.length : typePrecedence.indexOf(second.type);
+		const lastMimeType = mimeTypePrecedence.length;
+
+		const aTypeIndex = mimeTypePrecedence.includes(first.mimeType)
+			? mimeTypePrecedence.indexOf(first.mimeType)
+			: lastMimeType;
+		const bTypeIndex = mimeTypePrecedence.includes(second.mimeType)
+			? mimeTypePrecedence.indexOf(second.mimeType)
+			: lastMimeType;
 		const typeDifference = aTypeIndex - bTypeIndex;
 
-		const aSizes = first.sizes.split('x').map((size) => Number.parseInt(size, 10));
-		const bSizes = second.sizes.split('x').map((size) => Number.parseInt(size, 10));
-		const aSizesSum = aSizes.reduce((sum, size) => sum + size, 0);
-		const bSizesSum = bSizes.reduce((sum, size) => sum + size, 0);
-		const sizesDifference = aSizesSum - bSizesSum;
+		const widthDifference = first.width - second.width;
+		const heightDifference = first.height - second.height;
 
-		return typeDifference || sizesDifference;
-	})[0]?.href;
+		return typeDifference || widthDifference || heightDifference;
+	})[0]?.url;
 }
 
 function parseTitle(htmlDocument: Document) {
@@ -189,6 +285,18 @@ function parseImage(htmlDocument: Document) {
 	};
 }
 
+function parseThemeColor(htmlDocument: Document, manifest: WebManifest | undefined, msconfig: XMLDocument | undefined) {
+	const htmlThemeColor = htmlDocument.querySelector('meta[name="theme-color"]')?.getAttribute('content');
+	const manifestThemeColor = manifest?.theme_color;
+
+	const htmlMsThemeColor = htmlDocument.querySelector('meta[name="msapplication-TileColor"]')?.getAttribute('content');
+	const htmlIeNavButtonColor = htmlDocument.querySelector('meta[name="msapplication-navbutton-color"]')?.getAttribute('content');
+
+	const msConfigThemeColor = msconfig?.querySelector('TileColor')?.textContent;
+
+	return manifestThemeColor ?? htmlThemeColor ?? htmlMsThemeColor ?? msConfigThemeColor ?? htmlIeNavButtonColor ?? undefined;
+}
+
 export async function parseMetadata(siteUrl: string) {
 	const response = await fetch(`/proxy?url=${encodeURIComponent(siteUrl)}`, {
 		method: 'GET',
@@ -210,9 +318,14 @@ export async function parseMetadata(siteUrl: string) {
 		parsedDocument = parseHtml(text);
 	}
 
+	const manifest = await getApplicationManifest(parsedDocument, siteUrl);
+	const msconfig = await getMsApplicationConfig(parsedDocument, siteUrl);
+
 	return {
+		themeColor: parseThemeColor(parsedDocument, manifest, msconfig),
 		title: parseTitle(parsedDocument),
 		description: parseDescription(parsedDocument),
-		image: parseImage(parsedDocument)
+		image: parseImage(parsedDocument),
+		icon: parseIcons(parsedDocument, manifest, msconfig, siteUrl)
 	};
 }

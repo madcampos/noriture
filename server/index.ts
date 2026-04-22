@@ -2,6 +2,17 @@ const INTERNAL_SERVER_ERROR = 500;
 const BAD_REQUEST = 400;
 const OKAY = 200;
 
+const VALID_MIME_TYPES = [
+	'text/xml',
+	'application/xml',
+	'application/rss+xml',
+	'application/atom+xml',
+	'text/html',
+	'application/xhtml+xml',
+	'application/manifest+json',
+	'application/json'
+];
+
 function getDefaultHeaders(request: Request) {
 	const requestUrl = new URL('/', request.url);
 
@@ -79,11 +90,9 @@ async function proxyRequest(request: Request) {
 			});
 		}
 
-		// TODO: add json and other metadata types?
-		const validContentTypes = ['text/xml', 'application/xml', 'application/rss+xml', 'application/atom+xml', 'text/html', 'application/xhtml+xml'];
 		const contentType = response.headers.get('content-type') ?? '';
 
-		if (!validContentTypes.some((type) => contentType.startsWith(type))) {
+		if (!VALID_MIME_TYPES.some((type) => contentType.startsWith(type))) {
 			return new Response('invalid content type', {
 				status: BAD_REQUEST,
 				headers: new Headers(getDefaultHeaders(request))

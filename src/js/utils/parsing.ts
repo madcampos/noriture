@@ -82,23 +82,29 @@ export function parseDate(dateToParse: unknown) {
 	return undefined;
 }
 
+export function parseUrlWithBase(urlToParse?: unknown, baseUrl?: string) {
+	if (typeof urlToParse !== 'string') {
+		return;
+	}
+
+	if (!URL.canParse(urlToParse.trim(), baseUrl)) {
+		return;
+	}
+
+	const url = new URL(urlToParse.trim(), baseUrl);
+
+	if (!url.protocol.startsWith('http')) {
+		return;
+	}
+
+	return url;
+}
+
 export function parseUrl(...urlList: unknown[]) {
 	for (const urltoParse of urlList) {
-		if (!urltoParse) {
-			continue;
-		}
+		const url = parseUrlWithBase(urltoParse);
 
-		if (typeof urltoParse !== 'string') {
-			continue;
-		}
-
-		if (!URL.canParse(urltoParse.trim())) {
-			continue;
-		}
-
-		const url = new URL(urltoParse.trim());
-
-		if (!url.protocol.startsWith('http')) {
+		if (!url) {
 			continue;
 		}
 
