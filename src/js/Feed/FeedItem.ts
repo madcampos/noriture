@@ -1,7 +1,8 @@
+import { CategoryMap } from '../utils/mime-types.ts';
 import { canParseXml, cleanCData, parseDate, parseHtml, parseUrl, parseXhtml } from '../utils/parsing.ts';
 import type { FeedId } from './Feed.ts';
 
-const MEDIA_TYPES = ['image', 'video', 'audio', 'document', 'executable', 'unknown'] as const;
+const MEDIA_TYPES = ['image', 'text', 'audio', 'video', 'document', 'executable', 'unknown'] as const;
 
 type MediaType = typeof MEDIA_TYPES[number];
 
@@ -27,7 +28,7 @@ export interface FeedItem {
 	publishedAt?: Date;
 	updatedAt?: Date;
 	image?: string;
-	summary: string;
+	summary?: string;
 	content?: string;
 	media: FeedMedia[];
 	url?: string;
@@ -72,7 +73,7 @@ function parseAuthor(item: Element) {
 	const atomContributorEmail = item.querySelector('contributor > email')?.textContent;
 
 	if (rssAuthor) {
-		const { name = 'No Author', email } = (/(?<email>.+?) \((?<name>.+?)\)/u).exec(cleanCData(rssAuthor))?.groups ?? {};
+		const { name = 'No Author', email } = (/(?<email>.+?) \((?<name>.+?)\)/u).exec(cleanCData(rssAuthor) ?? '')?.groups ?? {};
 
 		return {
 			name,
@@ -81,14 +82,13 @@ function parseAuthor(item: Element) {
 	}
 
 	return {
-		name: cleanCData(atomAuthor ?? atomContributor ?? 'No Author'),
+		name: cleanCData(atomAuthor ?? atomContributor) ?? 'No Author',
 		email: (atomEmail || atomContributorEmail) ? cleanCData(atomEmail ?? atomContributorEmail ?? '') : undefined
 	} satisfies FeedItemAuthor;
 }
 
 function parseTypeFromMime(mimeType?: string) {
-	// TODO: use a map for some quirks like pdf files and such mapping to document
-	const typeFromMime = MEDIA_TYPES.find((mediaType) => mimeType?.startsWith(mediaType)) ?? 'unknown';
+	const typeFromMime: MediaType = CategoryMap[mimeType ?? ''] ?? 'unknown';
 
 	return typeFromMime;
 }
@@ -193,18 +193,14 @@ function parseCategories(item: Element) {
 	const rssCategories = [...item.querySelectorAll('category:has(> *)')].map((category) => {
 		const categoryText = category.textContent;
 
-		return cleanCData(categoryText);
+		return cleanCData(categoryText) ?? '';
 	});
 
 	const atomCategories = [...item.querySelectorAll('category:empty')].map((category) => {
 		const categoryLabel = category.getAttribute('label');
 		const categoryTerm = category.getAttribute('term');
 
-		if (!categoryLabel && categoryTerm) {
-			return '';
-		}
-
-		return cleanCData(categoryLabel ?? categoryTerm ?? '');
+		return categoryLabel ?? categoryTerm ?? '';
 	});
 
 	const combinedCategories = [...rssCategories, ...atomCategories].filter((category) => category);
@@ -217,7 +213,6 @@ function parseSummary(item: Element) {
 	const rssSummary = item.querySelector('description')?.textContent;
 	const atomSummary = item.querySelector('summary')?.textContent;
 
-	// TODO: sanitize html
 	return cleanCData(rssSummary ?? atomSummary ?? '');
 }
 
@@ -231,7 +226,6 @@ function parseContents(item: Element) {
 	const atomInlineContent = item.querySelector('content:is([type="text"], [type="html"], [type="xhtml"])')?.textContent;
 	const encodedContent = item.querySelector('encoded')?.textContent;
 
-	// TODO: sanitize html
 	return cleanCData(atomInlineContent ?? encodedContent ?? '');
 }
 

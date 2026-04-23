@@ -11,7 +11,7 @@ export type FeedId = Brand<string, 'feedId'>;
 
 export interface Feed {
 	id: FeedId;
-	title: string;
+	title?: string;
 	description?: string;
 	siteUrl?: string;
 	feedUrl: string;
@@ -42,7 +42,7 @@ function parseName(feed: Document) {
 	const rssTitle = feed.querySelector('channel > title')?.textContent;
 	const atomTitle = feed.querySelector('feed > title')?.textContent;
 
-	return cleanCData(rssTitle ?? atomTitle ?? '');
+	return cleanCData(rssTitle ?? atomTitle);
 }
 
 function parseDescription(feed: Document) {
@@ -51,8 +51,7 @@ function parseDescription(feed: Document) {
 
 	const encodedContent = feed.querySelector('channel > encoded')?.textContent;
 
-	// TODO: sanitize html
-	return cleanCData(rssDescription ?? atomDescription ?? encodedContent ?? '');
+	return cleanCData(rssDescription ?? atomDescription ?? encodedContent);
 }
 
 function parseSiteUrl(feed: Document) {
@@ -80,7 +79,7 @@ function parseCategories(feed: Document) {
 	const rssCategories = [...feed.querySelectorAll('channel > category:not(:empty)')].map((category) => {
 		const categoryText = category.textContent;
 
-		return cleanCData(categoryText);
+		return cleanCData(categoryText) ?? '';
 	});
 
 	const atomCategories = [...feed.querySelectorAll('feed > category')].map((category) => {
@@ -133,8 +132,6 @@ function parseDefaultDisplayType(_feed: Document, feedType: FeedType): FeedDispl
 	if (feedType === 'podcast') {
 		return 'podcast';
 	}
-
-	// TODO: check for enclsures for images/video
 
 	return 'list';
 }

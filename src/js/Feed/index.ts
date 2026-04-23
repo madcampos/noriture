@@ -1,3 +1,4 @@
+import { fetchProxied } from '../utils/fetch.ts';
 import { canParseXml, parseHtml, parseXhtml, parseXml } from '../utils/parsing.ts';
 import { type Feed, parseFeed } from './Feed.ts';
 import type { FeedItem } from './FeedItem.ts';
@@ -11,15 +12,7 @@ function getFeedUrl(htmlDocument: Document) {
 
 async function getFeedText(url: string, redirectCount = 0) {
 	const MAX_REDIRECTS = 5;
-	const response = await fetch(`/proxy?url=${encodeURIComponent(url)}`, {
-		method: 'GET',
-		credentials: 'omit',
-		redirect: 'follow'
-	});
-
-	if (!response.ok) {
-		throw new Error(`Could not fetch feed: ${response.status} ${await response.text()}`);
-	}
+	const response = await fetchProxied(url);
 
 	const text = await response.text();
 
@@ -76,11 +69,19 @@ export async function fetchFeed(url: string) {
 		throw err;
 	}
 
-	if (feedResult.feed.siteUrl) {
-		const metadata = await parseMetadata(feedResult.feed.siteUrl);
-
-		// TODO: fill in missing information
-	}
+	return feedResult;
 }
 
-// TODO: add diffing for feed and items
+export async function enhanceFeedWithMetadata(feed: Feed) {
+	if (!feed.siteUrl) {
+		return feed;
+	}
+
+	const metadata = await parseMetadata(feed.siteUrl);
+
+	feed.icon ??= metadata.icon ?? metadata.image?.url;
+	feed.title ??= metadata.title;
+	feed.description ??= metadata.description;
+
+	return feed;
+}
