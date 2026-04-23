@@ -1,4 +1,4 @@
-import { cleanCData, parseDate, parseUrl } from '../utils/parsing.ts';
+import { cleanCData, parseDate, parseText, parseUrl } from '../utils/parsing.ts';
 import { parseFeedItems } from './FeedItem.ts';
 
 export type FeedType = 'atom' | 'rss' | 'youtube' | 'podcast';
@@ -39,24 +39,25 @@ function parseFeedType(feed: Document): FeedType {
 }
 
 function parseName(feed: Document) {
-	const rssTitle = feed.querySelector('channel > title')?.textContent;
-	const atomTitle = feed.querySelector('feed > title')?.textContent;
+	const rssTitle = feed.querySelector('channel > title')?.textContent.trim();
+	const atomTitle = feed.querySelector('feed > title')?.textContent.trim();
 
-	return cleanCData(rssTitle ?? atomTitle);
+	return parseText(cleanCData(rssTitle ?? atomTitle));
 }
 
 function parseDescription(feed: Document) {
-	const rssDescription = feed.querySelector('channel > description')?.textContent;
-	const atomDescription = feed.querySelector('feed > subtitle')?.textContent;
+	const rssDescription = feed.querySelector('channel > description')?.textContent.trim();
+	const atomDescription = feed.querySelector('feed > subtitle')?.textContent.trim();
 
-	const encodedContent = feed.querySelector('channel > encoded')?.textContent;
+	const encodedContent = feed.querySelector('channel > encoded')?.textContent.trim();
 
-	return cleanCData(rssDescription ?? atomDescription ?? encodedContent);
+	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
+	return parseText(cleanCData(rssDescription || atomDescription || encodedContent));
 }
 
 function parseSiteUrl(feed: Document) {
-	const rssUrl = feed.querySelector('channel > link')?.textContent.trim();
-	const rssIconUrl = feed.querySelector('channel > image > link')?.textContent;
+	const rssUrl = feed.querySelector('channel > link:not(:empty)')?.textContent.trim();
+	const rssIconUrl = feed.querySelector('channel > image > link')?.textContent.trim();
 	const atomUrl = feed.querySelector('feed > link')?.textContent.trim();
 	const atomId = feed.querySelector('feed > id')?.textContent.trim();
 
@@ -77,23 +78,20 @@ function parseLastUpdate(feed: Document): FeedLastUpdated {
 
 function parseCategories(feed: Document) {
 	const rssCategories = [...feed.querySelectorAll('channel > category:not(:empty)')].map((category) => {
-		const categoryText = category.textContent;
+		const categoryText = category.textContent.trim();
 
-		return cleanCData(categoryText) ?? '';
+		return parseText(cleanCData(categoryText)) ?? '';
 	});
 
 	const atomCategories = [...feed.querySelectorAll('feed > category')].map((category) => {
-		const categoryLabel = category.getAttribute('label');
-		const categoryTerm = category.getAttribute('term');
+		const categoryLabel = category.getAttribute('label')?.trim();
+		const categoryTerm = category.getAttribute('term')?.trim();
 
-		if (!categoryLabel && categoryTerm) {
-			return '';
-		}
-
-		return categoryLabel ?? categoryTerm ?? '';
+		// oxlint-disable-next-line typescript/prefer-nullish-coalescing
+		return categoryLabel || categoryTerm || '';
 	});
 
-	const itunesCategories = [...feed.querySelectorAll('channel > category[text]')].map((category) => category.getAttribute('text') ?? '');
+	const itunesCategories = [...feed.querySelectorAll('channel > category[text]')].map((category) => category.getAttribute('text')?.trim() ?? '');
 
 	const combinedCategories = [...rssCategories, ...atomCategories, ...itunesCategories].filter((category) => category);
 
@@ -114,11 +112,12 @@ function parseIcon(feed: Document) {
 }
 
 function parseFeedId(feed: Document) {
-	const rssId = feed.querySelector('channel > link')?.textContent;
-	const atomId = feed.querySelector('feed > id')?.textContent;
-	const atomSelfLink = feed.querySelector('feed > link[rel="self"], feed > link:only-of-type')?.href;
+	const rssId = feed.querySelector('channel > link:not(:empty)')?.textContent.trim();
+	const atomId = feed.querySelector('feed > id')?.textContent.trim();
+	const atomSelfLink = feed.querySelector('feed > link[rel="self"], feed > link:only-of-type')?.href.trim();
 
-	const feedId = rssId ?? atomId ?? atomSelfLink ?? crypto.randomUUID();
+	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
+	const feedId = rssId || atomId || atomSelfLink || crypto.randomUUID();
 
 	// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 	return feedId as FeedId;

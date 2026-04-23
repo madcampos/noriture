@@ -35,13 +35,13 @@ export class HomeView extends LitElement implements RouterView {
 		const feedList = map(this.feeds, (feed) =>
 			html`
 				<n-feed-card
-					feed-id="${feed.id}"
-					unread-count="${feed.unreadCount}"
-					total-count="${feed.items.length}"
+					feed-id="${feed.id.toString()}"
+					unread-count=""
+					total-count=""
 					last-updated="${feed.updatedAt.toString()}"
 				>
 					${when(feed.title, () => html`<span slot="title">${feed.title}</span>`)}
-					${when(feed.icon, () => html`<img slot="icon" src="${feed.icon ?? ''}" alt="${feed.title}" />`)}
+					${when(feed.icon, () => html`<img slot="icon" src="${feed.icon ?? ''}" alt="${feed.title ?? ''}" />`)}
 					${when(feed.description, () => unsafeHTML(feed.description))}
 				</n-feed-card>
 			`);

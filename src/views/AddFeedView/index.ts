@@ -5,10 +5,8 @@ import { when } from 'lit/directives/when.js';
 
 import { Database } from '../../js/database.js';
 import type { Feed } from '../../js/Feed/Feed.js';
-import { fetchFeed } from '../../js/Feed/Feed.js';
+import { enhanceFeedWithMetadata, fetchFeed } from '../../js/Feed/index.js';
 import type { RouterView } from '../../js/router/router.js';
-
-// TODO: move to dialog element?
 
 @customElement('n-add-feed-view')
 export class AddFeedView extends LitElement implements RouterView {
@@ -46,7 +44,10 @@ export class AddFeedView extends LitElement implements RouterView {
 
 			const url = new URL(this.feedUrl);
 
-			this.newFeed = await fetchFeed(url.href);
+			const fetchedFeed = await fetchFeed(url.href);
+			const enhancedFeed = await enhanceFeedWithMetadata(fetchedFeed.feed);
+
+			this.newFeed = enhancedFeed;
 
 			this.hasFeed = await Database.hasFeed(this.feedUrl);
 		} catch (err) {

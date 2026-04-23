@@ -24,7 +24,7 @@ async function getFeedText(url: string, redirectCount = 0) {
 		throw new Error('Too many redirects');
 	}
 
-	const siteHtml = parseHtml(text);
+	const siteHtml = parseHtml(text, url);
 	const parsedFeedUrl = getFeedUrl(siteHtml);
 
 	if (!parsedFeedUrl) {
@@ -34,8 +34,8 @@ async function getFeedText(url: string, redirectCount = 0) {
 	return getFeedText(parsedFeedUrl, redirectCount + 1);
 }
 
-async function fetchFeedFromXhtml(xhtmlText: string) {
-	const siteHtml = parseXhtml(xhtmlText);
+async function fetchFeedFromXhtml(xhtmlText: string, baseUrl: string) {
+	const siteHtml = parseXhtml(xhtmlText, baseUrl);
 	const feedUrl = getFeedUrl(siteHtml);
 
 	if (!feedUrl) {
@@ -63,7 +63,7 @@ export async function fetchFeed(url: string) {
 		feedResult = parseFeed(xml, url);
 	} catch (err) {
 		if (err instanceof TypeError) {
-			feedResult = await fetchFeedFromXhtml(feedText);
+			feedResult = await fetchFeedFromXhtml(feedText, url);
 		}
 
 		throw err;

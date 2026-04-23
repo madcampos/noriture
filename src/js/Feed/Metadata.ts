@@ -225,8 +225,8 @@ async function parseIcons(htmlDocument: Document, manifest: WebManifest | undefi
 			: lastMimeType;
 		const typeDifference = aTypeIndex - bTypeIndex;
 
-		const widthDifference = first.width - second.width;
-		const heightDifference = first.height - second.height;
+		const widthDifference = second.width - first.width;
+		const heightDifference = second.height - first.height;
 
 		return typeDifference || widthDifference || heightDifference;
 	});
@@ -314,9 +314,9 @@ export async function parseMetadata(siteUrl: string) {
 	let parsedDocument: Document;
 
 	if (canParseXml(text)) {
-		parsedDocument = parseXhtml(text);
+		parsedDocument = parseXhtml(text, siteUrl);
 	} else {
-		parsedDocument = parseHtml(text);
+		parsedDocument = parseHtml(text, siteUrl);
 	}
 
 	const manifest = await getApplicationManifest(parsedDocument, siteUrl);

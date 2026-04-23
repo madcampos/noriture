@@ -1,5 +1,5 @@
 import { CategoryMap } from '../utils/mime-types.ts';
-import { canParseXml, cleanCData, parseDate, parseHtml, parseUrl, parseXhtml } from '../utils/parsing.ts';
+import { cleanCData, parseContentHtml, parseDate, parseText, parseUrl } from '../utils/parsing.ts';
 import type { FeedId } from './Feed.ts';
 
 const MEDIA_TYPES = ['image', 'text', 'audio', 'video', 'document', 'executable', 'unknown'] as const;
@@ -37,22 +37,23 @@ export interface FeedItem {
 }
 
 function parseItemId(item: Element) {
-	const rssGuid = item.querySelector('guid')?.textContent;
-	const rssLink = item.querySelector('link:not([href])')?.textContent;
-	const atomId = item.querySelector('id')?.textContent;
-	const atomLink = item.querySelector('link[href]:is([rel="self"], :not([rel]))')?.href;
+	const rssGuid = item.querySelector('guid')?.textContent.trim();
+	const rssLink = item.querySelector('link:not([href])')?.textContent.trim();
+	const atomId = item.querySelector('id')?.textContent.trim();
+	const atomLink = item.querySelector('link[href]:is([rel="self"], :not([rel]))')?.href.trim();
 
-	const itemId = rssGuid ?? rssLink ?? atomId ?? atomLink ?? crypto.randomUUID();
+	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
+	const itemId = rssGuid || rssLink || atomId || atomLink || crypto.randomUUID();
 
 	// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 	return itemId as FeedItemId;
 }
 
 function parseItemUrl(item: Element) {
-	const rssLink = item.querySelector('link:not([href])')?.textContent;
-	const rssGuid = item.querySelector('guid:not([isPermaLink="false"])')?.textContent;
-	const atomLink = item.querySelector('link[href]:is([rel="self"], :not([rel]))')?.href;
-	const atomId = item.querySelector('id')?.textContent;
+	const rssLink = item.querySelector('link:not([href])')?.textContent.trim();
+	const rssGuid = item.querySelector('guid:not([isPermaLink="false"])')?.textContent.trim();
+	const atomLink = item.querySelector('link[href]:is([rel="self"], :not([rel]))')?.href.trim();
+	const atomId = item.querySelector('id')?.textContent.trim();
 
 	return parseUrl(rssLink, rssGuid, atomLink, atomId);
 }
@@ -60,9 +61,10 @@ function parseItemUrl(item: Element) {
 function parseTitle(item: Element) {
 	const title = item.querySelector('title')?.textContent;
 
-	return cleanCData(title ?? '');
+	return cleanCData(title);
 }
 
+// TODO: review
 function parseAuthor(item: Element) {
 	const rssAuthor = item.querySelector('author:not(:has(> *))')?.textContent;
 
@@ -93,6 +95,7 @@ function parseTypeFromMime(mimeType?: string) {
 	return typeFromMime;
 }
 
+// TODO: review
 function parseMediaItem(mediaItem: Element, item: Element) {
 	const url = mediaItem.getAttribute('url') ?? item.querySelector('player')?.getAttribute('url') ?? undefined;
 	const parsedUrl = parseUrl(url);
@@ -116,6 +119,7 @@ function parseMediaItem(mediaItem: Element, item: Element) {
 	} satisfies FeedMedia;
 }
 
+// TODO: review
 function parseEnclosure(item?: Element | null) {
 	if (!item) {
 		return;
@@ -139,6 +143,7 @@ function parseEnclosure(item?: Element | null) {
 	} satisfies FeedMedia;
 }
 
+// TODO: review
 function parseMediaContent(item: Element) {
 	const mediaItems = [
 		...[...item.getElementsByTagName('media:content')].map((mediaItem) => parseMediaItem(mediaItem, item)),
@@ -162,19 +167,15 @@ function parseContentThumbnail(content?: string) {
 		return;
 	}
 
-	let parsedContent: Document;
-
-	if (canParseXml(content)) {
-		parsedContent = parseXhtml(content);
-	} else {
-		parsedContent = parseHtml(content);
-	}
-
-	const parsedThumbnail = parsedContent.querySelector('img')?.getAttribute('src');
+	// TODO: add baseurl?
+	const parsedContent = parseContentHtml(content);
+	// TODO: also query for picture
+	const parsedThumbnail = parsedContent?.querySelector('img')?.getAttribute('src');
 
 	return parseUrl(parsedThumbnail)?.href;
 }
 
+// TODO: review
 function parsePublishedDate(item: Element) {
 	const rssPublishDate = item.querySelector('pubDate')?.textContent;
 	const atomPublishDate = item.querySelector('published')?.textContent;
@@ -182,6 +183,7 @@ function parsePublishedDate(item: Element) {
 	return parseDate(rssPublishDate ?? atomPublishDate);
 }
 
+// TODO: review
 function parseUpdatedDate(item: Element) {
 	const atomUpdatedDate = item.querySelector('updated')?.textContent;
 
@@ -193,14 +195,15 @@ function parseCategories(item: Element) {
 	const rssCategories = [...item.querySelectorAll('category:has(> *)')].map((category) => {
 		const categoryText = category.textContent;
 
-		return cleanCData(categoryText) ?? '';
+		return parseText(cleanCData(categoryText)) ?? '';
 	});
 
 	const atomCategories = [...item.querySelectorAll('category:empty')].map((category) => {
-		const categoryLabel = category.getAttribute('label');
-		const categoryTerm = category.getAttribute('term');
+		const categoryLabel = category.getAttribute('label')?.trim();
+		const categoryTerm = category.getAttribute('term')?.trim();
 
-		return categoryLabel ?? categoryTerm ?? '';
+		// oxlint-disable-next-line typescript/prefer-nullish-coalescing
+		return categoryLabel || categoryTerm || '';
 	});
 
 	const combinedCategories = [...rssCategories, ...atomCategories].filter((category) => category);
@@ -210,23 +213,31 @@ function parseCategories(item: Element) {
 
 function parseSummary(item: Element) {
 	// INFO: this also queries `media:description` elements
-	const rssSummary = item.querySelector('description')?.textContent;
-	const atomSummary = item.querySelector('summary')?.textContent;
+	const rssSummary = item.querySelector('description')?.textContent.trim();
+	const atomSummary = item.querySelector('summary')?.textContent.trim();
 
-	return cleanCData(rssSummary ?? atomSummary ?? '');
+	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
+	return cleanCData(rssSummary || atomSummary);
 }
 
 function parseContents(item: Element) {
 	const atomExternalContent = item.querySelector('content[src]')?.getAttribute('src');
 
 	if (atomExternalContent) {
-		return parseUrl(atomExternalContent)?.href;
+		const externalUrl = parseUrl(atomExternalContent)?.href;
+
+		if (!externalUrl) {
+			return;
+		}
+
+		return `<a href="${externalUrl}">${externalUrl}</a>`;
 	}
 
-	const atomInlineContent = item.querySelector('content:is([type="text"], [type="html"], [type="xhtml"])')?.textContent;
-	const encodedContent = item.querySelector('encoded')?.textContent;
+	const atomInlineContent = item.querySelector('content:is([type="text"], [type="html"], [type="xhtml"])')?.textContent.trim();
+	const encodedContent = item.querySelector('encoded')?.textContent.trim();
 
-	return cleanCData(atomInlineContent ?? encodedContent ?? '');
+	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
+	return cleanCData(atomInlineContent || encodedContent);
 }
 
 export function parseFeedItems(feed: Document, feedId: FeedId) {

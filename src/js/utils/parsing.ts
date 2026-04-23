@@ -21,6 +21,23 @@ export const htmlSanitizer = new Sanitizer({
 
 htmlSanitizer.removeUnsafe();
 
+// TODO: does this need a base url as well?
+export function parseContentHtml(unsafeString?: string) {
+	if (!unsafeString) {
+		return;
+	}
+
+	const template = document.createElement('template');
+
+	template.setHTML(unsafeString, { sanitizer: htmlSanitizer });
+
+	return template.content;
+}
+
+export function parseText(unsafeString?: string) {
+	return parseContentHtml(unsafeString)?.textContent;
+}
+
 export function cleanCData(text?: string) {
 	return text
 		?.trim()
@@ -59,23 +76,31 @@ export function parseXml(text: string) {
 	return xml as XMLDocument;
 }
 
-export function parseHtml(text: string) {
+export function parseHtml(text: string, baseUrl: string) {
 	if (!text.trim()) {
 		throw new RangeError('Empty HTML text');
 	}
 
 	const html = new DOMParser().parseFromString(text, 'text/html');
 
+	if (!html.querySelector('base')) {
+		html.head.insertAdjacentHTML('afterbegin', `<base href="${baseUrl}" />`);
+	}
+
 	// oxlint-disable-next-line typescript/consistent-type-assertions
 	return html as HTMLDocument;
 }
 
-export function parseXhtml(text: string) {
+export function parseXhtml(text: string, baseUrl: string) {
 	if (!text.trim()) {
 		throw new RangeError('Empty HTML text');
 	}
 
 	const xhtml = new DOMParser().parseFromString(text, 'application/xhtml+xml');
+
+	if (!xhtml.querySelector('base')) {
+		xhtml.head.insertAdjacentHTML('afterbegin', `<base href="${baseUrl}" />`);
+	}
 
 	// oxlint-disable-next-line typescript/consistent-type-assertions
 	return xhtml as XMLDocument;

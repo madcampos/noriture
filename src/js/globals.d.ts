@@ -17,3 +17,7 @@ interface ImportMeta {
 
 declare const __brand: unique symbol;
 type Brand<T, TBrand extends string> = T & { readonly [__brand]: TBrand };
+
+interface Element {
+	setHTML(input: string, options?: { sanitizer?: Sanitizer | SanitizerConfig }): void;
+}
