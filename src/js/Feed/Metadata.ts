@@ -1,3 +1,5 @@
+import { checkImageExists, fetchProxied } from '../utils/fetch.ts';
+import { ExtensionMap } from '../utils/mime-types.ts';
 import { canParseXml, parseHtml, parseUrl, parseUrlWithBase, parseXhtml, parseXml } from '../utils/parsing.ts';
 import type { WebManifest } from './web-app-manifest';
 
@@ -8,19 +10,8 @@ interface MetadataIcon {
 	height: number;
 }
 
-const EXTENSION_MIME_MAP = {
-	'.svg': 'image/svg+xml',
-	'.png': 'image/png',
-	'.jpg': 'image/jpeg',
-	'.jpeg': 'image/jpeg',
-	'.ico': 'image/x-icon',
-	'.webp': 'image/webp',
-	'.avif': 'image/avif',
-	'.gif': 'image/gif'
-};
-
 function getMimeTypeFromExtension(url: string) {
-	return Object.entries(EXTENSION_MIME_MAP).find(([extension]) => url.endsWith(extension))?.[1] ?? 'image/*';
+	return Object.entries(ExtensionMap).find(([extension]) => url.endsWith(extension))?.[1] ?? 'image/*';
 }
 
 function getLargestIconSize(sizes?: string) {
@@ -47,25 +38,19 @@ function getLargestIconSize(sizes?: string) {
 async function getApplicationManifest(htmlDocument: Document, baseUrl: string) {
 	const manifestPath = htmlDocument.querySelector('link[rel="manifest"]')?.getAttribute('href');
 
-	const manifestUrl = new URL(manifestPath ?? '/app.webmanifest', baseUrl).href;
-	let response = await fetch(`/proxy?url=${encodeURIComponent(manifestUrl)}`, {
-		method: 'GET',
-		credentials: 'omit',
-		redirect: 'follow'
-	});
+	let response: Response | undefined = undefined;
 
-	if (!response.ok) {
-		const fallbackUrl = new URL(manifestPath ?? '/manifest.json', baseUrl).href;
+	try {
+		const manifestUrl = new URL(manifestPath ?? '/app.webmanifest', baseUrl).href;
+		response = await fetchProxied(manifestUrl);
+	} catch {
+		try {
+			const fallbackUrl = new URL(manifestPath ?? '/manifest.json', baseUrl).href;
 
-		response = await fetch(`/proxy?url=${encodeURIComponent(fallbackUrl)}`, {
-			method: 'GET',
-			credentials: 'omit',
-			redirect: 'follow'
-		});
-	}
-
-	if (!response.ok) {
-		return undefined;
+			response = await fetchProxied(fallbackUrl);
+		} catch {
+			return undefined;
+		}
 	}
 
 	return response.json<WebManifest>();
@@ -95,24 +80,18 @@ async function getMsApplicationConfig(htmlDocument: Document, baseUrl: string) {
 	const msConfigElement = htmlDocument.querySelector('meta[name="msapplication-config"]');
 	const configPath = msConfigElement?.getAttribute('content');
 
-	const url = new URL(configPath ?? '/browserconfig.xml', baseUrl).href;
-	let response = await fetch(`/proxy?url=${encodeURIComponent(url)}`, {
-		method: 'GET',
-		credentials: 'omit',
-		redirect: 'follow'
-	});
+	let response: Response | undefined;
 
-	if (!response.ok) {
-		const fallbackUrl = new URL('/ieconfig.xml', baseUrl).href;
-		response = await fetch(`/proxy?url=${encodeURIComponent(fallbackUrl)}`, {
-			method: 'GET',
-			credentials: 'omit',
-			redirect: 'follow'
-		});
-	}
-
-	if (!response.ok) {
-		return undefined;
+	try {
+		const url = new URL(configPath ?? '/browserconfig.xml', baseUrl).href;
+		response = await fetchProxied(url);
+	} catch {
+		try {
+			const fallbackUrl = new URL('/ieconfig.xml', baseUrl).href;
+			response = await fetchProxied(fallbackUrl);
+		} catch {
+			return undefined;
+		}
 	}
 
 	const text = await response.text();
@@ -186,10 +165,16 @@ function parseFavicon(htmlDocument: Document, baseUrl: string) {
 	const { width, height } = getLargestIconSize(favicon?.sizes.value);
 	const href = favicon?.href;
 	const url = parseUrlWithBase(href, baseUrl)?.href ?? '';
+	const typeAttribute = favicon?.getAttribute('type')?.trim();
+	let type = typeAttribute;
+
+	if (typeAttribute === 'icon' || typeAttribute?.match(/image\/.*?icon/iu)) {
+		type = 'image/vnd.microsoft.icon';
+	}
 
 	let icon: MetadataIcon = {
 		url,
-		mimeType: favicon?.getAttribute('type') ?? getMimeTypeFromExtension(url),
+		mimeType: type ?? getMimeTypeFromExtension(url),
 		width,
 		height
 	};
@@ -199,7 +184,7 @@ function parseFavicon(htmlDocument: Document, baseUrl: string) {
 
 		icon = {
 			url: fallbackUrl,
-			mimeType: 'image/x-icon',
+			mimeType: 'image/vnd.microsoft.icon',
 			width: 32,
 			height: 32
 		};
@@ -208,8 +193,9 @@ function parseFavicon(htmlDocument: Document, baseUrl: string) {
 	return icon;
 }
 
-function parseIcons(htmlDocument: Document, manifest: WebManifest | undefined, msconfig: XMLDocument | undefined, baseUrl: string) {
-	// TODO: send HEAD requests to ping the urls (through proxy)
+async function parseIcons(htmlDocument: Document, manifest: WebManifest | undefined, msconfig: XMLDocument | undefined, baseUrl: string) {
+	const MAX_ICONS_TO_CHECK = 10;
+
 	const icons = [
 		...parseManifestIcons(manifest, baseUrl),
 		...parseAppleIcons(htmlDocument, baseUrl),
@@ -222,14 +208,13 @@ function parseIcons(htmlDocument: Document, manifest: WebManifest | undefined, m
 		'image/svg+xml',
 		'image/png',
 		'image/webp',
-		'image/x-icon',
-		'image/vnd.microsoft.icon',
 		'image/avif',
 		'image/jpeg',
-		'image/gif'
+		'image/gif',
+		'image/vnd.microsoft.icon'
 	];
 
-	return icons.sort((first, second) => {
+	const sortedIcons = icons.sort((first, second) => {
 		const lastMimeType = mimeTypePrecedence.length;
 
 		const aTypeIndex = mimeTypePrecedence.includes(first.mimeType)
@@ -244,7 +229,20 @@ function parseIcons(htmlDocument: Document, manifest: WebManifest | undefined, m
 		const heightDifference = first.height - second.height;
 
 		return typeDifference || widthDifference || heightDifference;
-	})[0]?.url;
+	});
+
+	const cappedIcons = sortedIcons.slice(0, MAX_ICONS_TO_CHECK);
+
+	for (const icon of cappedIcons) {
+		// oxlint-disable-next-line no-await-in-loop
+		const doesIconExist = await checkImageExists(icon.url);
+
+		if (doesIconExist) {
+			return icon.url;
+		}
+	}
+
+	return undefined;
 }
 
 function parseTitle(htmlDocument: Document) {
@@ -269,7 +267,7 @@ function parseDescription(htmlDocument: Document) {
 	return metaDescription ?? openGraphDescription ?? twitterDescription ?? itempropDescription;
 }
 
-function parseImage(htmlDocument: Document) {
+async function parseImage(htmlDocument: Document) {
 	const openGraphImage = htmlDocument.querySelector('meta[property="og:image]')?.getAttribute('content');
 	const openGraphImageAlt = htmlDocument.querySelector('meta[property="og:image:alt]')?.getAttribute('content');
 	const twitterImage = htmlDocument.querySelector('meta[property="twitter:image]')?.getAttribute('content');
@@ -279,8 +277,20 @@ function parseImage(htmlDocument: Document) {
 	const itempropImage = itempropElement?.getAttribute('content') ?? itempropElement?.getAttribute('src') ?? itempropElement?.getAttribute('href');
 	const itempropAlt = itempropElement?.getAttribute('alt');
 
+	const url = parseUrl(openGraphImage, twitterImage, itempropImage)?.href;
+
+	if (!url) {
+		return undefined;
+	}
+
+	const doesImageExist = await checkImageExists(url);
+
+	if (!doesImageExist) {
+		return undefined;
+	}
+
 	return {
-		url: parseUrl(openGraphImage, twitterImage, itempropImage)?.href,
+		url,
 		altText: openGraphImageAlt ?? twitterImageAlt ?? itempropAlt ?? undefined
 	};
 }
@@ -298,16 +308,7 @@ function parseThemeColor(htmlDocument: Document, manifest: WebManifest | undefin
 }
 
 export async function parseMetadata(siteUrl: string) {
-	const response = await fetch(`/proxy?url=${encodeURIComponent(siteUrl)}`, {
-		method: 'GET',
-		credentials: 'omit',
-		redirect: 'follow'
-	});
-
-	if (!response.ok) {
-		throw new Error(`Could not fetch feed: ${response.status} ${await response.text()}`);
-	}
-
+	const response = await fetchProxied(siteUrl);
 	const text = await response.text();
 
 	let parsedDocument: Document;
@@ -325,7 +326,7 @@ export async function parseMetadata(siteUrl: string) {
 		themeColor: parseThemeColor(parsedDocument, manifest, msconfig),
 		title: parseTitle(parsedDocument),
 		description: parseDescription(parsedDocument),
-		image: parseImage(parsedDocument),
-		icon: parseIcons(parsedDocument, manifest, msconfig, siteUrl)
+		image: await parseImage(parsedDocument),
+		icon: await parseIcons(parsedDocument, manifest, msconfig, siteUrl)
 	};
 }
