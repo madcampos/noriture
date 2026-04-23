@@ -1,6 +1,29 @@
-export function cleanCData(text: string) {
+export const htmlSanitizer = new Sanitizer({
+	removeElements: [
+		'base',
+		'dialog',
+		'embed',
+		'fencedframe',
+		'form',
+		'head',
+		'iframe',
+		'link',
+		'meta',
+		'object',
+		'script',
+		'style',
+		'template',
+		'use'
+	],
+	replaceWithChildrenElements: ['body'],
+	removeAttributes: ['style', 'autoplay', 'class', 'contenteditable']
+});
+
+htmlSanitizer.removeUnsafe();
+
+export function cleanCData(text?: string) {
 	return text
-		.trim()
+		?.trim()
 		.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1')
 		.trim();
 }
