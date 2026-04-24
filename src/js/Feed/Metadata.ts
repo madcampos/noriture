@@ -194,8 +194,6 @@ function parseFavicon(htmlDocument: Document, baseUrl: string) {
 }
 
 async function parseIcons(htmlDocument: Document, manifest: WebManifest | undefined, msconfig: XMLDocument | undefined, baseUrl: string) {
-	const MAX_ICONS_TO_CHECK = 10;
-
 	const icons = [
 		...parseManifestIcons(manifest, baseUrl),
 		...parseAppleIcons(htmlDocument, baseUrl),
@@ -214,7 +212,22 @@ async function parseIcons(htmlDocument: Document, manifest: WebManifest | undefi
 		'image/vnd.microsoft.icon'
 	];
 
-	const sortedIcons = icons.sort((first, second) => {
+	const fetchedIcons = await Promise.allSettled(icons.map(async (icon) => {
+		const doesIconExist = await checkImageExists(icon.url);
+
+		if (doesIconExist) {
+			return icon;
+		}
+
+		return undefined;
+	}));
+
+	const filteredIcons = fetchedIcons
+		.filter((result) => result.status === 'fulfilled')
+		.map((result) => result.value)
+		.filter((value) => value !== undefined);
+
+	const sortedIcons = filteredIcons.sort((first, second) => {
 		const lastMimeType = mimeTypePrecedence.length;
 
 		const aTypeIndex = mimeTypePrecedence.includes(first.mimeType)
@@ -231,18 +244,7 @@ async function parseIcons(htmlDocument: Document, manifest: WebManifest | undefi
 		return typeDifference || widthDifference || heightDifference;
 	});
 
-	const cappedIcons = sortedIcons.slice(0, MAX_ICONS_TO_CHECK);
-
-	for (const icon of cappedIcons) {
-		// oxlint-disable-next-line no-await-in-loop
-		const doesIconExist = await checkImageExists(icon.url);
-
-		if (doesIconExist) {
-			return icon.url;
-		}
-	}
-
-	return undefined;
+	return sortedIcons[0]?.url;
 }
 
 function parseTitle(htmlDocument: Document) {
@@ -319,14 +321,20 @@ export async function parseMetadata(siteUrl: string) {
 		parsedDocument = parseHtml(text, siteUrl);
 	}
 
-	const manifest = await getApplicationManifest(parsedDocument, siteUrl);
-	const msconfig = await getMsApplicationConfig(parsedDocument, siteUrl);
+	const [manifestResult, msconfigResult, imageResult] = await Promise.allSettled([
+		getApplicationManifest(parsedDocument, siteUrl),
+		getMsApplicationConfig(parsedDocument, siteUrl),
+		parseImage(parsedDocument)
+	]);
+	const manifest = manifestResult.status === 'fulfilled' ? manifestResult.value : undefined;
+	const msconfig = msconfigResult.status === 'fulfilled' ? msconfigResult.value : undefined;
+	const image = imageResult.status === 'fulfilled' ? imageResult.value : undefined;
 
 	return {
 		themeColor: parseThemeColor(parsedDocument, manifest, msconfig),
 		title: parseTitle(parsedDocument),
 		description: parseDescription(parsedDocument),
-		image: await parseImage(parsedDocument),
+		image,
 		icon: await parseIcons(parsedDocument, manifest, msconfig, siteUrl)
 	};
 }
