@@ -1,25 +1,18 @@
-export const htmlSanitizer = new Sanitizer({
-	removeElements: [
-		'base',
-		'dialog',
-		'embed',
-		'fencedframe',
-		'form',
-		'head',
-		'iframe',
-		'link',
-		'meta',
-		'object',
-		'script',
-		'style',
-		'template',
-		'use'
-	],
+export const maliciousSanitizer = new Sanitizer({
+	removeElements: ['base', 'dialog', 'embed', 'fencedframe', 'form', 'head', 'iframe', 'link', 'meta', 'object', 'script', 'style', 'template', 'use'],
 	replaceWithChildrenElements: ['body'],
 	removeAttributes: ['style', 'autoplay', 'class', 'contenteditable']
 });
 
-htmlSanitizer.removeUnsafe();
+maliciousSanitizer.removeUnsafe();
+
+export const inlineSanitizer = new Sanitizer({
+	elements: ['i', 'em', 'b', 'strong', 'u', 'ins', 's', 'del', 'code', 'kbd', 'var', 'a', 'mark'],
+	replaceWithChildrenElements: ['p'],
+	removeAttributes: ['style', 'class', 'contenteditable']
+});
+
+inlineSanitizer.removeUnsafe();
 
 // TODO: does this need a base url as well?
 export function parseContentHtml(unsafeString?: string) {
@@ -29,9 +22,21 @@ export function parseContentHtml(unsafeString?: string) {
 
 	const template = document.createElement('template');
 
-	template.setHTML(unsafeString, { sanitizer: htmlSanitizer });
+	template.setHTML(unsafeString, { sanitizer: maliciousSanitizer });
 
 	return template.content;
+}
+
+export function parseInlineHtml(unsafeString?: string) {
+	if (!unsafeString) {
+		return;
+	}
+
+	const template = document.createElement('template');
+
+	template.setHTML(unsafeString, { sanitizer: inlineSanitizer });
+
+	return template.innerHTML;
 }
 
 export function parseText(unsafeString?: string) {

@@ -1,4 +1,4 @@
-import { cleanCData, parseDate, parseText, parseUrl } from '../utils/parsing.ts';
+import { cleanCData, parseDate, parseInlineHtml, parseText, parseUrl } from '../utils/parsing.ts';
 import { parseFeedItems } from './FeedItem.ts';
 
 export type FeedType = 'atom' | 'rss' | 'youtube' | 'podcast';
@@ -22,7 +22,7 @@ export interface Feed {
 	updatedAt: FeedLastUpdated;
 }
 
-function parseFeedType(feed: Document): FeedType {
+export function parseFeedType(feed: Document): FeedType {
 	if (feed.lookupNamespaceURI('yt')) {
 		return 'youtube';
 	}
@@ -33,35 +33,34 @@ function parseFeedType(feed: Document): FeedType {
 		}
 	}
 
-	const type = feed.querySelector('channel') ? 'rss' : 'atom';
+	const type = feed.querySelector('feed') ? 'atom' : 'rss';
 
 	return type;
 }
 
-function parseName(feed: Document) {
+export function parseName(feed: Document) {
 	const rssTitle = feed.querySelector('channel > title')?.textContent.trim();
 	const atomTitle = feed.querySelector('feed > title')?.textContent.trim();
 
-	return parseText(cleanCData(rssTitle ?? atomTitle));
+	return parseInlineHtml(cleanCData(rssTitle ?? atomTitle));
 }
 
-function parseDescription(feed: Document) {
+export function parseDescription(feed: Document) {
 	const rssDescription = feed.querySelector('channel > description')?.textContent.trim();
 	const atomDescription = feed.querySelector('feed > subtitle')?.textContent.trim();
 
 	const encodedContent = feed.querySelector('channel > encoded')?.textContent.trim();
 
 	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
-	return parseText(cleanCData(rssDescription || atomDescription || encodedContent));
+	return parseInlineHtml(cleanCData(rssDescription || atomDescription || encodedContent));
 }
 
-function parseSiteUrl(feed: Document) {
+export function parseSiteUrl(feed: Document) {
 	const rssUrl = feed.querySelector('channel > link:not(:empty)')?.textContent.trim();
 	const rssIconUrl = feed.querySelector('channel > image > link')?.textContent.trim();
-	const atomUrl = feed.querySelector('feed > link')?.textContent.trim();
-	const atomId = feed.querySelector('feed > id')?.textContent.trim();
+	const atomUrl = feed.querySelector('feed > link:not([rel="self"])')?.getAttribute('href')?.trim();
 
-	return parseUrl(rssUrl, rssIconUrl, atomUrl, atomId);
+	return parseUrl(rssUrl, rssIconUrl, atomUrl);
 }
 
 function parseLastUpdate(feed: Document): FeedLastUpdated {
@@ -111,13 +110,13 @@ function parseIcon(feed: Document) {
 	return parseUrl(rssImage, atomIcon, atomLogo, itunesImage, podcastImage);
 }
 
-function parseFeedId(feed: Document) {
-	const rssId = feed.querySelector('channel > link:not(:empty)')?.textContent.trim();
-	const atomId = feed.querySelector('feed > id')?.textContent.trim();
-	const atomSelfLink = feed.querySelector('feed > link[rel="self"], feed > link:only-of-type')?.href.trim();
+export function parseFeedId(feed: Document) {
+	const rssId = feed.querySelector('channel > link:not(:empty)')?.textContent;
+	const atomId = feed.querySelector('feed > id')?.textContent;
+	const atomSelfLink = feed.querySelector('feed > link[href][rel="self"], feed > link[href]:only-of-type')?.getAttribute('href');
 
 	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
-	const feedId = rssId || atomId || atomSelfLink || crypto.randomUUID();
+	const feedId = (rssId || atomId || atomSelfLink || crypto.randomUUID()).trim();
 
 	// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 	return feedId as FeedId;
