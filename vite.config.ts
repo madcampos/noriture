@@ -1,4 +1,5 @@
 // oxlint-env node
+
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { readFileSync } from 'fs';
 import { defineConfig, type UserConfig } from 'vite';
