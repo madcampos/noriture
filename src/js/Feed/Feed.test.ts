@@ -397,7 +397,7 @@ describe('Feed Categories', () => {
 		const categories = parseCategories(feedXml);
 
 		assert.equal(categories.length, 1);
-		assert(categories.includes('[FEED CATEGORY]'));
+		assert.include(categories, '[FEED CATEGORY]');
 	});
 
 	test('Atom categories from `labels`', () => {
@@ -410,7 +410,7 @@ describe('Feed Categories', () => {
 		const categories = parseCategories(feedXml);
 
 		assert.equal(categories.length, 1);
-		assert(categories.includes('[FEED CATEGORY]'));
+		assert.include(categories, '[FEED CATEGORY]');
 	});
 
 	test('Atom categories from `terms`', () => {
@@ -423,7 +423,7 @@ describe('Feed Categories', () => {
 		const categories = parseCategories(feedXml);
 
 		assert.equal(categories.length, 1);
-		assert(categories.includes('[FEED CATEGORY]'));
+		assert.include(categories, '[FEED CATEGORY]');
 	});
 
 	test('iTunes categories', () => {
@@ -438,7 +438,7 @@ describe('Feed Categories', () => {
 		const categories = parseCategories(feedXml);
 
 		assert.equal(categories.length, 1);
-		assert(categories.includes('[FEED CATEGORY]'));
+		assert.include(categories, '[FEED CATEGORY]');
 	});
 
 	test('Repeated categories', () => {
@@ -454,7 +454,7 @@ describe('Feed Categories', () => {
 		const categories = parseCategories(feedXml);
 
 		assert.equal(categories.length, 1);
-		assert(categories.includes('[FEED CATEGORY]'));
+		assert.include(categories, '[FEED CATEGORY]');
 	});
 
 	test('Combined categories across formats', () => {
@@ -471,8 +471,8 @@ describe('Feed Categories', () => {
 
 		// oxlint-disable-next-line no-magic-numbers
 		assert.equal(categories.length, 2);
-		assert(categories.includes('[FEED CATEGORY RSS]'));
-		assert(categories.includes('[FEED CATEGORY ITUNES]'));
+		assert.include(categories, '[FEED CATEGORY RSS]');
+		assert.include(categories, '[FEED CATEGORY ITUNES]');
 	});
 
 	test('Categories with HTML and CData', () => {
@@ -487,7 +487,7 @@ describe('Feed Categories', () => {
 		const categories = parseCategories(feedXml);
 
 		assert.equal(categories.length, 1);
-		assert(categories.includes('[FEED CATEGORY]'));
+		assert.include(categories, '[FEED CATEGORY]');
 	});
 
 	test('Empty categories', () => {
