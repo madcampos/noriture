@@ -3,7 +3,20 @@
 import { assert, describe, test } from 'vitest';
 import { parseXml } from '../utils/parsing.ts';
 import { sanitizeContentHtml } from '../utils/sanitizer.ts';
-import { parseAuthor, parseContentThumbnail, parseEnclosure, parseItemId, parseItemUrl, parseMediaContent, parseMediaItem, parseTitle } from './FeedItem.ts';
+import {
+	parseAuthor,
+	parseCategories,
+	parseContentThumbnail,
+	parseEnclosure,
+	parseItemId,
+	parseItemUrl,
+	parseMediaContent,
+	parseMediaItem,
+	parsePublishedDate,
+	parseSummary,
+	parseTitle,
+	parseUpdatedDate
+} from './FeedItem.ts';
 
 describe('Feed Item ID', () => {
 	test('RSS GUID', () => {
@@ -19,7 +32,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert(itemId === '[ITEM ID]');
+		assert.equal(itemId, '[ITEM ID]');
 	});
 
 	test('RSS link', () => {
@@ -35,7 +48,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert(itemId === '[ITEM ID]');
+		assert.equal(itemId, '[ITEM ID]');
 	});
 
 	test('Atom ID', () => {
@@ -49,7 +62,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert(itemId === '[ITEM ID]');
+		assert.equal(itemId, '[ITEM ID]');
 	});
 
 	test('Atom link with `rel=self`', () => {
@@ -63,7 +76,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert(itemId === '[ITEM ID]');
+		assert.equal(itemId, '[ITEM ID]');
 	});
 
 	test('Atom link with no `rel`', () => {
@@ -77,7 +90,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert(itemId === '[ITEM ID]');
+		assert.equal(itemId, '[ITEM ID]');
 	});
 
 	test('Random UUID', () => {
@@ -89,7 +102,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert(itemId !== '[ITEM ID]');
+		assert.notEqual(itemId, '[ITEM ID]');
 		assert(/[0-9a-f-]{36}/.test(itemId));
 	});
 });
@@ -108,7 +121,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert(itemUrl?.href === 'https://example.com/rss-link');
+		assert.equal(itemUrl?.href, 'https://example.com/rss-link');
 	});
 
 	test('RSS GUID', () => {
@@ -124,7 +137,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert(itemUrl?.href === 'https://example.com/rss-guid');
+		assert.equal(itemUrl?.href, 'https://example.com/rss-guid');
 	});
 
 	test('RSS GUID is not permlink', () => {
@@ -156,7 +169,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert(itemUrl?.href === 'https://example.com/rss-guid-perm');
+		assert.equal(itemUrl?.href, 'https://example.com/rss-guid-perm');
 	});
 
 	test('Atom Link', () => {
@@ -170,7 +183,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert(itemUrl?.href === 'https://example.com/atom-link');
+		assert.equal(itemUrl?.href, 'https://example.com/atom-link');
 	});
 
 	test('Atom ID is a URN', () => {
@@ -198,7 +211,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert(itemUrl?.href === 'https://example.com/atom-id-link');
+		assert.equal(itemUrl?.href, 'https://example.com/atom-id-link');
 	});
 
 	test('No link provided', () => {
@@ -228,7 +241,7 @@ describe('Feed Item Title', () => {
 
 		const title = parseTitle(itemXml);
 
-		assert(title === '[FEED ITEM TITLE]');
+		assert.equal(title, '[FEED ITEM TITLE]');
 	});
 
 	test('Title with html', () => {
@@ -244,7 +257,7 @@ describe('Feed Item Title', () => {
 
 		const title = parseTitle(itemXml);
 
-		assert(title === '[FEED ITEM <b>TITLE</b>]');
+		assert.equal(title, '[FEED ITEM <b>TITLE</b>]');
 	});
 
 	test('Missing title', () => {
@@ -258,7 +271,7 @@ describe('Feed Item Title', () => {
 
 		const title = parseTitle(itemXml);
 
-		assert(title === undefined);
+		assert.equal(title, undefined);
 	});
 });
 
@@ -276,8 +289,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert(author.name === 'John Doe');
-		assert(author.email === 'john@example.com');
+		assert.equal(author.name, 'John Doe');
+		assert.equal(author.email, 'john@example.com');
 	});
 
 	test('RSS author with only name', () => {
@@ -292,8 +305,9 @@ describe('Feed Item Author', () => {
 		`).querySelector('item')!;
 
 		const author = parseAuthor(itemXml);
-		assert(author.name === 'John Doe');
-		assert(author.email === undefined);
+
+		assert.equal(author.name, 'John Doe');
+		assert.equal(author.email, undefined);
 	});
 
 	test('RSS author with only email', () => {
@@ -308,8 +322,9 @@ describe('Feed Item Author', () => {
 		`).querySelector('item')!;
 
 		const author = parseAuthor(itemXml);
-		assert(author.name === 'john@example.com');
-		assert(author.email === undefined);
+
+		assert.equal(author.name, 'john@example.com');
+		assert.equal(author.email, undefined);
 	});
 
 	test('Atom author with name and email', () => {
@@ -326,8 +341,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert(author.name === 'John Doe');
-		assert(author.email === 'john@example.com');
+		assert.equal(author.name, 'John Doe');
+		assert.equal(author.email, 'john@example.com');
 	});
 
 	test('Atom author with only name', () => {
@@ -343,8 +358,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert(author.name === 'John Doe');
-		assert(author.email === undefined);
+		assert.equal(author.name, 'John Doe');
+		assert.equal(author.email, undefined);
 	});
 
 	test('Atom author with only email', () => {
@@ -360,8 +375,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert(author.name === 'john@example.com');
-		assert(author.email === 'john@example.com');
+		assert.equal(author.name, 'john@example.com');
+		assert.equal(author.email, 'john@example.com');
 	});
 
 	test('Atom contributor with name and email', () => {
@@ -378,8 +393,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert(author.name === 'Jane Doe');
-		assert(author.email === 'jane@example.com');
+		assert.equal(author.name, 'Jane Doe');
+		assert.equal(author.email, 'jane@example.com');
 	});
 
 	test('Atom contributor with only name', () => {
@@ -395,8 +410,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert(author.name === 'Jane Doe');
-		assert(author.email === undefined);
+		assert.equal(author.name, 'Jane Doe');
+		assert.equal(author.email, undefined);
 	});
 
 	test('Atom contributor with only email', () => {
@@ -412,8 +427,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert(author.name === 'jane@example.com');
-		assert(author.email === 'jane@example.com');
+		assert.equal(author.name, 'jane@example.com');
+		assert.equal(author.email, 'jane@example.com');
 	});
 
 	test('No author', () => {
@@ -425,8 +440,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert(author.name === 'No Author');
-		assert(author.email === undefined);
+		assert.equal(author.name, 'No Author');
+		assert.equal(author.email, undefined);
 	});
 });
 
@@ -798,11 +813,297 @@ describe('Feed Item Content Thumbnail', () => {
 
 		assert(thumbnail === 'https://example.com/image.jpg');
 	});
+});
 
-	test('Srcset thumbnail', () => {
-		const content = sanitizeContentHtml('<p><img srcset="https://example.com/image-1x.jpg 1x, https://example.com/image-2x.jpg 2x" /></p>');
-		const thumbnail = parseContentThumbnail(content);
+describe('Feed Item Published Date', () => {
+	test('RSS published date', () => {
+		const testDate = new Date('2026-04-25T12:00:00.000Z');
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss>
+			<channel>
+				<item>
+					<pubDate>${testDate.toUTCString()}</pubDate>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
 
-		assert(thumbnail === 'https://example.com/image-1x.jpg');
+		const date = parsePublishedDate(itemXml);
+
+		assert(date?.toISOString() === testDate.toISOString());
+	});
+
+	test('Atom published date', () => {
+		const testDate = new Date('2026-04-25T12:00:00.000Z');
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry>
+				<published>${testDate.toISOString()}</published>
+			</entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const date = parsePublishedDate(itemXml);
+
+		assert(date?.toISOString() === testDate.toISOString());
+	});
+
+	test('Missing published date', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry></entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const date = parsePublishedDate(itemXml);
+
+		assert(date === undefined);
+	});
+});
+
+describe('Feed Item Updated Date', () => {
+	test('Atom updated', () => {
+		const testDate = new Date('2026-04-25T12:00:00.000Z');
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry>
+				<updated>${testDate.toISOString()}</updated>
+			</entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const date = parseUpdatedDate(itemXml);
+
+		assert(date?.toISOString() === testDate.toISOString());
+	});
+
+	test('Missing updated date', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry></entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const date = parseUpdatedDate(itemXml);
+
+		assert(date === undefined);
+	});
+});
+
+describe('Feed Item Categories', () => {
+	test('RSS categories', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss>
+			<channel>
+				<item>
+					<category>[ITEM CATEGORY]</category>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
+
+		const categories = parseCategories(itemXml);
+
+		assert(categories.length === 1);
+		assert(categories.includes('[ITEM CATEGORY]'));
+	});
+
+	test('Atom categories from `label`', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry>
+				<category label="[ITEM CATEGORY]" />
+			</entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const categories = parseCategories(itemXml);
+
+		assert(categories.length === 1);
+		assert(categories.includes('[ITEM CATEGORY]'));
+	});
+
+	test('Atom categories from `term`', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry>
+				<category term="[ITEM CATEGORY]" />
+			</entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const categories = parseCategories(itemXml);
+
+		assert(categories.length === 1);
+		assert(categories.includes('[ITEM CATEGORY]'));
+	});
+
+	test('Media categories', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss xmlns:media="http://search.yahoo.com/mrss/">
+			<channel>
+				<item>
+					<media:category>[ITEM CATEGORY]</media:category>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
+
+		const categories = parseCategories(itemXml);
+
+		assert(categories.length === 1);
+		assert(categories.includes('[ITEM CATEGORY]'));
+	});
+
+	test('Repeated categories', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss>
+			<channel>
+				<item>
+					<category>[ITEM CATEGORY]</category>
+					<category>[ITEM CATEGORY]</category>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
+
+		const categories = parseCategories(itemXml);
+
+		assert(categories.length === 1);
+		assert(categories.includes('[ITEM CATEGORY]'));
+	});
+
+	test('Combined categories from different sources', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss xmlns:media="http://search.yahoo.com/mrss/">
+			<channel>
+				<item>
+					<category>[ITEM CATEGORY RSS]</category>
+					<category label="[ITEM CATEGORY ATOM LABEL]" />
+					<category term="[ITEM CATEGORY ATOM TERM]" />
+					<media:category>[ITEM CATEGORY MEDIA]</media:category>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
+
+		const categories = parseCategories(itemXml);
+
+		// oxlint-disable-next-line no-magic-numbers
+		assert(categories.length === 4);
+		assert(categories.includes('[ITEM CATEGORY RSS]'));
+		assert(categories.includes('[ITEM CATEGORY ATOM LABEL]'));
+		assert(categories.includes('[ITEM CATEGORY ATOM TERM]'));
+		assert(categories.includes('[ITEM CATEGORY MEDIA]'));
+	});
+
+	test('Categories with HTML and CData', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss>
+			<channel>
+				<item>
+					<category><![CDATA[<b>[ITEM CATEGORY]</b>]]></category>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
+
+		const categories = parseCategories(itemXml);
+
+		assert(categories.length === 1);
+		assert(categories.includes('[ITEM CATEGORY]'));
+	});
+
+	test('Empty categories', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss>
+			<channel>
+				<item>
+					<category></category>
+					<category> </category>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
+
+		const categories = parseCategories(itemXml);
+
+		assert(categories.length === 0);
+	});
+});
+
+describe('Feed Item Summary', () => {
+	test('RSS description', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss>
+			<channel>
+				<item>
+					<description>This is a summary</description>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
+
+		const summary = parseSummary(itemXml);
+
+		assert(summary === 'This is a summary');
+	});
+
+	test('Atom summary', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry>
+				<summary>This is an atom summary</summary>
+			</entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const summary = parseSummary(itemXml);
+
+		assert(summary === 'This is an atom summary');
+	});
+
+	test('Media description', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss xmlns:media="http://search.yahoo.com/mrss/">
+			<channel>
+				<item>
+					<media:description>This is a media description</media:description>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
+
+		const summary = parseSummary(itemXml);
+
+		assert(summary === 'This is a media description');
+	});
+
+	test('Summary with CData and HTML', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss>
+			<channel>
+				<item>
+					<description><![CDATA[This is a <b>summary</b> with HTML]]></description>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
+
+		const summary = parseSummary(itemXml);
+
+		assert(summary === 'This is a <b>summary</b> with HTML');
+	});
+
+	test('Missing summary', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry></entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const summary = parseSummary(itemXml);
+
+		assert(summary === undefined);
 	});
 });

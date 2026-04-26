@@ -175,28 +175,25 @@ export function parseContentThumbnail(content?: Element) {
 
 	const parsedSrc = content.querySelector('img')?.getAttribute('src');
 
-	const parsedSrcset = content.querySelector('img')?.getAttribute('srcset');
-	const srcset = parsedSrcset?.split(',').map((srcsetString) => /^\s*(.+)\s+(?:\d\.?\d*(?:x|w))?$/iu.exec(srcsetString.trim())?.[1]) ?? [];
-
-	return parseUrl(...srcset, parsedSrc)?.href;
+	return parseUrl(parsedSrc)?.href;
 }
 
-function parsePublishedDate(item: Element) {
+export function parsePublishedDate(item: Element) {
 	const rssPublishDate = item.querySelector('pubDate')?.textContent;
 	const atomPublishDate = item.querySelector('published')?.textContent;
 
 	return parseDate(rssPublishDate ?? atomPublishDate);
 }
 
-function parseUpdatedDate(item: Element) {
+export function parseUpdatedDate(item: Element) {
 	const atomUpdatedDate = item.querySelector('updated')?.textContent;
 
 	return parseDate(atomUpdatedDate);
 }
 
-function parseCategories(item: Element) {
+export function parseCategories(item: Element) {
 	// INFO: this also queries `media:category` elements
-	const rssCategories = [...item.querySelectorAll('category:has(> *)')].map((category) => {
+	const rssCategories = [...item.querySelectorAll('category:not(:empty)')].map((category) => {
 		const categoryText = category.textContent;
 
 		return sanitizeInlineText(stripCData(categoryText)) ?? '';
@@ -215,13 +212,13 @@ function parseCategories(item: Element) {
 	return [...new Set(combinedCategories)];
 }
 
-function parseSummary(item: Element) {
+export function parseSummary(item: Element) {
 	// INFO: this also queries `media:description` elements
 	const rssSummary = item.querySelector('description')?.textContent.trim();
 	const atomSummary = item.querySelector('summary')?.textContent.trim();
 
 	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
-	return stripCData(rssSummary || atomSummary);
+	return sanitizeInlineHtml(stripCData(rssSummary || atomSummary));
 }
 
 function parseContents(item: Element, baseUrl?: string) {
