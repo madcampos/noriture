@@ -1,5 +1,5 @@
 import { checkImageExists, fetchProxied } from '../utils/fetch.ts';
-import { ExtensionMap } from '../utils/mime-types.ts';
+import { getMimeTypeFromExtension } from '../utils/mime-types.ts';
 import { canParseXml, parseHtml, parseUrl, parseUrlWithBase, parseXhtml, parseXml } from '../utils/parsing.ts';
 import type { WebManifest } from './web-app-manifest';
 
@@ -8,10 +8,6 @@ interface MetadataIcon {
 	mimeType: string;
 	width: number;
 	height: number;
-}
-
-function getMimeTypeFromExtension(url: string) {
-	return Object.entries(ExtensionMap).find(([extension]) => url.endsWith(extension))?.[1] ?? 'image/*';
 }
 
 function getLargestIconSize(sizes?: string) {
@@ -67,7 +63,7 @@ function parseManifestIcons(manifest: WebManifest | undefined, baseUrl: string) 
 
 		return {
 			url,
-			mimeType: type ?? getMimeTypeFromExtension(url),
+			mimeType: type ?? getMimeTypeFromExtension(url) ?? 'image/*',
 			width,
 			height
 		};
@@ -151,7 +147,7 @@ function parseAppleIcons(htmlDocument: Document, baseUrl: string) {
 
 		return {
 			url,
-			mimeType: iconElement.getAttribute('type') ?? getMimeTypeFromExtension(url),
+			mimeType: iconElement.getAttribute('type') ?? getMimeTypeFromExtension(url) ?? 'image/*',
 			width,
 			height
 		};
@@ -174,7 +170,7 @@ function parseFavicon(htmlDocument: Document, baseUrl: string) {
 
 	let icon: MetadataIcon = {
 		url,
-		mimeType: type ?? getMimeTypeFromExtension(url),
+		mimeType: type ?? getMimeTypeFromExtension(url) ?? 'image/*',
 		width,
 		height
 	};

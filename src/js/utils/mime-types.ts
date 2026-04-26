@@ -171,3 +171,17 @@ export const CategoryMap = {
 	...Object.fromEntries(Object.keys(documentMimeTypes).map((mime) => [mime, 'document'] as [DocumentMimeTypes, 'document']))
 	/* oxlint-enable typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion */
 } as const;
+
+export const MEDIA_TYPES = ['image', 'text', 'audio', 'video', 'document', 'executable', 'unknown', 'embedded'] as const;
+
+export type MediaType = typeof MEDIA_TYPES[number];
+
+export function getMediaTypeFromMime(mimeType?: string) {
+	const typeFromMime: MediaType | undefined = CategoryMap[mimeType ?? ''];
+
+	return typeFromMime;
+}
+
+export function getMimeTypeFromExtension(url: string) {
+	return Object.entries(ExtensionMap).find(([extension]) => url.endsWith(extension))?.[1];
+}

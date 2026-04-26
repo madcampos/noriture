@@ -1,6 +1,17 @@
-import { assert, describe, test } from 'vitest';
+// oxlint-disable max-lines
+
+import { afterEach, assert, beforeEach, describe, test, vi } from 'vitest';
 import { parseXml } from '../utils/parsing.ts';
-import { parseDescription, parseFeedId, parseFeedType, parseName, parseSiteUrl } from './Feed.ts';
+import {
+	parseCategories,
+	parseDescription,
+	parseFeedId,
+	parseFeedType,
+	parseIcon,
+	parseLastUpdate,
+	parseName,
+	parseSiteUrl
+} from './Feed.ts';
 
 describe('Feed ID', () => {
 	test('RSS', () => {
@@ -62,6 +73,7 @@ describe('Feed ID', () => {
 		const feedId = parseFeedId(feedXml);
 
 		assert(feedId !== '[FEED ID]');
+		assert(/[0-9a-f-]{36}/.test(feedId));
 	});
 });
 
@@ -253,5 +265,268 @@ describe('Feed Site URL', () => {
 		const siteUrl = parseSiteUrl(feedXml);
 
 		assert(siteUrl === undefined);
+	});
+});
+
+describe('Feed Last updated', () => {
+	beforeEach(() => {
+		vi.useFakeTimers();
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
+	test('RSS lastBuildDate', () => {
+		const testDate = new Date('2026-04-25T12:00:00.000Z');
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<rss>
+				<channel>
+					<lastBuildDate>${testDate.toUTCString()}</lastBuildDate>
+				</channel>
+			</rss>
+		`);
+
+		const updatedAt = parseLastUpdate(feedXml);
+
+		assert(updatedAt instanceof Date);
+		assert(updatedAt.toISOString() === testDate.toISOString());
+	});
+
+	test('RSS pubDate', () => {
+		const testDate = new Date('2026-04-25T12:00:00.000Z');
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<rss>
+				<channel>
+					<pubDate>${testDate.toUTCString()}</pubDate>
+				</channel>
+			</rss>
+		`);
+
+		const updatedAt = parseLastUpdate(feedXml);
+
+		assert(updatedAt instanceof Date);
+		assert(updatedAt.toISOString() === testDate.toISOString());
+	});
+
+	test('Atom updated', () => {
+		const testDate = new Date('2026-04-25T12:00:00.000Z');
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<feed>
+				<updated>${testDate.toISOString()}</updated>
+			</feed>
+		`);
+
+		const updatedAt = parseLastUpdate(feedXml);
+
+		assert(updatedAt instanceof Date);
+		assert(updatedAt.toISOString() === testDate.toISOString());
+	});
+
+	test('Atom published', () => {
+		const testDate = new Date('2026-04-25T12:00:00.000Z');
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<feed>
+				<published>${testDate.toISOString()}</published>
+			</feed>
+		`);
+
+		const updatedAt = parseLastUpdate(feedXml);
+
+		assert(updatedAt instanceof Date);
+		assert(updatedAt.toISOString() === testDate.toISOString());
+	});
+
+	test('Fallback to new Date() if missing', () => {
+		const now = new Date('2026-04-25T12:00:00.000Z');
+		vi.setSystemTime(now);
+
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<feed></feed>
+		`);
+
+		const updatedAt = parseLastUpdate(feedXml);
+
+		assert(updatedAt instanceof Date);
+		assert(updatedAt.toISOString() === now.toISOString());
+	});
+});
+
+describe('Feed Categories', () => {
+	test('RSS categories', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<rss>
+				<channel>
+					<category>[FEED CATEGORY]</category>
+				</channel>
+			</rss>
+		`);
+
+		const categories = parseCategories(feedXml);
+
+		assert.deepEqual(categories, ['[FEED CATEGORY]']);
+	});
+
+	test('Atom categories from `labels`', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<feed>
+				<category label="[FEED CATEGORY]" />
+			</feed>
+		`);
+
+		const categories = parseCategories(feedXml);
+
+		assert.deepEqual(categories, ['[FEED CATEGORY]']);
+	});
+
+	test('Atom categories from `terms`', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<feed>
+				<category term="[FEED CATEGORY]" />
+			</feed>
+		`);
+
+		const categories = parseCategories(feedXml);
+
+		assert.deepEqual(categories, ['[FEED CATEGORY]']);
+	});
+
+	test('iTunes categories', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+				<channel>
+					<itunes:category text="[FEED CATEGORY]" />
+				</channel>
+			</rss>
+		`);
+
+		const categories = parseCategories(feedXml);
+
+		assert.deepEqual(categories, ['[FEED CATEGORY]']);
+	});
+
+	test('Repeated categories', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<rss>
+				<channel>
+					<category>[FEED CATEGORY]</category>
+					<category>[FEED CATEGORY]</category>
+				</channel>
+			</rss>
+		`);
+
+		const categories = parseCategories(feedXml);
+
+		assert.deepEqual(categories, ['[FEED CATEGORY]']);
+	});
+
+	test('Empty categories', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<rss>
+				<channel>
+					<category></category>
+					<category>    </category>
+				</channel>
+			</rss>
+		`);
+
+		const categories = parseCategories(feedXml);
+
+		assert.deepEqual(categories, []);
+	});
+
+	test('Combined categories across formats', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+				<channel>
+					<category>[FEED CATEGORY RSS]</category>
+					<itunes:category text="[FEED CATEGORY ITUNES]" />
+				</channel>
+			</rss>
+		`);
+
+		const categories = parseCategories(feedXml);
+
+		assert.deepEqual(categories, ['[FEED CATEGORY RSS]', '[FEED CATEGORY ITUNES]']);
+	});
+});
+
+describe('Feed Icon', () => {
+	test('RSS image', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<rss>
+				<channel>
+					<image>
+						<url>https://example.com/rss-image.png</url>
+					</image>
+				</channel>
+			</rss>
+		`);
+
+		const icon = parseIcon(feedXml);
+
+		assert(icon?.href === 'https://example.com/rss-image.png');
+	});
+
+	test('Atom icon', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<feed>
+				<icon>https://example.com/atom-icon.png</icon>
+			</feed>
+		`);
+
+		const icon = parseIcon(feedXml);
+
+		assert(icon?.href === 'https://example.com/atom-icon.png');
+	});
+
+	test('Atom logo', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<feed>
+				<logo>https://example.com/atom-logo.png</logo>
+			</feed>
+		`);
+
+		const icon = parseIcon(feedXml);
+
+		assert(icon?.href === 'https://example.com/atom-logo.png');
+	});
+
+	test('iTunes image', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+				<channel>
+					<itunes:image href="https://example.com/itunes-image.png" />
+				</channel>
+			</rss>
+		`);
+
+		const icon = parseIcon(feedXml);
+
+		assert(icon?.href === 'https://example.com/itunes-image.png');
+	});
+
+	test('Podcast image', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<rss xmlns:podcast="https://podcastindex.org/namespace/1.0">
+				<channel>
+					<podcast:image href="https://example.com/podcast-image.png" />
+				</channel>
+			</rss>
+		`);
+
+		const icon = parseIcon(feedXml);
+
+		assert(icon?.href === 'https://example.com/podcast-image.png');
+	});
+
+	test('Missing icon', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+			<feed></feed>
+		`);
+
+		const icon = parseIcon(feedXml);
+
+		assert(icon === undefined);
 	});
 });

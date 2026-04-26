@@ -1,4 +1,5 @@
-import { cleanCData, parseDate, parseInlineHtml, parseText, parseUrl } from '../utils/parsing.ts';
+import { parseDate, parseUrl } from '../utils/parsing.ts';
+import { sanitizeInlineHtml, sanitizeInlineText, stripCData } from '../utils/sanitizer.ts';
 import { parseFeedItems } from './FeedItem.ts';
 
 export type FeedType = 'atom' | 'rss' | 'youtube' | 'podcast';
@@ -42,7 +43,7 @@ export function parseName(feed: Document) {
 	const rssTitle = feed.querySelector('channel > title')?.textContent.trim();
 	const atomTitle = feed.querySelector('feed > title')?.textContent.trim();
 
-	return parseInlineHtml(cleanCData(rssTitle ?? atomTitle));
+	return sanitizeInlineHtml(stripCData(rssTitle ?? atomTitle));
 }
 
 export function parseDescription(feed: Document) {
@@ -52,7 +53,7 @@ export function parseDescription(feed: Document) {
 	const encodedContent = feed.querySelector('channel > encoded')?.textContent.trim();
 
 	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
-	return parseInlineHtml(cleanCData(rssDescription || atomDescription || encodedContent));
+	return sanitizeInlineHtml(stripCData(rssDescription || atomDescription || encodedContent));
 }
 
 export function parseSiteUrl(feed: Document) {
@@ -63,7 +64,7 @@ export function parseSiteUrl(feed: Document) {
 	return parseUrl(rssUrl, rssIconUrl, atomUrl);
 }
 
-function parseLastUpdate(feed: Document): FeedLastUpdated {
+export function parseLastUpdate(feed: Document): FeedLastUpdated {
 	const rssLastUpdate = feed.querySelector('channel > lastBuildDate')?.textContent;
 	const rssPublishDate = feed.querySelector('channel > pubDate')?.textContent;
 
@@ -75,11 +76,11 @@ function parseLastUpdate(feed: Document): FeedLastUpdated {
 	return parseDate(dateToParse) ?? new Date();
 }
 
-function parseCategories(feed: Document) {
+export function parseCategories(feed: Document) {
 	const rssCategories = [...feed.querySelectorAll('channel > category:not(:empty)')].map((category) => {
 		const categoryText = category.textContent.trim();
 
-		return parseText(cleanCData(categoryText)) ?? '';
+		return sanitizeInlineText(stripCData(categoryText)) ?? '';
 	});
 
 	const atomCategories = [...feed.querySelectorAll('feed > category')].map((category) => {
@@ -97,17 +98,16 @@ function parseCategories(feed: Document) {
 	return [...new Set(combinedCategories)];
 }
 
-function parseIcon(feed: Document) {
+export function parseIcon(feed: Document) {
 	const rssImage = feed.querySelector('channel > image > url')?.textContent;
 
 	const atomIcon = feed.querySelector('feed > icon')?.textContent;
 	const atomLogo = feed.querySelector('feed > logo')?.textContent;
 
-	const itunesImage = feed.querySelector('image[url]')?.getAttribute('url');
+	// INFO: this matches both iTunes and Podcast namespaces
+	const itunesOrPodcastImage = feed.querySelector('image[href]')?.getAttribute('href');
 
-	const podcastImage = feed.querySelector('image[href]')?.getAttribute('href');
-
-	return parseUrl(rssImage, atomIcon, atomLogo, itunesImage, podcastImage);
+	return parseUrl(rssImage, atomIcon, atomLogo, itunesOrPodcastImage);
 }
 
 export function parseFeedId(feed: Document) {
@@ -122,7 +122,7 @@ export function parseFeedId(feed: Document) {
 	return feedId as FeedId;
 }
 
-function parseDefaultDisplayType(_feed: Document, feedType: FeedType): FeedDisplayType {
+export function parseDefaultDisplayType(_feed: Document, feedType: FeedType): FeedDisplayType {
 	if (feedType === 'youtube') {
 		return 'video';
 	}
@@ -137,13 +137,14 @@ function parseDefaultDisplayType(_feed: Document, feedType: FeedType): FeedDispl
 export function parseFeed(feedDocument: XMLDocument, url: string) {
 	const feedType = parseFeedType(feedDocument);
 	const feedId = parseFeedId(feedDocument);
+	const siteUrl = parseSiteUrl(feedDocument)?.href;
 
 	const feed: Feed = {
 		id: feedId,
 		type: feedType,
 		title: parseName(feedDocument),
 		description: parseDescription(feedDocument),
-		siteUrl: parseSiteUrl(feedDocument)?.href,
+		siteUrl,
 		feedUrl: url,
 		updatedAt: parseLastUpdate(feedDocument),
 		categories: parseCategories(feedDocument),
@@ -151,7 +152,7 @@ export function parseFeed(feedDocument: XMLDocument, url: string) {
 		displayType: parseDefaultDisplayType(feedDocument, feedType)
 	};
 
-	const feedItems = parseFeedItems(feedDocument, feedId);
+	const feedItems = parseFeedItems(feedDocument, feedId, siteUrl);
 
 	return {
 		feed,

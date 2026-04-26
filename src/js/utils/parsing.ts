@@ -1,55 +1,3 @@
-export const maliciousSanitizer = new Sanitizer({
-	removeElements: ['base', 'dialog', 'embed', 'fencedframe', 'form', 'head', 'iframe', 'link', 'meta', 'object', 'script', 'style', 'template', 'use'],
-	replaceWithChildrenElements: ['body'],
-	removeAttributes: ['style', 'autoplay', 'class', 'contenteditable']
-});
-
-maliciousSanitizer.removeUnsafe();
-
-export const inlineSanitizer = new Sanitizer({
-	elements: ['i', 'em', 'b', 'strong', 'u', 'ins', 's', 'del', 'code', 'kbd', 'var', 'a', 'mark'],
-	replaceWithChildrenElements: ['p'],
-	removeAttributes: ['style', 'class', 'contenteditable']
-});
-
-inlineSanitizer.removeUnsafe();
-
-// TODO: does this need a base url as well?
-export function parseContentHtml(unsafeString?: string) {
-	if (!unsafeString) {
-		return;
-	}
-
-	const template = document.createElement('template');
-
-	template.setHTML(unsafeString, { sanitizer: maliciousSanitizer });
-
-	return template.content;
-}
-
-export function parseInlineHtml(unsafeString?: string) {
-	if (!unsafeString) {
-		return;
-	}
-
-	const template = document.createElement('template');
-
-	template.setHTML(unsafeString, { sanitizer: inlineSanitizer });
-
-	return template.innerHTML;
-}
-
-export function parseText(unsafeString?: string) {
-	return parseContentHtml(unsafeString)?.textContent;
-}
-
-export function cleanCData(text?: string) {
-	return text
-		?.trim()
-		.replace(/^<!\[CDATA\[(.*)\]\]>$/iu, '$1')
-		.trim();
-}
-
 export function canParseXml(text: string) {
 	if (!text.trim()) {
 		return false;
@@ -81,14 +29,14 @@ export function parseXml(text: string) {
 	return xml as XMLDocument;
 }
 
-export function parseHtml(text: string, baseUrl: string) {
+export function parseHtml(text: string, baseUrl?: string) {
 	if (!text.trim()) {
 		throw new RangeError('Empty HTML text');
 	}
 
 	const html = new DOMParser().parseFromString(text, 'text/html');
 
-	if (!html.querySelector('base')) {
+	if (baseUrl && !html.querySelector('base')) {
 		html.head.insertAdjacentHTML('afterbegin', `<base href="${baseUrl}" />`);
 	}
 
