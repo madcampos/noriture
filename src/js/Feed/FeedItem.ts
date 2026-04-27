@@ -221,7 +221,7 @@ export function parseSummary(item: Element) {
 	return sanitizeInlineHtml(stripCData(rssSummary || atomSummary));
 }
 
-function parseContents(item: Element, baseUrl?: string) {
+export function parseContents(item: Element, baseUrl?: string) {
 	const atomExternalContent = item.querySelector('content[src]')?.getAttribute('src');
 
 	if (atomExternalContent) {
@@ -234,7 +234,7 @@ function parseContents(item: Element, baseUrl?: string) {
 		return sanitizeContentHtml(`<a href="${externalUrl}">${externalUrl}</a>`, baseUrl);
 	}
 
-	const atomInlineContent = item.querySelector('content:is([type="text"], [type="html"], [type="xhtml"])')?.textContent.trim();
+	const atomInlineContent = item.querySelector('content:is([type="text"], [type="html"], [type="xhtml"], :not([type]))')?.textContent.trim();
 	const encodedContent = item.querySelector('encoded')?.textContent.trim();
 
 	// oxlint-disable-next-line typescript/prefer-nullish-coalescing

@@ -6,8 +6,10 @@ import { sanitizeContentHtml } from '../utils/sanitizer.ts';
 import {
 	parseAuthor,
 	parseCategories,
+	parseContents,
 	parseContentThumbnail,
 	parseEnclosure,
+	parseFeedItems,
 	parseItemId,
 	parseItemUrl,
 	parseMediaContent,
@@ -1105,5 +1107,198 @@ describe('Feed Item Summary', () => {
 		const summary = parseSummary(itemXml);
 
 		assert.equal(summary, undefined);
+	});
+});
+
+describe('Feed Item Content', () => {
+	test('Atom external content', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry>
+				<content src="https://example.com/external-content" />
+			</entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const content = parseContents(itemXml);
+
+		assert.equal(content?.innerHTML, '<a href="https://example.com/external-content">https://example.com/external-content</a>');
+	});
+
+	test('Atom inline content: HTML', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry>
+				<content type="html"><![CDATA[<p>Inline content</p>]]></content>
+			</entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const content = parseContents(itemXml);
+
+		assert.equal(content?.innerHTML, '<p>Inline content</p>');
+	});
+
+	test('Atom inline content: XHTML', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry>
+				<content type="xhtml"><![CDATA[<p>Inline content</p>]]></content>
+			</entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const content = parseContents(itemXml);
+
+		assert.equal(content?.innerHTML, '<p>Inline content</p>');
+	});
+
+	test('Atom inline content: Text', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry>
+				<content type="text"><![CDATA[Inline content]]></content>
+			</entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const content = parseContents(itemXml);
+
+		assert.equal(content?.innerHTML, 'Inline content');
+	});
+
+	test('Atom inline content: No type', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry>
+				<content><![CDATA[<p>Inline content</p>]]></content>
+			</entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const content = parseContents(itemXml);
+
+		assert.equal(content?.innerHTML, '<p>Inline content</p>');
+	});
+
+	test('Encoded content', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss xmlns:content="http://purl.org/rss/1.0/modules/content/">
+			<channel>
+				<item>
+					<content:encoded><![CDATA[<p>Encoded content</p>]]></content:encoded>
+				</item>
+			</channel>
+		</rss>
+		`).querySelector('item')!;
+
+		const content = parseContents(itemXml);
+
+		assert.equal(content?.innerHTML, '<p>Encoded content</p>');
+	});
+
+	test('No content', () => {
+		const itemXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<entry></entry>
+		</feed>
+		`).querySelector('entry')!;
+
+		const content = parseContents(itemXml);
+
+		assert.equal(content, undefined);
+	});
+});
+
+describe('Feed Item', () => {
+	// oxlint-disable-next-line complexity
+	test('Full Atom Item', () => {
+		const doc = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+			<entry>
+				<id>tag:example.com,2026:item</id>
+				<title>Item &lt;b&gt;Title&lt;/b&gt;</title>
+				<link href="https://example.com/item" />
+				<author>
+					<name>Author Name</name>
+					<email>author@example.com</email>
+				</author>
+				<published>2026-04-25T12:00:00Z</published>
+				<updated>2026-04-25T12:00:00Z</updated>
+				<summary>Item summary description</summary>
+				<content type="html">&lt;p&gt;Full body content with an &lt;img src="https://example.com/content-image.jpg" /&gt;&lt;/p&gt;</content>
+				<category term="TEST" />
+				<media:content url="https://example.com/media.mp4" medium="video" />
+				<media:thumbnail url="https://example.com/poster.jpg" />
+			</entry>
+		</feed>
+		`);
+
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+		const feedId = 'test-feed' as Brand<string, 'feedId'>;
+		const items = parseFeedItems(doc, feedId);
+
+		assert.equal(items.length, 1);
+		assert.equal(items[0]?.id, 'tag:example.com,2026:item');
+		assert.equal(items[0]?.feedId, feedId);
+		assert.equal(items[0]?.title, 'Item <b>Title</b>');
+		assert.equal(items[0]?.url, 'https://example.com/item');
+		assert.equal(items[0]?.author.name, 'Author Name');
+		assert.equal(items[0]?.author.email, 'author@example.com');
+		assert.equal(items[0]?.publishedAt?.toISOString(), '2026-04-25T12:00:00.000Z');
+		assert.equal(items[0]?.updatedAt?.toISOString(), '2026-04-25T12:00:00.000Z');
+		assert.equal(items[0]?.summary, 'Item summary description');
+		assert.equal(items[0]?.content, '<p>Full body content with an <img src="https://example.com/content-image.jpg"></p>');
+		assert.equal(items[0]?.image, 'https://example.com/poster.jpg');
+		assert.equal(items[0]?.categories.length, 1);
+		assert.include(items[0]?.categories ?? [], 'TEST');
+		assert.equal(items[0]?.media.length, 1);
+		assert.equal(items[0]?.media[0]?.url, 'https://example.com/media.mp4');
+		assert.equal(items[0]?.media[0]?.type, 'video');
+		assert.equal(items[0]?.media[0]?.mimeType, 'video/mp4');
+	});
+
+	// oxlint-disable-next-line complexity
+	test('Full RSS Item', () => {
+		const doc = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:media="http://search.yahoo.com/mrss/">
+			<channel>
+				<item>
+					<title>Item &lt;b&gt;Title&lt;/b&gt;</title>
+					<link>https://example.com/item</link>
+					<description>RSS description text</description>
+					<content:encoded><![CDATA[<p>Full body content with an <img src="https://example.com/content-image.jpg"></p>]]></content:encoded>
+					<author>author@example.com (Author Name)</author>
+					<category>TEST</category>
+					<pubDate>Sun, 25 Apr 2026 12:00:00 GMT</pubDate>
+					<guid isPermaLink="false">guid-123</guid>
+					<media:content url="https://example.com/media.mp4" type="video/mp4" />
+					<media:thumbnail url="https://example.com/poster.jpg" />
+				</item>
+			</channel>
+		</rss>
+		`);
+
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+		const feedId = 'test-feed' as Brand<string, 'feedId'>;
+		const items = parseFeedItems(doc, feedId);
+
+		assert.equal(items.length, 1);
+		assert.equal(items[0]?.id, 'guid-123');
+		assert.equal(items[0]?.feedId, feedId);
+		assert.equal(items[0]?.title, 'Item <b>Title</b>');
+		assert.equal(items[0]?.url, 'https://example.com/item');
+		assert.equal(items[0]?.author.name, 'Author Name');
+		assert.equal(items[0]?.author.email, 'author@example.com');
+		assert.equal(items[0]?.publishedAt?.toISOString(), '2026-04-25T12:00:00.000Z');
+		assert.equal(items[0]?.summary, 'RSS description text');
+		assert.equal(items[0]?.content, '<p>Full body content with an <img src="https://example.com/content-image.jpg"></p>');
+		assert.equal(items[0]?.image, 'https://example.com/poster.jpg');
+		assert.include(items[0]?.categories ?? [], 'TEST');
+		assert.equal(items[0]?.media.length, 1);
+		assert.equal(items[0]?.media[0]?.url, 'https://example.com/media.mp4');
+		assert.equal(items[0]?.media[0]?.type, 'video');
+		assert.equal(items[0]?.media[0]?.mimeType, 'video/mp4');
+		assert.equal(items[0]?.media[0]?.sizeInBytes, 0);
 	});
 });
