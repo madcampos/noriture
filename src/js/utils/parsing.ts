@@ -52,7 +52,7 @@ export function parseXhtml(text: string, baseUrl: string) {
 	const xhtml = new DOMParser().parseFromString(text, 'application/xhtml+xml');
 
 	if (!xhtml.querySelector('base')) {
-		xhtml.head.insertAdjacentHTML('afterbegin', `<base href="${baseUrl}" />`);
+		xhtml.querySelector('html')?.insertAdjacentHTML('afterbegin', `<base href="${baseUrl}" />`);
 	}
 
 	// oxlint-disable-next-line typescript/consistent-type-assertions

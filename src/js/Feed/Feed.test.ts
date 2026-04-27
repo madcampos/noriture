@@ -1,6 +1,6 @@
-// oxlint-disable max-lines
+/* oxlint-disable max-lines */
 
-import { afterEach, assert, beforeEach, describe, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { parseXml } from '../utils/parsing.ts';
 import {
 	parseCategories,
@@ -26,7 +26,7 @@ describe('Feed ID', () => {
 
 		const feedId = parseFeedId(feedXml);
 
-		assert.equal(feedId, '[FEED ID]');
+		expect(feedId).toBe('[FEED ID]');
 	});
 
 	test('Atom `id`', () => {
@@ -38,7 +38,7 @@ describe('Feed ID', () => {
 
 		const feedId = parseFeedId(feedXml);
 
-		assert.equal(feedId, '[FEED ID]');
+		expect(feedId).toBe('[FEED ID]');
 	});
 
 	test('Atom only `link`', () => {
@@ -50,7 +50,7 @@ describe('Feed ID', () => {
 
 		const feedId = parseFeedId(feedXml);
 
-		assert.equal(feedId, '[FEED ID]');
+		expect(feedId).toBe('[FEED ID]');
 	});
 
 	test('Atom self `link`', () => {
@@ -63,7 +63,7 @@ describe('Feed ID', () => {
 
 		const feedId = parseFeedId(feedXml);
 
-		assert.equal(feedId, '[FEED ID]');
+		expect(feedId).toBe('[FEED ID]');
 	});
 
 	test('Random UUID', () => {
@@ -73,8 +73,8 @@ describe('Feed ID', () => {
 
 		const feedId = parseFeedId(feedXml);
 
-		assert.notEqual(feedId, '[FEED ID]');
-		assert(/[0-9a-f-]{36}/iu.test(feedId));
+		expect(feedId).not.toBe('[FEED ID]');
+		expect(/[0-9a-f-]{36}/iu.test(feedId)).toBe(true);
 	});
 });
 
@@ -85,7 +85,8 @@ describe('Feed Type', () => {
 		`);
 
 		const feedType = parseFeedType(feedXml);
-		assert.equal(feedType, 'youtube');
+
+		expect(feedType).toBe('youtube');
 	});
 
 	test('Podcast: iTunes type', () => {
@@ -94,7 +95,8 @@ describe('Feed Type', () => {
 		`);
 
 		const feedType = parseFeedType(feedXml);
-		assert.equal(feedType, 'podcast');
+
+		expect(feedType).toBe('podcast');
 	});
 
 	test('Podcast: Spotify type', () => {
@@ -103,7 +105,8 @@ describe('Feed Type', () => {
 		`);
 
 		const feedType = parseFeedType(feedXml);
-		assert.equal(feedType, 'podcast');
+
+		expect(feedType).toBe('podcast');
 	});
 
 	test('Podcast: podcast type', () => {
@@ -112,7 +115,8 @@ describe('Feed Type', () => {
 		`);
 
 		const feedType = parseFeedType(feedXml);
-		assert.equal(feedType, 'podcast');
+
+		expect(feedType).toBe('podcast');
 	});
 
 	test('Podcast: Google Play type', () => {
@@ -121,7 +125,8 @@ describe('Feed Type', () => {
 		`);
 
 		const feedType = parseFeedType(feedXml);
-		assert.equal(feedType, 'podcast');
+
+		expect(feedType).toBe('podcast');
 	});
 
 	test('RSS', () => {
@@ -130,7 +135,8 @@ describe('Feed Type', () => {
 		`);
 
 		const feedType = parseFeedType(feedXml);
-		assert.equal(feedType, 'rss');
+
+		expect(feedType).toBe('rss');
 	});
 
 	test('Atom', () => {
@@ -139,7 +145,8 @@ describe('Feed Type', () => {
 		`);
 
 		const feedType = parseFeedType(feedXml);
-		assert.equal(feedType, 'atom');
+
+		expect(feedType).toBe('atom');
 	});
 });
 
@@ -155,7 +162,7 @@ describe('Feed Name', () => {
 
 		const feedTitle = parseName(feedXml);
 
-		assert.equal(feedTitle, '[FEED TITLE]');
+		expect(feedTitle).toBe('[FEED TITLE]');
 	});
 
 	test('Atom Title', () => {
@@ -167,7 +174,7 @@ describe('Feed Name', () => {
 
 		const feedTitle = parseName(feedXml);
 
-		assert.equal(feedTitle, '[FEED TITLE]');
+		expect(feedTitle).toBe('[FEED TITLE]');
 	});
 
 	test('Missing Name', () => {
@@ -177,7 +184,7 @@ describe('Feed Name', () => {
 
 		const feedTitle = parseName(feedXml);
 
-		assert.equal(feedTitle, undefined);
+		expect(feedTitle).toBe(undefined);
 	});
 });
 
@@ -193,7 +200,7 @@ describe('Feed Description', () => {
 
 		const description = parseDescription(feedXml);
 
-		assert.equal(description, '[FEED DESCRIPTION]');
+		expect(description).toBe('[FEED DESCRIPTION]');
 	});
 
 	test('Atom description', () => {
@@ -205,7 +212,7 @@ describe('Feed Description', () => {
 
 		const description = parseDescription(feedXml);
 
-		assert.equal(description, '[FEED DESCRIPTION]');
+		expect(description).toBe('[FEED DESCRIPTION]');
 	});
 
 	test('Description with `content:encoded`', () => {
@@ -219,7 +226,7 @@ describe('Feed Description', () => {
 
 		const description = parseDescription(feedXml);
 
-		assert.equal(description, '[FEED DESCRIPTION]');
+		expect(description).toBe('[FEED DESCRIPTION]');
 	});
 
 	test('Description with HTML', () => {
@@ -233,7 +240,7 @@ describe('Feed Description', () => {
 
 		const description = parseDescription(feedXml);
 
-		assert.equal(description, '<b>[FEED DESCRIPTION]</b>');
+		expect(description).toBe('<b>[FEED DESCRIPTION]</b>');
 	});
 
 	test('Missing Description', () => {
@@ -243,7 +250,7 @@ describe('Feed Description', () => {
 
 		const description = parseDescription(feedXml);
 
-		assert.equal(description, undefined);
+		expect(description).toBe(undefined);
 	});
 });
 
@@ -259,7 +266,7 @@ describe('Feed Site URL', () => {
 
 		const siteUrl = parseSiteUrl(feedXml);
 
-		assert.equal(siteUrl?.href, 'https://example.com/rss');
+		expect(siteUrl?.href).toBe('https://example.com/rss');
 	});
 
 	test('RSS link text contents inside of an image tag', () => {
@@ -275,7 +282,7 @@ describe('Feed Site URL', () => {
 
 		const siteUrl = parseSiteUrl(feedXml);
 
-		assert.equal(siteUrl?.href, 'https://example.com/image-link');
+		expect(siteUrl?.href).toBe('https://example.com/image-link');
 	});
 
 	test('Atom link href attribute', () => {
@@ -287,7 +294,7 @@ describe('Feed Site URL', () => {
 
 		const siteUrl = parseSiteUrl(feedXml);
 
-		assert.equal(siteUrl?.href, 'https://example.com/atom');
+		expect(siteUrl?.href).toBe('https://example.com/atom');
 	});
 
 	test('Missing site url', () => {
@@ -297,7 +304,7 @@ describe('Feed Site URL', () => {
 
 		const siteUrl = parseSiteUrl(feedXml);
 
-		assert.equal(siteUrl, undefined);
+		expect(siteUrl).toBe(undefined);
 	});
 });
 
@@ -322,8 +329,9 @@ describe('Feed Last Updated', () => {
 
 		const updatedAt = parseLastUpdate(feedXml);
 
-		assert(updatedAt instanceof Date);
-		assert.equal(updatedAt.toISOString(), testDate.toISOString());
+		expect(updatedAt instanceof Date).toBeTruthy();
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+		expect((updatedAt as Date).toISOString()).toBe(testDate.toISOString());
 	});
 
 	test('RSS pubDate', () => {
@@ -338,8 +346,9 @@ describe('Feed Last Updated', () => {
 
 		const updatedAt = parseLastUpdate(feedXml);
 
-		assert(updatedAt instanceof Date);
-		assert.equal(updatedAt.toISOString(), testDate.toISOString());
+		expect(updatedAt instanceof Date).toBeTruthy();
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+		expect((updatedAt as Date).toISOString()).toBe(testDate.toISOString());
 	});
 
 	test('Atom updated', () => {
@@ -352,8 +361,9 @@ describe('Feed Last Updated', () => {
 
 		const updatedAt = parseLastUpdate(feedXml);
 
-		assert(updatedAt instanceof Date);
-		assert.equal(updatedAt.toISOString(), testDate.toISOString());
+		expect(updatedAt instanceof Date).toBeTruthy();
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+		expect((updatedAt as Date).toISOString()).toBe(testDate.toISOString());
 	});
 
 	test('Atom published', () => {
@@ -366,8 +376,9 @@ describe('Feed Last Updated', () => {
 
 		const updatedAt = parseLastUpdate(feedXml);
 
-		assert(updatedAt instanceof Date);
-		assert.equal(updatedAt.toISOString(), testDate.toISOString());
+		expect(updatedAt instanceof Date).toBeTruthy();
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+		expect((updatedAt as Date).toISOString()).toBe(testDate.toISOString());
 	});
 
 	test('Fallback to new Date() if missing', () => {
@@ -380,8 +391,9 @@ describe('Feed Last Updated', () => {
 
 		const updatedAt = parseLastUpdate(feedXml);
 
-		assert(updatedAt instanceof Date);
-		assert.equal(updatedAt.toISOString(), now.toISOString());
+		expect(updatedAt instanceof Date).toBeTruthy();
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+		expect((updatedAt as Date).toISOString()).toBe(now.toISOString());
 	});
 });
 
@@ -397,8 +409,8 @@ describe('Feed Categories', () => {
 
 		const categories = parseCategories(feedXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[FEED CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[FEED CATEGORY]');
 	});
 
 	test('Atom categories from `labels`', () => {
@@ -410,8 +422,8 @@ describe('Feed Categories', () => {
 
 		const categories = parseCategories(feedXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[FEED CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[FEED CATEGORY]');
 	});
 
 	test('Atom categories from `terms`', () => {
@@ -423,8 +435,8 @@ describe('Feed Categories', () => {
 
 		const categories = parseCategories(feedXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[FEED CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[FEED CATEGORY]');
 	});
 
 	test('iTunes categories', () => {
@@ -438,8 +450,8 @@ describe('Feed Categories', () => {
 
 		const categories = parseCategories(feedXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[FEED CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[FEED CATEGORY]');
 	});
 
 	test('Repeated categories', () => {
@@ -454,8 +466,8 @@ describe('Feed Categories', () => {
 
 		const categories = parseCategories(feedXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[FEED CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[FEED CATEGORY]');
 	});
 
 	test('Combined categories across formats', () => {
@@ -471,9 +483,9 @@ describe('Feed Categories', () => {
 		const categories = parseCategories(feedXml);
 
 		// oxlint-disable-next-line no-magic-numbers
-		assert.equal(categories.length, 2);
-		assert.include(categories, '[FEED CATEGORY RSS]');
-		assert.include(categories, '[FEED CATEGORY ITUNES]');
+		expect(categories.length).toBe(2);
+		expect(categories).toContain('[FEED CATEGORY RSS]');
+		expect(categories).toContain('[FEED CATEGORY ITUNES]');
 	});
 
 	test('Categories with HTML and CData', () => {
@@ -487,8 +499,8 @@ describe('Feed Categories', () => {
 
 		const categories = parseCategories(feedXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[FEED CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[FEED CATEGORY]');
 	});
 
 	test('Empty categories', () => {
@@ -503,7 +515,7 @@ describe('Feed Categories', () => {
 
 		const categories = parseCategories(feedXml);
 
-		assert.equal(categories.length, 0);
+		expect(categories.length).toBe(0);
 	});
 });
 
@@ -521,7 +533,7 @@ describe('Feed Icon', () => {
 
 		const icon = parseIcon(feedXml);
 
-		assert.equal(icon?.href, 'https://example.com/rss-image.png');
+		expect(icon?.href).toBe('https://example.com/rss-image.png');
 	});
 
 	test('Atom icon', () => {
@@ -533,7 +545,7 @@ describe('Feed Icon', () => {
 
 		const icon = parseIcon(feedXml);
 
-		assert.equal(icon?.href, 'https://example.com/atom-icon.png');
+		expect(icon?.href).toBe('https://example.com/atom-icon.png');
 	});
 
 	test('Atom logo', () => {
@@ -545,7 +557,7 @@ describe('Feed Icon', () => {
 
 		const icon = parseIcon(feedXml);
 
-		assert.equal(icon?.href, 'https://example.com/atom-logo.png');
+		expect(icon?.href).toBe('https://example.com/atom-logo.png');
 	});
 
 	test('iTunes image', () => {
@@ -559,7 +571,7 @@ describe('Feed Icon', () => {
 
 		const icon = parseIcon(feedXml);
 
-		assert.equal(icon?.href, 'https://example.com/itunes-image.png');
+		expect(icon?.href).toBe('https://example.com/itunes-image.png');
 	});
 
 	test('Podcast image', () => {
@@ -573,7 +585,7 @@ describe('Feed Icon', () => {
 
 		const icon = parseIcon(feedXml);
 
-		assert.equal(icon?.href, 'https://example.com/podcast-image.png');
+		expect(icon?.href).toBe('https://example.com/podcast-image.png');
 	});
 
 	test('Missing icon', () => {
@@ -583,7 +595,7 @@ describe('Feed Icon', () => {
 
 		const icon = parseIcon(feedXml);
 
-		assert.equal(icon, undefined);
+		expect(icon).toBe(undefined);
 	});
 });
 
@@ -605,17 +617,19 @@ describe('Feed Comprehensive', () => {
 
 		const { feed } = parseFeed(feedXml, 'https://example.com/feed.atom');
 
-		assert.equal(feed.id, 'tag:example.com,2026:feed');
-		assert.equal(feed.title, 'Feed Title');
-		assert.equal(feed.description, 'Feed Subtitle');
-		assert.equal(feed.siteUrl, 'https://example.com/');
-		assert.equal(feed.feedUrl, 'https://example.com/feed.atom');
-		assert.equal(feed.type, 'atom');
-		assert.equal(feed.displayType, 'list');
-		assert.include(feed.categories, 'TEST');
-		assert.equal(feed.icon, 'https://example.com/icon.png');
-		assert(feed.updatedAt instanceof Date, 'Updated date is not a date');
-		assert.equal(feed.updatedAt.toISOString(), '2026-04-25T12:00:00.000Z');
+		expect(feed.id).toBe('tag:example.com,2026:feed');
+		expect(feed.title).toBe('Feed Title');
+		expect(feed.description).toBe('Feed Subtitle');
+		expect(feed.siteUrl).toBe('https://example.com/');
+		expect(feed.feedUrl).toBe('https://example.com/feed.atom');
+		expect(feed.type).toBe('atom');
+		expect(feed.displayType).toBe('list');
+		expect(feed.categories).toContain('TEST');
+		expect(feed.icon).toBe('https://example.com/icon.png');
+		expect(feed.updatedAt instanceof Date, 'Updated date is not a date').toBeTruthy();
+
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+		expect((feed.updatedAt as Date).toISOString()).toBe('2026-04-25T12:00:00.000Z');
 	});
 
 	test('Full RSS Feed', () => {
@@ -637,16 +651,17 @@ describe('Feed Comprehensive', () => {
 
 		const { feed } = parseFeed(feedXml, 'https://example.com/rss.xml');
 
-		assert.equal(feed.id, 'https://example.com/');
-		assert.equal(feed.title, 'Feed Title');
-		assert.equal(feed.description, 'Feed Description');
-		assert.equal(feed.siteUrl, 'https://example.com/');
-		assert.equal(feed.feedUrl, 'https://example.com/rss.xml');
-		assert.equal(feed.type, 'rss');
-		assert.equal(feed.displayType, 'list');
-		assert.include(feed.categories, 'TEST');
-		assert.equal(feed.icon, 'https://example.com/image.png');
-		assert(feed.updatedAt instanceof Date, 'Updated date is not a date');
-		assert.equal(feed.updatedAt.toISOString(), '2026-04-25T12:00:00.000Z');
+		expect(feed.id).toBe('https://example.com/');
+		expect(feed.title).toBe('Feed Title');
+		expect(feed.description).toBe('Feed Description');
+		expect(feed.siteUrl).toBe('https://example.com/');
+		expect(feed.feedUrl).toBe('https://example.com/rss.xml');
+		expect(feed.type).toBe('rss');
+		expect(feed.displayType).toBe('list');
+		expect(feed.categories).toContain('TEST');
+		expect(feed.icon).toBe('https://example.com/image.png');
+		expect(feed.updatedAt instanceof Date, 'Updated date is not a date').toBeTruthy();
+		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
+		expect((feed.updatedAt as Date).toISOString()).toBe('2026-04-25T12:00:00.000Z');
 	});
 });

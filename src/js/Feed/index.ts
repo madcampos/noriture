@@ -1,16 +1,15 @@
 import { fetchProxied } from '../utils/fetch.ts';
 import { canParseXml, parseHtml, parseXhtml, parseXml } from '../utils/parsing.ts';
 import { type Feed, parseFeed } from './Feed.ts';
-import type { FeedItem } from './FeedItem.ts';
 import { parseMetadata } from './Metadata.ts';
 
-function getFeedUrl(htmlDocument: Document) {
+export function getFeedUrl(htmlDocument: Document) {
 	const parsedFeedUrl = htmlDocument.querySelector('link[type="application/rss+xml"], link[type="application/atom+xml"]')?.getAttribute('href') ?? undefined;
 
 	return parsedFeedUrl;
 }
 
-async function getFeedText(url: string, redirectCount = 0) {
+export async function getFeedText(url: string, redirectCount = 0) {
 	const MAX_REDIRECTS = 5;
 	const response = await fetchProxied(url);
 
@@ -34,7 +33,7 @@ async function getFeedText(url: string, redirectCount = 0) {
 	return getFeedText(parsedFeedUrl, redirectCount + 1);
 }
 
-async function fetchFeedFromXhtml(xhtmlText: string, baseUrl: string) {
+export async function fetchFeedFromXhtml(xhtmlText: string, baseUrl: string) {
 	const siteHtml = parseXhtml(xhtmlText, baseUrl);
 	const feedUrl = getFeedUrl(siteHtml);
 
@@ -51,8 +50,6 @@ async function fetchFeedFromXhtml(xhtmlText: string, baseUrl: string) {
 export async function fetchFeed(url: string) {
 	const feedText = await getFeedText(url);
 
-	let feedResult: { feed: Feed, items: FeedItem[] };
-
 	try {
 		const xml = parseXml(feedText);
 
@@ -60,16 +57,14 @@ export async function fetchFeed(url: string) {
 			throw new TypeError('Document is XHTML and not a Feed');
 		}
 
-		feedResult = parseFeed(xml, url);
+		return parseFeed(xml, url);
 	} catch (err) {
 		if (err instanceof TypeError) {
-			feedResult = await fetchFeedFromXhtml(feedText, url);
+			return fetchFeedFromXhtml(feedText, url);
 		}
 
 		throw err;
 	}
-
-	return feedResult;
 }
 
 export async function enhanceFeedWithMetadata(feed: Feed) {

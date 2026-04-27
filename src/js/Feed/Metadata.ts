@@ -1,5 +1,4 @@
-//
-import { checkImageExists, fetchProxied } from '../utils/fetch.ts';
+import { fetchProxied, getImageSizes } from '../utils/fetch.ts';
 import { getMimeTypeFromExtension } from '../utils/mime-types.ts';
 import { canParseXml, parseHtml, parseIntWithFallback, parseUrl, parseUrlWithBase, parseXhtml, parseXml } from '../utils/parsing.ts';
 import type { WebManifest } from './web-app-manifest';
@@ -234,7 +233,7 @@ export async function parseIcon(htmlDocument: Document, manifest: WebManifest | 
 	];
 
 	const fetchedIcons = await Promise.allSettled(icons.map(async (icon) => {
-		const fetchedSize = await checkImageExists(icon.url);
+		const fetchedSize = await getImageSizes(icon.url);
 
 		if (!fetchedSize) {
 			return undefined;
@@ -314,7 +313,7 @@ export async function parseImage(htmlDocument: Document) {
 		return undefined;
 	}
 
-	const doesImageExist = await checkImageExists(url);
+	const doesImageExist = await getImageSizes(url);
 
 	if (!doesImageExist) {
 		return undefined;

@@ -1,6 +1,6 @@
 /* oxlint-disable max-lines, typescript/no-non-null-assertion */
 
-import { assert, describe, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { parseXml } from '../utils/parsing.ts';
 import { sanitizeContentHtml } from '../utils/sanitizer.ts';
 import {
@@ -34,7 +34,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert.equal(itemId, '[ITEM ID]');
+		expect(itemId).toBe('[ITEM ID]');
 	});
 
 	test('RSS link', () => {
@@ -50,7 +50,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert.equal(itemId, '[ITEM ID]');
+		expect(itemId).toBe('[ITEM ID]');
 	});
 
 	test('Atom ID', () => {
@@ -64,7 +64,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert.equal(itemId, '[ITEM ID]');
+		expect(itemId).toBe('[ITEM ID]');
 	});
 
 	test('Atom link with `rel=self`', () => {
@@ -78,7 +78,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert.equal(itemId, '[ITEM ID]');
+		expect(itemId).toBe('[ITEM ID]');
 	});
 
 	test('Atom link with no `rel`', () => {
@@ -92,7 +92,7 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert.equal(itemId, '[ITEM ID]');
+		expect(itemId).toBe('[ITEM ID]');
 	});
 
 	test('Random UUID', () => {
@@ -104,8 +104,8 @@ describe('Feed Item ID', () => {
 
 		const itemId = parseItemId(itemXml);
 
-		assert.notEqual(itemId, '[ITEM ID]');
-		assert(/[0-9a-f-]{36}/.test(itemId));
+		expect(itemId).not.toBe('[ITEM ID]');
+		expect(/[0-9a-f-]{36}/.test(itemId)).toBeTruthy();
 	});
 });
 
@@ -123,7 +123,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert.equal(itemUrl?.href, 'https://example.com/rss-link');
+		expect(itemUrl?.href).toBe('https://example.com/rss-link');
 	});
 
 	test('RSS GUID', () => {
@@ -139,7 +139,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert.equal(itemUrl?.href, 'https://example.com/rss-guid');
+		expect(itemUrl?.href).toBe('https://example.com/rss-guid');
 	});
 
 	test('RSS GUID is not permlink', () => {
@@ -155,7 +155,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert(itemUrl === undefined);
+		expect(itemUrl === undefined).toBeTruthy();
 	});
 
 	test('RSS GUID is permlink', () => {
@@ -171,7 +171,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert.equal(itemUrl?.href, 'https://example.com/rss-guid-perm');
+		expect(itemUrl?.href).toBe('https://example.com/rss-guid-perm');
 	});
 
 	test('Atom Link', () => {
@@ -185,7 +185,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert.equal(itemUrl?.href, 'https://example.com/atom-link');
+		expect(itemUrl?.href).toBe('https://example.com/atom-link');
 	});
 
 	test('Atom ID is a URN', () => {
@@ -199,7 +199,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert(itemUrl === undefined);
+		expect(itemUrl === undefined).toBeTruthy();
 	});
 
 	test('Atom ID is a link', () => {
@@ -213,7 +213,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert.equal(itemUrl?.href, 'https://example.com/atom-id-link');
+		expect(itemUrl?.href).toBe('https://example.com/atom-id-link');
 	});
 
 	test('No link provided', () => {
@@ -225,7 +225,7 @@ describe('Feed Item URL', () => {
 
 		const itemUrl = parseItemUrl(itemXml);
 
-		assert(itemUrl === undefined);
+		expect(itemUrl === undefined).toBeTruthy();
 	});
 });
 
@@ -243,7 +243,7 @@ describe('Feed Item Title', () => {
 
 		const title = parseTitle(itemXml);
 
-		assert.equal(title, '[FEED ITEM TITLE]');
+		expect(title).toBe('[FEED ITEM TITLE]');
 	});
 
 	test('Title with html', () => {
@@ -259,7 +259,7 @@ describe('Feed Item Title', () => {
 
 		const title = parseTitle(itemXml);
 
-		assert.equal(title, '[FEED ITEM <b>TITLE</b>]');
+		expect(title).toBe('[FEED ITEM <b>TITLE</b>]');
 	});
 
 	test('Missing title', () => {
@@ -273,7 +273,7 @@ describe('Feed Item Title', () => {
 
 		const title = parseTitle(itemXml);
 
-		assert.equal(title, undefined);
+		expect(title).toBe(undefined);
 	});
 });
 
@@ -291,8 +291,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert.equal(author.name, 'John Doe');
-		assert.equal(author.email, 'john@example.com');
+		expect(author.name).toBe('John Doe');
+		expect(author.email).toBe('john@example.com');
 	});
 
 	test('RSS author with only name', () => {
@@ -308,8 +308,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert.equal(author.name, 'John Doe');
-		assert.equal(author.email, undefined);
+		expect(author.name).toBe('John Doe');
+		expect(author.email).toBe(undefined);
 	});
 
 	test('RSS author with only email', () => {
@@ -325,8 +325,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert.equal(author.name, 'john@example.com');
-		assert.equal(author.email, undefined);
+		expect(author.name).toBe('john@example.com');
+		expect(author.email).toBe(undefined);
 	});
 
 	test('Atom author with name and email', () => {
@@ -343,8 +343,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert.equal(author.name, 'John Doe');
-		assert.equal(author.email, 'john@example.com');
+		expect(author.name).toBe('John Doe');
+		expect(author.email).toBe('john@example.com');
 	});
 
 	test('Atom author with only name', () => {
@@ -360,8 +360,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert.equal(author.name, 'John Doe');
-		assert.equal(author.email, undefined);
+		expect(author.name).toBe('John Doe');
+		expect(author.email).toBe(undefined);
 	});
 
 	test('Atom author with only email', () => {
@@ -377,8 +377,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert.equal(author.name, 'john@example.com');
-		assert.equal(author.email, 'john@example.com');
+		expect(author.name).toBe('john@example.com');
+		expect(author.email).toBe('john@example.com');
 	});
 
 	test('Atom contributor with name and email', () => {
@@ -395,8 +395,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert.equal(author.name, 'Jane Doe');
-		assert.equal(author.email, 'jane@example.com');
+		expect(author.name).toBe('Jane Doe');
+		expect(author.email).toBe('jane@example.com');
 	});
 
 	test('Atom contributor with only name', () => {
@@ -412,8 +412,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert.equal(author.name, 'Jane Doe');
-		assert.equal(author.email, undefined);
+		expect(author.name).toBe('Jane Doe');
+		expect(author.email).toBe(undefined);
 	});
 
 	test('Atom contributor with only email', () => {
@@ -429,8 +429,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert.equal(author.name, 'jane@example.com');
-		assert.equal(author.email, 'jane@example.com');
+		expect(author.name).toBe('jane@example.com');
+		expect(author.email).toBe('jane@example.com');
 	});
 
 	test('No author', () => {
@@ -442,8 +442,8 @@ describe('Feed Item Author', () => {
 
 		const author = parseAuthor(itemXml);
 
-		assert.equal(author.name, 'No Author');
-		assert.equal(author.email, undefined);
+		expect(author.name).toBe('No Author');
+		expect(author.email).toBe(undefined);
 	});
 });
 
@@ -462,7 +462,7 @@ describe('Feed Item Media', () => {
 
 		const media = parseMediaItem(mediaXml, itemXml);
 
-		assert.equal(media, undefined);
+		expect(media).toBe(undefined);
 	});
 
 	test('Player URL exist', () => {
@@ -479,10 +479,10 @@ describe('Feed Item Media', () => {
 
 		const media = parseMediaItem(mediaXml, itemXml);
 
-		assert.equal(media?.url, 'https://example.com/player');
-		assert.equal(media?.mimeType, undefined);
-		assert.equal(media?.type, 'embedded');
-		assert.equal(media?.sizeInBytes, 0);
+		expect(media?.url).toBe('https://example.com/player');
+		expect(media?.mimeType).toBe(undefined);
+		expect(media?.type).toBe('embedded');
+		expect(media?.sizeInBytes).toBe(0);
 	});
 
 	test('Mime type is provided', () => {
@@ -499,10 +499,10 @@ describe('Feed Item Media', () => {
 
 		const media = parseMediaItem(mediaXml, itemXml);
 
-		assert.equal(media?.url, 'https://example.com/image.jpg');
-		assert.equal(media?.mimeType, 'image/jpeg');
-		assert.equal(media?.type, 'image');
-		assert.equal(media?.sizeInBytes, 0);
+		expect(media?.url).toBe('https://example.com/image.jpg');
+		expect(media?.mimeType).toBe('image/jpeg');
+		expect(media?.type).toBe('image');
+		expect(media?.sizeInBytes).toBe(0);
 	});
 
 	test('Mime type is inferred', () => {
@@ -519,10 +519,10 @@ describe('Feed Item Media', () => {
 
 		const media = parseMediaItem(mediaXml, itemXml);
 
-		assert.equal(media?.url, 'https://example.com/image.jpg');
-		assert.equal(media?.mimeType, 'image/jpeg');
-		assert.equal(media?.type, 'image');
-		assert.equal(media?.sizeInBytes, 0);
+		expect(media?.url).toBe('https://example.com/image.jpg');
+		expect(media?.mimeType).toBe('image/jpeg');
+		expect(media?.type).toBe('image');
+		expect(media?.sizeInBytes).toBe(0);
 	});
 
 	test('Mime type cannot be inferred', () => {
@@ -539,10 +539,10 @@ describe('Feed Item Media', () => {
 
 		const media = parseMediaItem(mediaXml, itemXml);
 
-		assert.equal(media?.url, 'https://example.com/url-without-extension');
-		assert.equal(media?.mimeType, undefined);
-		assert.equal(media?.type, 'unknown');
-		assert.equal(media?.sizeInBytes, 0);
+		expect(media?.url).toBe('https://example.com/url-without-extension');
+		expect(media?.mimeType).toBe(undefined);
+		expect(media?.type).toBe('unknown');
+		expect(media?.sizeInBytes).toBe(0);
 	});
 
 	test('Size is provided', () => {
@@ -559,11 +559,11 @@ describe('Feed Item Media', () => {
 
 		const media = parseMediaItem(mediaXml, itemXml);
 
-		assert.equal(media?.url, 'https://example.com/image.jpg');
-		assert.equal(media?.mimeType, 'image/jpeg');
-		assert.equal(media?.type, 'image');
+		expect(media?.url).toBe('https://example.com/image.jpg');
+		expect(media?.mimeType).toBe('image/jpeg');
+		expect(media?.type).toBe('image');
 		// oxlint-disable-next-line no-magic-numbers
-		assert.equal(media?.sizeInBytes, 1024);
+		expect(media?.sizeInBytes).toBe(1024);
 	});
 
 	test('Type is provided by `medium` attribute', () => {
@@ -580,10 +580,10 @@ describe('Feed Item Media', () => {
 
 		const media = parseMediaItem(mediaXml, itemXml);
 
-		assert.equal(media?.url, 'https://example.com/video.mp4');
-		assert.equal(media?.mimeType, 'video/mp4');
-		assert.equal(media?.type, 'video');
-		assert.equal(media?.sizeInBytes, 0);
+		expect(media?.url).toBe('https://example.com/video.mp4');
+		expect(media?.mimeType).toBe('video/mp4');
+		expect(media?.type).toBe('video');
+		expect(media?.sizeInBytes).toBe(0);
 	});
 });
 
@@ -600,7 +600,7 @@ describe('Feed Item Enclosure', () => {
 		`).querySelector('item')!;
 		const enclosure = parseEnclosure(itemXml);
 
-		assert.equal(enclosure, undefined);
+		expect(enclosure).toBe(undefined);
 	});
 
 	test('Url is missing', () => {
@@ -615,7 +615,7 @@ describe('Feed Item Enclosure', () => {
 		`).querySelector('item')!;
 		const enclosure = parseEnclosure(itemXml);
 
-		assert.equal(enclosure, undefined);
+		expect(enclosure).toBe(undefined);
 	});
 
 	test('Mime type is provided', () => {
@@ -630,10 +630,10 @@ describe('Feed Item Enclosure', () => {
 		`).querySelector('item')!;
 		const enclosure = parseEnclosure(itemXml);
 
-		assert.equal(enclosure?.url, 'https://example.com/audio.mp3');
-		assert.equal(enclosure?.mimeType, 'audio/mpeg');
-		assert.equal(enclosure?.type, 'audio');
-		assert.equal(enclosure?.sizeInBytes, 0);
+		expect(enclosure?.url).toBe('https://example.com/audio.mp3');
+		expect(enclosure?.mimeType).toBe('audio/mpeg');
+		expect(enclosure?.type).toBe('audio');
+		expect(enclosure?.sizeInBytes).toBe(0);
 	});
 
 	test('Mime type is inferred', () => {
@@ -648,10 +648,10 @@ describe('Feed Item Enclosure', () => {
 		`).querySelector('item')!;
 		const enclosure = parseEnclosure(itemXml);
 
-		assert.equal(enclosure?.url, 'https://example.com/audio.mp3');
-		assert.equal(enclosure?.mimeType, 'audio/mpeg');
-		assert.equal(enclosure?.type, 'audio');
-		assert.equal(enclosure?.sizeInBytes, 0);
+		expect(enclosure?.url).toBe('https://example.com/audio.mp3');
+		expect(enclosure?.mimeType).toBe('audio/mpeg');
+		expect(enclosure?.type).toBe('audio');
+		expect(enclosure?.sizeInBytes).toBe(0);
 	});
 
 	test('Mime type cannot be inferred', () => {
@@ -666,10 +666,10 @@ describe('Feed Item Enclosure', () => {
 		`).querySelector('item')!;
 		const enclosure = parseEnclosure(itemXml);
 
-		assert.equal(enclosure?.url, 'https://example.com/unknown');
-		assert.equal(enclosure?.mimeType, undefined);
-		assert.equal(enclosure?.type, 'unknown');
-		assert.equal(enclosure?.sizeInBytes, 0);
+		expect(enclosure?.url).toBe('https://example.com/unknown');
+		expect(enclosure?.mimeType).toBe(undefined);
+		expect(enclosure?.type).toBe('unknown');
+		expect(enclosure?.sizeInBytes).toBe(0);
 	});
 
 	test('Size is provided', () => {
@@ -684,10 +684,10 @@ describe('Feed Item Enclosure', () => {
 		`).querySelector('item')!;
 		const enclosure = parseEnclosure(itemXml);
 
-		assert.equal(enclosure?.url, 'https://example.com/audio.mp3');
-		assert.equal(enclosure?.mimeType, 'audio/mpeg');
-		assert.equal(enclosure?.type, 'audio');
-		assert.equal(enclosure?.sizeInBytes, 1);
+		expect(enclosure?.url).toBe('https://example.com/audio.mp3');
+		expect(enclosure?.mimeType).toBe('audio/mpeg');
+		expect(enclosure?.type).toBe('audio');
+		expect(enclosure?.sizeInBytes).toBe(1);
 	});
 });
 
@@ -704,8 +704,8 @@ describe('Feed Item Media Content', () => {
 		//
 		const { mediaItems, mainImage } = parseMediaContent(itemXml);
 
-		assert.equal(mediaItems.length, 0);
-		assert.equal(mainImage, undefined);
+		expect(mediaItems.length).toBe(0);
+		expect(mainImage).toBe(undefined);
 	});
 
 	test('Media item exist', () => {
@@ -721,9 +721,9 @@ describe('Feed Item Media Content', () => {
 
 		const { mediaItems, mainImage } = parseMediaContent(itemXml);
 
-		assert.equal(mediaItems.length, 1);
-		assert.equal(mediaItems[0]?.url, 'https://example.com/video.mp4');
-		assert.equal(mainImage, undefined);
+		expect(mediaItems.length).toBe(1);
+		expect(mediaItems[0]?.url).toBe('https://example.com/video.mp4');
+		expect(mainImage).toBe(undefined);
 	});
 
 	test('Media thumbnail image', () => {
@@ -739,8 +739,8 @@ describe('Feed Item Media Content', () => {
 
 		const { mediaItems, mainImage } = parseMediaContent(itemXml);
 
-		assert.equal(mediaItems.length, 0);
-		assert.equal(mainImage, 'https://example.com/thumbnail.jpg');
+		expect(mediaItems.length).toBe(0);
+		expect(mainImage).toBe('https://example.com/thumbnail.jpg');
 	});
 
 	test('Itunes image', () => {
@@ -756,8 +756,8 @@ describe('Feed Item Media Content', () => {
 
 		const { mediaItems, mainImage } = parseMediaContent(itemXml);
 
-		assert.equal(mediaItems.length, 0);
-		assert.equal(mainImage, 'https://example.com/itunes.jpg');
+		expect(mediaItems.length).toBe(0);
+		expect(mainImage).toBe('https://example.com/itunes.jpg');
 	});
 
 	test('Podcast image', () => {
@@ -773,8 +773,8 @@ describe('Feed Item Media Content', () => {
 
 		const { mediaItems, mainImage } = parseMediaContent(itemXml);
 
-		assert.equal(mediaItems.length, 0);
-		assert.equal(mainImage, 'https://example.com/podcast.jpg');
+		expect(mediaItems.length).toBe(0);
+		expect(mainImage).toBe('https://example.com/podcast.jpg');
 	});
 
 	test('Media items image', () => {
@@ -790,8 +790,8 @@ describe('Feed Item Media Content', () => {
 
 		const { mediaItems, mainImage } = parseMediaContent(itemXml);
 
-		assert.equal(mediaItems.length, 1);
-		assert.equal(mainImage, 'https://example.com/image.jpg');
+		expect(mediaItems.length).toBe(1);
+		expect(mainImage).toBe('https://example.com/image.jpg');
 	});
 });
 
@@ -799,21 +799,21 @@ describe('Feed Item Content Thumbnail', () => {
 	test('No content', () => {
 		const thumbnail = parseContentThumbnail(undefined);
 
-		assert.equal(thumbnail, undefined);
+		expect(thumbnail).toBe(undefined);
 	});
 
 	test('No thumbnail', () => {
 		const content = sanitizeContentHtml('<p>Some content without images</p>');
 		const thumbnail = parseContentThumbnail(content);
 
-		assert.equal(thumbnail, undefined);
+		expect(thumbnail).toBe(undefined);
 	});
 
 	test('Thumbnail exists', () => {
 		const content = sanitizeContentHtml('<p><img src="https://example.com/image.jpg" /></p>');
 		const thumbnail = parseContentThumbnail(content);
 
-		assert.equal(thumbnail, 'https://example.com/image.jpg');
+		expect(thumbnail).toBe('https://example.com/image.jpg');
 	});
 });
 
@@ -832,7 +832,7 @@ describe('Feed Item Published Date', () => {
 
 		const date = parsePublishedDate(itemXml);
 
-		assert.equal(date?.toISOString(), testDate.toISOString());
+		expect(date?.toISOString()).toBe(testDate.toISOString());
 	});
 
 	test('Atom published date', () => {
@@ -847,7 +847,7 @@ describe('Feed Item Published Date', () => {
 
 		const date = parsePublishedDate(itemXml);
 
-		assert.equal(date?.toISOString(), testDate.toISOString());
+		expect(date?.toISOString()).toBe(testDate.toISOString());
 	});
 
 	test('Missing published date', () => {
@@ -859,7 +859,7 @@ describe('Feed Item Published Date', () => {
 
 		const date = parsePublishedDate(itemXml);
 
-		assert.equal(date, undefined);
+		expect(date).toBe(undefined);
 	});
 });
 
@@ -876,7 +876,7 @@ describe('Feed Item Updated Date', () => {
 
 		const date = parseUpdatedDate(itemXml);
 
-		assert.equal(date?.toISOString(), testDate.toISOString());
+		expect(date?.toISOString()).toBe(testDate.toISOString());
 	});
 
 	test('Missing updated date', () => {
@@ -888,7 +888,7 @@ describe('Feed Item Updated Date', () => {
 
 		const date = parseUpdatedDate(itemXml);
 
-		assert.equal(date, undefined);
+		expect(date).toBe(undefined);
 	});
 });
 
@@ -906,8 +906,8 @@ describe('Feed Item Categories', () => {
 
 		const categories = parseCategories(itemXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[ITEM CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[ITEM CATEGORY]');
 	});
 
 	test('Atom categories from `label`', () => {
@@ -921,8 +921,8 @@ describe('Feed Item Categories', () => {
 
 		const categories = parseCategories(itemXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[ITEM CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[ITEM CATEGORY]');
 	});
 
 	test('Atom categories from `term`', () => {
@@ -936,8 +936,8 @@ describe('Feed Item Categories', () => {
 
 		const categories = parseCategories(itemXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[ITEM CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[ITEM CATEGORY]');
 	});
 
 	test('Media categories', () => {
@@ -953,8 +953,8 @@ describe('Feed Item Categories', () => {
 
 		const categories = parseCategories(itemXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[ITEM CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[ITEM CATEGORY]');
 	});
 
 	test('Repeated categories', () => {
@@ -971,8 +971,8 @@ describe('Feed Item Categories', () => {
 
 		const categories = parseCategories(itemXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[ITEM CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[ITEM CATEGORY]');
 	});
 
 	test('Combined categories from different sources', () => {
@@ -992,11 +992,11 @@ describe('Feed Item Categories', () => {
 		const categories = parseCategories(itemXml);
 
 		// oxlint-disable-next-line no-magic-numbers
-		assert.equal(categories.length, 4);
-		assert.include(categories, '[ITEM CATEGORY RSS]');
-		assert.include(categories, '[ITEM CATEGORY ATOM LABEL]');
-		assert.include(categories, '[ITEM CATEGORY ATOM TERM]');
-		assert.include(categories, '[ITEM CATEGORY MEDIA]');
+		expect(categories.length).toBe(4);
+		expect(categories).toContain('[ITEM CATEGORY RSS]');
+		expect(categories).toContain('[ITEM CATEGORY ATOM LABEL]');
+		expect(categories).toContain('[ITEM CATEGORY ATOM TERM]');
+		expect(categories).toContain('[ITEM CATEGORY MEDIA]');
 	});
 
 	test('Categories with HTML and CData', () => {
@@ -1012,8 +1012,8 @@ describe('Feed Item Categories', () => {
 
 		const categories = parseCategories(itemXml);
 
-		assert.equal(categories.length, 1);
-		assert.include(categories, '[ITEM CATEGORY]');
+		expect(categories.length).toBe(1);
+		expect(categories).toContain('[ITEM CATEGORY]');
 	});
 
 	test('Empty categories', () => {
@@ -1030,7 +1030,7 @@ describe('Feed Item Categories', () => {
 
 		const categories = parseCategories(itemXml);
 
-		assert.equal(categories.length, 0);
+		expect(categories.length).toBe(0);
 	});
 });
 
@@ -1048,7 +1048,7 @@ describe('Feed Item Summary', () => {
 
 		const summary = parseSummary(itemXml);
 
-		assert.equal(summary, 'This is a summary');
+		expect(summary).toBe('This is a summary');
 	});
 
 	test('Atom summary', () => {
@@ -1062,7 +1062,7 @@ describe('Feed Item Summary', () => {
 
 		const summary = parseSummary(itemXml);
 
-		assert.equal(summary, 'This is an atom summary');
+		expect(summary).toBe('This is an atom summary');
 	});
 
 	test('Media description', () => {
@@ -1078,7 +1078,7 @@ describe('Feed Item Summary', () => {
 
 		const summary = parseSummary(itemXml);
 
-		assert.equal(summary, 'This is a media description');
+		expect(summary).toBe('This is a media description');
 	});
 
 	test('Summary with CData and HTML', () => {
@@ -1094,7 +1094,7 @@ describe('Feed Item Summary', () => {
 
 		const summary = parseSummary(itemXml);
 
-		assert.equal(summary, 'This is a <b>summary</b> with HTML');
+		expect(summary).toBe('This is a <b>summary</b> with HTML');
 	});
 
 	test('Missing summary', () => {
@@ -1106,7 +1106,7 @@ describe('Feed Item Summary', () => {
 
 		const summary = parseSummary(itemXml);
 
-		assert.equal(summary, undefined);
+		expect(summary).toBe(undefined);
 	});
 });
 
@@ -1122,7 +1122,7 @@ describe('Feed Item Content', () => {
 
 		const content = parseContents(itemXml);
 
-		assert.equal(content?.innerHTML, '<a href="https://example.com/external-content">https://example.com/external-content</a>');
+		expect(content?.innerHTML).toBe('<a href="https://example.com/external-content">https://example.com/external-content</a>');
 	});
 
 	test('Atom inline content: HTML', () => {
@@ -1136,7 +1136,7 @@ describe('Feed Item Content', () => {
 
 		const content = parseContents(itemXml);
 
-		assert.equal(content?.innerHTML, '<p>Inline content</p>');
+		expect(content?.innerHTML).toBe('<p>Inline content</p>');
 	});
 
 	test('Atom inline content: XHTML', () => {
@@ -1150,7 +1150,7 @@ describe('Feed Item Content', () => {
 
 		const content = parseContents(itemXml);
 
-		assert.equal(content?.innerHTML, '<p>Inline content</p>');
+		expect(content?.innerHTML).toBe('<p>Inline content</p>');
 	});
 
 	test('Atom inline content: Text', () => {
@@ -1164,7 +1164,7 @@ describe('Feed Item Content', () => {
 
 		const content = parseContents(itemXml);
 
-		assert.equal(content?.innerHTML, 'Inline content');
+		expect(content?.innerHTML).toBe('Inline content');
 	});
 
 	test('Atom inline content: No type', () => {
@@ -1178,7 +1178,7 @@ describe('Feed Item Content', () => {
 
 		const content = parseContents(itemXml);
 
-		assert.equal(content?.innerHTML, '<p>Inline content</p>');
+		expect(content?.innerHTML).toBe('<p>Inline content</p>');
 	});
 
 	test('Encoded content', () => {
@@ -1194,7 +1194,7 @@ describe('Feed Item Content', () => {
 
 		const content = parseContents(itemXml);
 
-		assert.equal(content?.innerHTML, '<p>Encoded content</p>');
+		expect(content?.innerHTML).toBe('<p>Encoded content</p>');
 	});
 
 	test('No content', () => {
@@ -1206,7 +1206,7 @@ describe('Feed Item Content', () => {
 
 		const content = parseContents(itemXml);
 
-		assert.equal(content, undefined);
+		expect(content).toBe(undefined);
 	});
 });
 
@@ -1238,24 +1238,24 @@ describe('Feed Item', () => {
 		const feedId = 'test-feed' as Brand<string, 'feedId'>;
 		const items = parseFeedItems(doc, feedId);
 
-		assert.equal(items.length, 1);
-		assert.equal(items[0]?.id, 'tag:example.com,2026:item');
-		assert.equal(items[0]?.feedId, feedId);
-		assert.equal(items[0]?.title, 'Item <b>Title</b>');
-		assert.equal(items[0]?.url, 'https://example.com/item');
-		assert.equal(items[0]?.author.name, 'Author Name');
-		assert.equal(items[0]?.author.email, 'author@example.com');
-		assert.equal(items[0]?.publishedAt?.toISOString(), '2026-04-25T12:00:00.000Z');
-		assert.equal(items[0]?.updatedAt?.toISOString(), '2026-04-25T12:00:00.000Z');
-		assert.equal(items[0]?.summary, 'Item summary description');
-		assert.equal(items[0]?.content, '<p>Full body content with an <img src="https://example.com/content-image.jpg"></p>');
-		assert.equal(items[0]?.image, 'https://example.com/poster.jpg');
-		assert.equal(items[0]?.categories.length, 1);
-		assert.include(items[0]?.categories ?? [], 'TEST');
-		assert.equal(items[0]?.media.length, 1);
-		assert.equal(items[0]?.media[0]?.url, 'https://example.com/media.mp4');
-		assert.equal(items[0]?.media[0]?.type, 'video');
-		assert.equal(items[0]?.media[0]?.mimeType, 'video/mp4');
+		expect(items.length).toBe(1);
+		expect(items[0]?.id).toBe('tag:example.com,2026:item');
+		expect(items[0]?.feedId).toBe(feedId);
+		expect(items[0]?.title).toBe('Item <b>Title</b>');
+		expect(items[0]?.url).toBe('https://example.com/item');
+		expect(items[0]?.author.name).toBe('Author Name');
+		expect(items[0]?.author.email).toBe('author@example.com');
+		expect(items[0]?.publishedAt?.toISOString()).toBe('2026-04-25T12:00:00.000Z');
+		expect(items[0]?.updatedAt?.toISOString()).toBe('2026-04-25T12:00:00.000Z');
+		expect(items[0]?.summary).toBe('Item summary description');
+		expect(items[0]?.content).toBe('<p>Full body content with an <img src="https://example.com/content-image.jpg"></p>');
+		expect(items[0]?.image).toBe('https://example.com/poster.jpg');
+		expect(items[0]?.categories.length).toBe(1);
+		expect(items[0]?.categories ?? []).toContain('TEST');
+		expect(items[0]?.media.length).toBe(1);
+		expect(items[0]?.media[0]?.url).toBe('https://example.com/media.mp4');
+		expect(items[0]?.media[0]?.type).toBe('video');
+		expect(items[0]?.media[0]?.mimeType).toBe('video/mp4');
 	});
 
 	// oxlint-disable-next-line complexity
@@ -1283,22 +1283,22 @@ describe('Feed Item', () => {
 		const feedId = 'test-feed' as Brand<string, 'feedId'>;
 		const items = parseFeedItems(doc, feedId);
 
-		assert.equal(items.length, 1);
-		assert.equal(items[0]?.id, 'guid-123');
-		assert.equal(items[0]?.feedId, feedId);
-		assert.equal(items[0]?.title, 'Item <b>Title</b>');
-		assert.equal(items[0]?.url, 'https://example.com/item');
-		assert.equal(items[0]?.author.name, 'Author Name');
-		assert.equal(items[0]?.author.email, 'author@example.com');
-		assert.equal(items[0]?.publishedAt?.toISOString(), '2026-04-25T12:00:00.000Z');
-		assert.equal(items[0]?.summary, 'RSS description text');
-		assert.equal(items[0]?.content, '<p>Full body content with an <img src="https://example.com/content-image.jpg"></p>');
-		assert.equal(items[0]?.image, 'https://example.com/poster.jpg');
-		assert.include(items[0]?.categories ?? [], 'TEST');
-		assert.equal(items[0]?.media.length, 1);
-		assert.equal(items[0]?.media[0]?.url, 'https://example.com/media.mp4');
-		assert.equal(items[0]?.media[0]?.type, 'video');
-		assert.equal(items[0]?.media[0]?.mimeType, 'video/mp4');
-		assert.equal(items[0]?.media[0]?.sizeInBytes, 0);
+		expect(items.length).toBe(1);
+		expect(items[0]?.id).toBe('guid-123');
+		expect(items[0]?.feedId).toBe(feedId);
+		expect(items[0]?.title).toBe('Item <b>Title</b>');
+		expect(items[0]?.url).toBe('https://example.com/item');
+		expect(items[0]?.author.name).toBe('Author Name');
+		expect(items[0]?.author.email).toBe('author@example.com');
+		expect(items[0]?.publishedAt?.toISOString()).toBe('2026-04-25T12:00:00.000Z');
+		expect(items[0]?.summary).toBe('RSS description text');
+		expect(items[0]?.content).toBe('<p>Full body content with an <img src="https://example.com/content-image.jpg"></p>');
+		expect(items[0]?.image).toBe('https://example.com/poster.jpg');
+		expect(items[0]?.categories ?? []).toContain('TEST');
+		expect(items[0]?.media.length).toBe(1);
+		expect(items[0]?.media[0]?.url).toBe('https://example.com/media.mp4');
+		expect(items[0]?.media[0]?.type).toBe('video');
+		expect(items[0]?.media[0]?.mimeType).toBe('video/mp4');
+		expect(items[0]?.media[0]?.sizeInBytes).toBe(0);
 	});
 });

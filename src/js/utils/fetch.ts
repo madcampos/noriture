@@ -3,7 +3,7 @@ interface ImageSize {
 	height: number;
 }
 
-export async function checkImageExists(imageUrl: string) {
+export async function getImageSizes(imageUrl: string) {
 	return new Promise<ImageSize | undefined>((resolve) => {
 		const image = new Image();
 
