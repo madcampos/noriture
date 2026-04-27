@@ -133,7 +133,7 @@ export class Database {
 			const existingItemIndex = existingItems.findIndex((existingItem) => existingItem.url === item.url);
 
 			if (existingItemIndex !== -1) {
-				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				// oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
 				item.id = existingItems[existingItemIndex]!.id;
 				item.isRead = false;
 			}

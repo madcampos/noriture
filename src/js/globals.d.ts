@@ -1,3 +1,5 @@
+/* oxlint-disable typescript/no-unsafe-function-type */
+
 interface ImportMetaEnv {
 	/** The app mode. Can be either `development` or `production`. */
 	readonly MODE: 'development' | 'production';
@@ -7,9 +9,7 @@ interface ImportMetaEnv {
 
 interface ImportMeta {
 	hot: {
-		// oxlint-disable-next-line typescript/no-unsafe-function-type
 		accept: Function,
-		// oxlint-disable-next-line typescript/no-unsafe-function-type
 		dispose: Function
 	};
 	readonly env: ImportMetaEnv;

@@ -1,3 +1,5 @@
+/* oxlint-disable typescript/prefer-nullish-coalescing, typescript/no-unsafe-type-assertion, typescript/consistent-type-assertions */
+
 import { getMediaTypeFromMime, getMimeTypeFromExtension, type MediaType } from '../utils/mime-types.ts';
 import { parseDate, parseUrl } from '../utils/parsing.ts';
 import { sanitizeContentHtml, sanitizeInlineHtml, sanitizeInlineText, stripCData } from '../utils/sanitizer.ts';
@@ -39,10 +41,8 @@ export function parseItemId(item: Element) {
 	const atomId = item.querySelector('id')?.textContent.trim();
 	const atomLink = item.querySelector('link[href]:is([rel="self"], :not([rel]))')?.getAttribute('href')?.trim();
 
-	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
 	const itemId = rssGuid || rssLink || atomId || atomLink || crypto.randomUUID();
 
-	// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 	return itemId as FeedItemId;
 }
 
@@ -95,7 +95,6 @@ export function parseMediaItem(mediaItem: Element, item: Element) {
 
 	if (parsedPlayerUrl) {
 		return {
-			// oxlint-disable-next-line typescript/consistent-type-assertions
 			type: 'embedded' as MediaType,
 			url: parsedPlayerUrl.href,
 			sizeInBytes: 0
@@ -112,7 +111,6 @@ export function parseMediaItem(mediaItem: Element, item: Element) {
 	const mimeType = mediaItem.getAttribute('type') ?? getMimeTypeFromExtension(parsedUrl.href);
 	const size = Number.parseInt(mediaItem.getAttribute('fileSize') ?? '0', 10);
 
-	// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 	const typeAttribute = mediaItem.getAttribute('medium') as MediaType | null;
 	const typeFromMime = getMediaTypeFromMime(mimeType);
 
@@ -203,7 +201,6 @@ export function parseCategories(item: Element) {
 		const categoryLabel = category.getAttribute('label')?.trim();
 		const categoryTerm = category.getAttribute('term')?.trim();
 
-		// oxlint-disable-next-line typescript/prefer-nullish-coalescing
 		return categoryLabel || categoryTerm || '';
 	});
 
@@ -217,7 +214,6 @@ export function parseSummary(item: Element) {
 	const rssSummary = item.querySelector('description')?.textContent.trim();
 	const atomSummary = item.querySelector('summary')?.textContent.trim();
 
-	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
 	return sanitizeInlineHtml(stripCData(rssSummary || atomSummary));
 }
 
@@ -237,7 +233,6 @@ export function parseContents(item: Element, baseUrl?: string) {
 	const atomInlineContent = item.querySelector('content:is([type="text"], [type="html"], [type="xhtml"], :not([type]))')?.textContent.trim();
 	const encodedContent = item.querySelector('encoded')?.textContent.trim();
 
-	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
 	return sanitizeContentHtml(stripCData(atomInlineContent || encodedContent), baseUrl);
 }
 

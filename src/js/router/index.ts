@@ -9,7 +9,7 @@ import { HomeView } from '../../views/HomeView';
 Router.init({
 	baseUrl: '/',
 	appTitle: 'Noriture',
-	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	// oxlint-disable-next-line @typescript-eslint/no-non-null-assertion
 	renderTarget: document.querySelector('main')!,
 	routes: [
 		{

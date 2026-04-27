@@ -1,3 +1,5 @@
+/* oxlint-disable typescript/consistent-type-assertions */
+
 export function canParseXml(text: string) {
 	if (!text.trim()) {
 		return false;
@@ -25,7 +27,6 @@ export function parseXml(text: string) {
 		throw new SyntaxError('Invalid XML document');
 	}
 
-	// oxlint-disable-next-line typescript/consistent-type-assertions
 	return xml as XMLDocument;
 }
 
@@ -40,7 +41,6 @@ export function parseHtml(text: string, baseUrl?: string) {
 		html.head.insertAdjacentHTML('afterbegin', `<base href="${baseUrl}" />`);
 	}
 
-	// oxlint-disable-next-line typescript/consistent-type-assertions
 	return html as HTMLDocument;
 }
 
@@ -55,7 +55,6 @@ export function parseXhtml(text: string, baseUrl: string) {
 		xhtml.querySelector('html')?.insertAdjacentHTML('afterbegin', `<base href="${baseUrl}" />`);
 	}
 
-	// oxlint-disable-next-line typescript/consistent-type-assertions
 	return xhtml as XMLDocument;
 }
 

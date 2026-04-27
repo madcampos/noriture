@@ -1,3 +1,5 @@
+/* oxlint-disable typescript/prefer-nullish-coalescing, typescript/no-unsafe-type-assertion, typescript/consistent-type-assertions */
+
 import { parseDate, parseUrl } from '../utils/parsing.ts';
 import { sanitizeInlineHtml, sanitizeInlineText, stripCData } from '../utils/sanitizer.ts';
 import { parseFeedItems } from './FeedItem.ts';
@@ -52,7 +54,6 @@ export function parseDescription(feed: Document) {
 
 	const encodedContent = feed.querySelector('channel > encoded')?.textContent.trim();
 
-	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
 	return sanitizeInlineHtml(stripCData(rssDescription || atomDescription || encodedContent));
 }
 
@@ -87,7 +88,6 @@ export function parseCategories(feed: Document) {
 		const categoryLabel = category.getAttribute('label')?.trim();
 		const categoryTerm = category.getAttribute('term')?.trim();
 
-		// oxlint-disable-next-line typescript/prefer-nullish-coalescing
 		return categoryLabel || categoryTerm || '';
 	});
 
@@ -115,10 +115,8 @@ export function parseFeedId(feed: Document) {
 	const atomId = feed.querySelector('feed > id')?.textContent;
 	const atomSelfLink = feed.querySelector('feed > link[href][rel="self"], feed > link[href]:only-of-type')?.getAttribute('href');
 
-	// oxlint-disable-next-line typescript/prefer-nullish-coalescing
 	const feedId = (rssId || atomId || atomSelfLink || crypto.randomUUID()).trim();
 
-	// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 	return feedId as FeedId;
 }
 

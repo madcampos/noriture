@@ -115,10 +115,10 @@ export function parseMsApplicationIcons(xmlDocument: XMLDocument | undefined, ba
 		let { width, height } = getLargestIconSize(size);
 
 		if (iconElement.tagName.toLowerCase() === 'tileimage') {
-			// oxlint-disable-next-line no-magic-numbers
+			/* oxlint-disable no-magic-numbers */
 			width = 256;
-			// oxlint-disable-next-line no-magic-numbers
 			height = 256;
+			/* oxlint-enable no-magic-numbers */
 		}
 
 		return {
@@ -185,10 +185,10 @@ export function parseFavicons(htmlDocument: Document, baseUrl: string) {
 		const mimeType = type ?? getMimeTypeFromExtension(url) ?? 'image/*';
 
 		if (mimeType === 'image/vnd.microsoft.icon') {
-			// oxlint-disable-next-line no-magic-numbers
+			/* oxlint-disable no-magic-numbers */
 			width = 32;
-			// oxlint-disable-next-line no-magic-numbers
 			height = 32;
+			/* oxlint-enable no-magic-numbers */
 		}
 
 		const iconMetadata: MetadataIcon = {

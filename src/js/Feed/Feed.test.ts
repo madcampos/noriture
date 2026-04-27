@@ -1,4 +1,4 @@
-/* oxlint-disable max-lines */
+/* oxlint-disable max-lines, typescript/no-unsafe-type-assertion, typescript/consistent-type-assertions */
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { parseXml } from '../utils/parsing.ts';
@@ -330,7 +330,6 @@ describe('Feed Last Updated', () => {
 		const updatedAt = parseLastUpdate(feedXml);
 
 		expect(updatedAt instanceof Date).toBeTruthy();
-		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		expect((updatedAt as Date).toISOString()).toBe(testDate.toISOString());
 	});
 
@@ -347,7 +346,6 @@ describe('Feed Last Updated', () => {
 		const updatedAt = parseLastUpdate(feedXml);
 
 		expect(updatedAt instanceof Date).toBeTruthy();
-		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		expect((updatedAt as Date).toISOString()).toBe(testDate.toISOString());
 	});
 
@@ -362,7 +360,6 @@ describe('Feed Last Updated', () => {
 		const updatedAt = parseLastUpdate(feedXml);
 
 		expect(updatedAt instanceof Date).toBeTruthy();
-		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		expect((updatedAt as Date).toISOString()).toBe(testDate.toISOString());
 	});
 
@@ -377,7 +374,6 @@ describe('Feed Last Updated', () => {
 		const updatedAt = parseLastUpdate(feedXml);
 
 		expect(updatedAt instanceof Date).toBeTruthy();
-		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		expect((updatedAt as Date).toISOString()).toBe(testDate.toISOString());
 	});
 
@@ -392,7 +388,6 @@ describe('Feed Last Updated', () => {
 		const updatedAt = parseLastUpdate(feedXml);
 
 		expect(updatedAt instanceof Date).toBeTruthy();
-		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		expect((updatedAt as Date).toISOString()).toBe(now.toISOString());
 	});
 });
@@ -627,8 +622,6 @@ describe('Feed Comprehensive', () => {
 		expect(feed.categories).toContain('TEST');
 		expect(feed.icon).toBe('https://example.com/icon.png');
 		expect(feed.updatedAt instanceof Date, 'Updated date is not a date').toBeTruthy();
-
-		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		expect((feed.updatedAt as Date).toISOString()).toBe('2026-04-25T12:00:00.000Z');
 	});
 
@@ -661,7 +654,6 @@ describe('Feed Comprehensive', () => {
 		expect(feed.categories).toContain('TEST');
 		expect(feed.icon).toBe('https://example.com/image.png');
 		expect(feed.updatedAt instanceof Date, 'Updated date is not a date').toBeTruthy();
-		// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unsafe-type-assertion
 		expect((feed.updatedAt as Date).toISOString()).toBe('2026-04-25T12:00:00.000Z');
 	});
 });

@@ -225,7 +225,7 @@ export class Router {
 
 		document.body.insertAdjacentHTML('beforebegin', '<style>[data-router-view]:not([data-active-view]) { display: none; }</style>');
 
-		// eslint-disable-next-line no-console
+		// oxlint-disable-next-line no-console
 		console.info('[⛵️] Router initialized');
 
 		void Router.navigate(window.location.href);
