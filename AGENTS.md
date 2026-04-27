@@ -32,6 +32,7 @@ These rules are enforced by `dprint`:
 - **Erasable Syntax only**: No `enum`, no parameter properties (`constructor(public x)`), no namespaces. Use `const` objects + union types instead.
 - **No Unchecked Access**: `arr[0]` and `record[key]` are typed `T | undefined`. Narrow before use.
 - **No unused variables**: Don't leave placeholder vars. Prefix intentional unused params with `_`.
+- **No Non-Null Assertions**: Never use the `!` non-null assertion operator. Narrow types using the optional chaining operator (`?.`), the nullish coalescing operator (`??`), conditionals, or assertions instead.
 
 ## Component Structure
 
