@@ -1,14 +1,22 @@
+interface ImageSize {
+	width: number;
+	height: number;
+}
+
 export async function checkImageExists(imageUrl: string) {
-	return new Promise<boolean>((resolve) => {
+	return new Promise<ImageSize | undefined>((resolve) => {
 		const image = new Image();
 
 		image.src = imageUrl;
 		image.addEventListener('load', () => {
-			resolve(true);
+			resolve({
+				width: image.naturalWidth ? image.naturalWidth : -Infinity,
+				height: image.naturalHeight ? image.naturalHeight : -Infinity
+			});
 		});
 
 		image.addEventListener('error', () => {
-			resolve(false);
+			resolve(undefined);
 		});
 	});
 }
@@ -21,7 +29,7 @@ export async function fetchProxied(url: string) {
 	});
 
 	if (!response.ok) {
-		throw new Error(`Could not fetch feed: ${response.status} ${await response.text()}`);
+		throw new Error(`Could not fetch: ${response.status} ${await response.text()}`);
 	}
 
 	return response;

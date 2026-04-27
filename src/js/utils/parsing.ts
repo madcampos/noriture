@@ -114,3 +114,22 @@ export function parseUrl(...urlList: unknown[]) {
 
 	return undefined;
 }
+
+export function parseIntWithFallback(value: unknown, fallback: number) {
+	if (['undefined', 'bigint', 'symbol', 'function'].includes(typeof value)) {
+		return fallback;
+	}
+
+	if (value === null) {
+		return fallback;
+	}
+
+	// oxlint-disable-next-line typescript/no-base-to-string
+	const parsedValue = Number.parseInt(value?.toString() ?? '', 10);
+
+	if (Number.isNaN(parsedValue)) {
+		return fallback;
+	}
+
+	return parsedValue;
+}

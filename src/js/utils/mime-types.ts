@@ -183,5 +183,7 @@ export function getMediaTypeFromMime(mimeType?: string) {
 }
 
 export function getMimeTypeFromExtension(url: string) {
-	return Object.entries(ExtensionMap).find(([extension]) => url.endsWith(extension))?.[1];
+	const parsedUrl = new URL(url, window.location.origin);
+
+	return Object.entries(ExtensionMap).find(([extension]) => parsedUrl.pathname.endsWith(extension))?.[1];
 }
