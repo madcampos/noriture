@@ -17,10 +17,6 @@ export function parseXml(text: string) {
 		throw new RangeError('Empty XML text');
 	}
 
-	if (!text.startsWith('<?xml')) {
-		throw new SyntaxError('Document does not start with "<?xml"');
-	}
-
 	const xml = new DOMParser().parseFromString(text, 'text/xml');
 
 	if (xml.querySelector('parsererror')) {

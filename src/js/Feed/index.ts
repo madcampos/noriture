@@ -53,7 +53,8 @@ export async function fetchFeed(url: string) {
 	try {
 		const xml = parseXml(feedText);
 
-		if (xml.querySelector('html')) {
+		// INFO: check if one of the root level elements for feeds exist
+		if (!xml.querySelector('rss, feed')) {
 			throw new TypeError('Document is XHTML and not a Feed');
 		}
 
