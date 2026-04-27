@@ -1,6 +1,7 @@
+//
 import { checkImageExists, fetchProxied } from '../utils/fetch.ts';
 import { getMimeTypeFromExtension } from '../utils/mime-types.ts';
-import { canParseXml, parseHtml, parseUrl, parseUrlWithBase, parseXhtml, parseXml } from '../utils/parsing.ts';
+import { canParseXml, parseHtml, parseIntWithFallback, parseUrl, parseUrlWithBase, parseXhtml, parseXml } from '../utils/parsing.ts';
 import type { WebManifest } from './web-app-manifest';
 
 interface MetadataIcon {
@@ -10,13 +11,20 @@ interface MetadataIcon {
 	height: number;
 }
 
-function getLargestIconSize(sizes?: string) {
+export function getLargestIconSize(sizes?: string) {
 	const sizeList = (sizes?.split(' ') ?? []).map((size) => {
-		const [iconWidth = '0', iconHeight = '0'] = size.split('x');
+		if (size.trim() === 'any') {
+			return {
+				width: Infinity,
+				height: Infinity
+			};
+		}
+
+		const [iconWidth, iconHeight] = size.trim().split('x');
 
 		return {
-			width: Number.parseInt(iconWidth, 10),
-			height: Number.parseInt(iconHeight, 10)
+			width: parseIntWithFallback(iconWidth, -Infinity),
+			height: parseIntWithFallback(iconHeight, -Infinity)
 		};
 	}).sort((first, second) => {
 		if (second.width !== first.width) {
@@ -31,7 +39,7 @@ function getLargestIconSize(sizes?: string) {
 	};
 }
 
-async function getApplicationManifest(htmlDocument: Document, baseUrl: string) {
+export async function getApplicationManifest(htmlDocument: Document, baseUrl: string) {
 	const manifestPath = htmlDocument.querySelector('link[rel="manifest"]')?.getAttribute('href');
 
 	let response: Response | undefined = undefined;
@@ -52,7 +60,7 @@ async function getApplicationManifest(htmlDocument: Document, baseUrl: string) {
 	return response.json<WebManifest>();
 }
 
-function parseManifestIcons(manifest: WebManifest | undefined, baseUrl: string) {
+export function parseManifestIcons(manifest: WebManifest | undefined, baseUrl: string) {
 	if (!manifest) {
 		return [];
 	}
@@ -72,7 +80,7 @@ function parseManifestIcons(manifest: WebManifest | undefined, baseUrl: string) 
 	return icons ?? [];
 }
 
-async function getMsApplicationConfig(htmlDocument: Document, baseUrl: string) {
+export async function getMsApplicationConfig(htmlDocument: Document, baseUrl: string) {
 	const msConfigElement = htmlDocument.querySelector('meta[name="msapplication-config"]');
 	const configPath = msConfigElement?.getAttribute('content');
 
@@ -95,7 +103,7 @@ async function getMsApplicationConfig(htmlDocument: Document, baseUrl: string) {
 	return parseXml(text);
 }
 
-function parseMsApplicationIcons(xmlDocument: XMLDocument | undefined, baseUrl: string) {
+export function parseMsApplicationIcons(xmlDocument: XMLDocument | undefined, baseUrl: string) {
 	if (!xmlDocument) {
 		return [];
 	}
@@ -104,8 +112,15 @@ function parseMsApplicationIcons(xmlDocument: XMLDocument | undefined, baseUrl: 
 
 	const icons: MetadataIcon[] = msConfigIcons.map((iconElement) => {
 		const href = iconElement.getAttribute('src');
-		const size = iconElement.tagName.replace(/^(?:square|wide)(.+)logo$/giu, '$1') || '256x256';
-		const { width, height } = getLargestIconSize(size);
+		const size = iconElement.tagName.replace(/^(?:square|wide)(.+)logo$/giu, '$1');
+		let { width, height } = getLargestIconSize(size);
+
+		if (iconElement.tagName.toLowerCase() === 'tileimage') {
+			// oxlint-disable-next-line no-magic-numbers
+			width = 256;
+			// oxlint-disable-next-line no-magic-numbers
+			height = 256;
+		}
 
 		return {
 			url: parseUrlWithBase(href, baseUrl)?.href ?? '',
@@ -118,7 +133,7 @@ function parseMsApplicationIcons(xmlDocument: XMLDocument | undefined, baseUrl: 
 	return icons;
 }
 
-function parseIeIcons(htmlDocument: Document, baseUrl: string) {
+export function parseIeIcons(htmlDocument: Document, baseUrl: string) {
 	const ieIcons = [...htmlDocument.querySelectorAll('meta[name="msapplication-TileImage"], meta[name^="msapplication-square"], meta[name^="msapplication-wide"]')];
 
 	const icons: MetadataIcon[] = ieIcons.map((iconElement) => {
@@ -137,7 +152,7 @@ function parseIeIcons(htmlDocument: Document, baseUrl: string) {
 	return icons;
 }
 
-function parseAppleIcons(htmlDocument: Document, baseUrl: string) {
+export function parseAppleIcons(htmlDocument: Document, baseUrl: string) {
 	const appleIcons = [...htmlDocument.querySelectorAll('link[rel^="apple-touch-icon"]')];
 
 	const icons: MetadataIcon[] = appleIcons.map((iconElement) => {
@@ -156,46 +171,56 @@ function parseAppleIcons(htmlDocument: Document, baseUrl: string) {
 	return icons;
 }
 
-function parseFavicon(htmlDocument: Document, baseUrl: string) {
-	const favicon = htmlDocument.querySelector('link[rel~="icon"]');
-	const { width, height } = getLargestIconSize(favicon?.sizes.value);
-	const href = favicon?.href;
-	const url = parseUrlWithBase(href, baseUrl)?.href ?? '';
-	const typeAttribute = favicon?.getAttribute('type')?.trim();
-	let type = typeAttribute;
+export function parseFavicons(htmlDocument: Document, baseUrl: string) {
+	const icons = [...htmlDocument.querySelectorAll('link[rel~="icon"]')].map((icon) => {
+		let { width, height } = getLargestIconSize(icon.sizes.value);
+		const href = icon.href;
+		const url = parseUrlWithBase(href, baseUrl)?.href ?? '';
+		const typeAttribute = icon.getAttribute('type')?.trim();
+		let type = typeAttribute;
 
-	if (typeAttribute === 'icon' || typeAttribute?.match(/image\/.*?icon/iu)) {
-		type = 'image/vnd.microsoft.icon';
-	}
+		if (typeAttribute === 'icon' || typeAttribute?.match(/image\/.*?icon/iu)) {
+			type = 'image/vnd.microsoft.icon';
+		}
 
-	let icon: MetadataIcon = {
-		url,
-		mimeType: type ?? getMimeTypeFromExtension(url) ?? 'image/*',
-		width,
-		height
-	};
+		const mimeType = type ?? getMimeTypeFromExtension(url) ?? 'image/*';
 
-	if (!favicon) {
-		const fallbackUrl = new URL('/favicon.ico', baseUrl).href;
+		if (mimeType === 'image/vnd.microsoft.icon') {
+			// oxlint-disable-next-line no-magic-numbers
+			width = 32;
+			// oxlint-disable-next-line no-magic-numbers
+			height = 32;
+		}
 
-		icon = {
-			url: fallbackUrl,
-			mimeType: 'image/vnd.microsoft.icon',
-			width: 32,
-			height: 32
+		const iconMetadata: MetadataIcon = {
+			url,
+			mimeType,
+			width,
+			height
 		};
-	}
 
-	return icon;
+		return iconMetadata;
+	});
+
+	const fallbackUrl = new URL('/favicon.ico', baseUrl).href;
+
+	icons.push({
+		url: fallbackUrl,
+		mimeType: 'image/vnd.microsoft.icon',
+		width: 32,
+		height: 32
+	});
+
+	return icons;
 }
 
-async function parseIcons(htmlDocument: Document, manifest: WebManifest | undefined, msconfig: XMLDocument | undefined, baseUrl: string) {
+export async function parseIcon(htmlDocument: Document, manifest: WebManifest | undefined, msconfig: XMLDocument | undefined, baseUrl: string) {
 	const icons = [
 		...parseManifestIcons(manifest, baseUrl),
 		...parseAppleIcons(htmlDocument, baseUrl),
 		...parseIeIcons(htmlDocument, baseUrl),
 		...parseMsApplicationIcons(msconfig, baseUrl),
-		parseFavicon(htmlDocument, baseUrl)
+		...parseFavicons(htmlDocument, baseUrl)
 	];
 
 	const mimeTypePrecedence = [
@@ -209,13 +234,21 @@ async function parseIcons(htmlDocument: Document, manifest: WebManifest | undefi
 	];
 
 	const fetchedIcons = await Promise.allSettled(icons.map(async (icon) => {
-		const doesIconExist = await checkImageExists(icon.url);
+		const fetchedSize = await checkImageExists(icon.url);
 
-		if (doesIconExist) {
-			return icon;
+		if (!fetchedSize) {
+			return undefined;
 		}
 
-		return undefined;
+		if (icon.width <= 0 && fetchedSize.width > 0) {
+			icon.width = fetchedSize.width;
+		}
+
+		if (icon.height <= 0 && fetchedSize.height > 0) {
+			icon.height = fetchedSize.height;
+		}
+
+		return icon;
 	}));
 
 	const filteredIcons = fetchedIcons
@@ -243,10 +276,10 @@ async function parseIcons(htmlDocument: Document, manifest: WebManifest | undefi
 	return sortedIcons[0]?.url;
 }
 
-function parseTitle(htmlDocument: Document) {
+export function parseTitle(htmlDocument: Document) {
 	const titleElement = htmlDocument.querySelector('title')?.textContent;
-	const openGraphTitle = htmlDocument.querySelector('meta[property="og:title"]')?.getAttribute('content');
-	const twitterTitle = htmlDocument.querySelector('meta[property="twitter:title"]')?.getAttribute('content');
+	const openGraphTitle = htmlDocument.querySelector('meta:is([property="og:title"], [name="og:title"])')?.getAttribute('content');
+	const twitterTitle = htmlDocument.querySelector('meta:is([property="twitter:title"], [name="twitter:title"])')?.getAttribute('content');
 
 	const itempropElement = htmlDocument.querySelector('[itemprop="name"]');
 	const itempropTitle = itempropElement?.getAttribute('content') ?? itempropElement?.textContent;
@@ -254,24 +287,24 @@ function parseTitle(htmlDocument: Document) {
 	return titleElement ?? openGraphTitle ?? twitterTitle ?? itempropTitle;
 }
 
-function parseDescription(htmlDocument: Document) {
+export function parseDescription(htmlDocument: Document) {
 	const metaDescription = htmlDocument.querySelector('meta[name="description"]')?.getAttribute('content');
-	const openGraphDescription = htmlDocument.querySelector('meta[name="og:description"]')?.getAttribute('content');
-	const twitterDescription = htmlDocument.querySelector('meta[name="twitter:description"]')?.getAttribute('content');
+	const openGraphDescription = htmlDocument.querySelector('meta:is([property="og:description"], [name="og:description"])')?.getAttribute('content');
+	const twitterDescription = htmlDocument.querySelector('meta:is([property="twitter:description"], [name="twitter:description"])')?.getAttribute('content');
 
-	const itempropElement = htmlDocument.querySelector('[itemprop="name"]');
+	const itempropElement = htmlDocument.querySelector('[itemprop="description"]');
 	const itempropDescription = itempropElement?.getAttribute('content') ?? itempropElement?.textContent;
 
 	return metaDescription ?? openGraphDescription ?? twitterDescription ?? itempropDescription;
 }
 
-async function parseImage(htmlDocument: Document) {
-	const openGraphImage = htmlDocument.querySelector('meta[property="og:image]')?.getAttribute('content');
-	const openGraphImageAlt = htmlDocument.querySelector('meta[property="og:image:alt]')?.getAttribute('content');
-	const twitterImage = htmlDocument.querySelector('meta[property="twitter:image]')?.getAttribute('content');
-	const twitterImageAlt = htmlDocument.querySelector('meta[property="twitter:image:alt]')?.getAttribute('content');
+export async function parseImage(htmlDocument: Document) {
+	const openGraphImage = htmlDocument.querySelector('meta:is([property="og:image"], [name="og:image"])')?.getAttribute('content');
+	const openGraphImageAlt = htmlDocument.querySelector('meta:is([property="og:image:alt"], [name="og:image:alt"])')?.getAttribute('content');
+	const twitterImage = htmlDocument.querySelector('meta:is([property="twitter:image"], [name="twitter:image"])')?.getAttribute('content');
+	const twitterImageAlt = htmlDocument.querySelector('meta:is([property="twitter:image:alt"], [name="twitter:image:alt"])')?.getAttribute('content');
 
-	const itempropElement = htmlDocument.querySelector('[itemprop="name"]');
+	const itempropElement = htmlDocument.querySelector('[itemprop="image"]');
 	const itempropImage = itempropElement?.getAttribute('content') ?? itempropElement?.getAttribute('src') ?? itempropElement?.getAttribute('href');
 	const itempropAlt = itempropElement?.getAttribute('alt');
 
@@ -293,7 +326,7 @@ async function parseImage(htmlDocument: Document) {
 	};
 }
 
-function parseThemeColor(htmlDocument: Document, manifest: WebManifest | undefined, msconfig: XMLDocument | undefined) {
+export function parseThemeColor(htmlDocument: Document, manifest: WebManifest | undefined, msconfig: XMLDocument | undefined) {
 	const htmlThemeColor = htmlDocument.querySelector('meta[name="theme-color"]')?.getAttribute('content');
 	const manifestThemeColor = manifest?.theme_color;
 
@@ -306,31 +339,37 @@ function parseThemeColor(htmlDocument: Document, manifest: WebManifest | undefin
 }
 
 export async function parseMetadata(siteUrl: string) {
-	const response = await fetchProxied(siteUrl);
-	const text = await response.text();
+	try {
+		const response = await fetchProxied(siteUrl);
+		const text = await response.text();
 
-	let parsedDocument: Document;
+		let parsedDocument: Document;
 
-	if (canParseXml(text)) {
-		parsedDocument = parseXhtml(text, siteUrl);
-	} else {
-		parsedDocument = parseHtml(text, siteUrl);
+		if (canParseXml(text)) {
+			parsedDocument = parseXhtml(text, siteUrl);
+		} else {
+			parsedDocument = parseHtml(text, siteUrl);
+		}
+
+		const [manifestResult, msconfigResult, imageResult] = await Promise.allSettled([
+			getApplicationManifest(parsedDocument, siteUrl),
+			getMsApplicationConfig(parsedDocument, siteUrl),
+			parseImage(parsedDocument)
+		]);
+		const manifest = manifestResult.status === 'fulfilled' ? manifestResult.value : undefined;
+		const msconfig = msconfigResult.status === 'fulfilled' ? msconfigResult.value : undefined;
+		const image = imageResult.status === 'fulfilled' ? imageResult.value : undefined;
+
+		return {
+			themeColor: parseThemeColor(parsedDocument, manifest, msconfig),
+			title: parseTitle(parsedDocument),
+			description: parseDescription(parsedDocument),
+			image,
+			icon: await parseIcon(parsedDocument, manifest, msconfig, siteUrl)
+		};
+	} catch (err) {
+		console.error(err);
+
+		return undefined;
 	}
-
-	const [manifestResult, msconfigResult, imageResult] = await Promise.allSettled([
-		getApplicationManifest(parsedDocument, siteUrl),
-		getMsApplicationConfig(parsedDocument, siteUrl),
-		parseImage(parsedDocument)
-	]);
-	const manifest = manifestResult.status === 'fulfilled' ? manifestResult.value : undefined;
-	const msconfig = msconfigResult.status === 'fulfilled' ? msconfigResult.value : undefined;
-	const image = imageResult.status === 'fulfilled' ? imageResult.value : undefined;
-
-	return {
-		themeColor: parseThemeColor(parsedDocument, manifest, msconfig),
-		title: parseTitle(parsedDocument),
-		description: parseDescription(parsedDocument),
-		image,
-		icon: await parseIcons(parsedDocument, manifest, msconfig, siteUrl)
-	};
 }

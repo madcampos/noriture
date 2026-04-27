@@ -79,9 +79,9 @@ export async function enhanceFeedWithMetadata(feed: Feed) {
 
 	const metadata = await parseMetadata(feed.siteUrl);
 
-	feed.icon ??= metadata.icon ?? metadata.image?.url;
-	feed.title ??= metadata.title;
-	feed.description ??= metadata.description;
+	feed.icon ??= metadata?.icon ?? metadata?.image?.url;
+	feed.title ??= metadata?.title;
+	feed.description ??= metadata?.description;
 
 	return feed;
 }
