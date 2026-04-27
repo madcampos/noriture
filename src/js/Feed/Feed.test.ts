@@ -5,6 +5,7 @@ import { parseXml } from '../utils/parsing.ts';
 import {
 	parseCategories,
 	parseDescription,
+	parseFeed,
 	parseFeedId,
 	parseFeedType,
 	parseIcon,
@@ -583,5 +584,69 @@ describe('Feed Icon', () => {
 		const icon = parseIcon(feedXml);
 
 		assert.equal(icon, undefined);
+	});
+});
+
+describe('Feed Comprehensive', () => {
+	test('Full Atom Feed', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<feed>
+			<id>tag:example.com,2026:feed</id>
+			<title>Feed Title</title>
+			<subtitle>Feed Subtitle</subtitle>
+			<link rel="alternate" href="https://example.com/" />
+			<link rel="self" href="https://example.com/feed.atom" />
+			<updated>2026-04-25T12:00:00Z</updated>
+			<icon>https://example.com/icon.png</icon>
+			<logo>https://example.com/logo.png</logo>
+			<category term="TEST" />
+		</feed>
+		`);
+
+		const { feed } = parseFeed(feedXml, 'https://example.com/feed.atom');
+
+		assert.equal(feed.id, 'tag:example.com,2026:feed');
+		assert.equal(feed.title, 'Feed Title');
+		assert.equal(feed.description, 'Feed Subtitle');
+		assert.equal(feed.siteUrl, 'https://example.com/');
+		assert.equal(feed.feedUrl, 'https://example.com/feed.atom');
+		assert.equal(feed.type, 'atom');
+		assert.equal(feed.displayType, 'list');
+		assert.include(feed.categories, 'TEST');
+		assert.equal(feed.icon, 'https://example.com/icon.png');
+		assert(feed.updatedAt instanceof Date, 'Updated date is not a date');
+		assert.equal(feed.updatedAt.toISOString(), '2026-04-25T12:00:00.000Z');
+	});
+
+	test('Full RSS Feed', () => {
+		const feedXml = parseXml(`<?xml version="1.0" encoding="UTF-8"?>
+		<rss>
+			<channel>
+				<title>Feed Title</title>
+				<link>https://example.com/</link>
+				<description>Feed Description</description>
+				<lastBuildDate>Sun, 25 Apr 2026 12:00:00 GMT</lastBuildDate>
+				<category>TEST</category>
+				<image>
+					<url>https://example.com/image.png</url>
+					<link>https://example.com</link>
+				</image>
+			</channel>
+		</rss>
+		`);
+
+		const { feed } = parseFeed(feedXml, 'https://example.com/rss.xml');
+
+		assert.equal(feed.id, 'https://example.com/');
+		assert.equal(feed.title, 'Feed Title');
+		assert.equal(feed.description, 'Feed Description');
+		assert.equal(feed.siteUrl, 'https://example.com/');
+		assert.equal(feed.feedUrl, 'https://example.com/rss.xml');
+		assert.equal(feed.type, 'rss');
+		assert.equal(feed.displayType, 'list');
+		assert.include(feed.categories, 'TEST');
+		assert.equal(feed.icon, 'https://example.com/image.png');
+		assert(feed.updatedAt instanceof Date, 'Updated date is not a date');
+		assert.equal(feed.updatedAt.toISOString(), '2026-04-25T12:00:00.000Z');
 	});
 });
