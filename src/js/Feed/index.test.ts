@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 import { parseHtml } from '../utils/parsing.ts';
 import type { Feed } from './Feed.ts';
-import { enhanceFeedWithMetadata, fetchFeed, fetchFeedFromXhtml, getFeedText, getFeedUrl } from './index.ts';
+import { enhanceFeedWithMetadata, fetchFeed, getFeedText, getFeedUrl } from './index.ts';
 
 vi.mock(import('../utils/fetch.ts'), () => ({
 	fetchProxied: async (url: string) => {
@@ -72,17 +72,22 @@ describe('Get feed URL', () => {
 
 describe('Get feed text', () => {
 	test('Get feed text from URL', async () => {
-		const text = await getFeedText('https://example.com/rss.xml');
+		const { text } = await getFeedText('https://example.com/rss.xml');
 		expect(text).toBe('<?xml version="1.0"?><rss></rss>');
 	});
 
 	test('Get feed from HTML (autodiscovery)', async () => {
-		const text = await getFeedText('https://example.com/autodiscovery');
+		const { text } = await getFeedText('https://example.com/autodiscovery');
+		expect(text).toBe('<?xml version="1.0"?><rss></rss>');
+	});
+
+	test('Get feed from XHTML (autodiscovery)', async () => {
+		const { text } = await getFeedText('https://example.com/xhtml-page');
 		expect(text).toBe('<?xml version="1.0"?><rss></rss>');
 	});
 
 	test('Get feed after redirect', async () => {
-		const text = await getFeedText('https://example.com/redirect');
+		const { text } = await getFeedText('https://example.com/redirect');
 		expect(text).toBe('<?xml version="1.0"?><rss></rss>');
 	});
 
@@ -96,32 +101,6 @@ describe('Get feed text', () => {
 		const promise = getFeedText('https://example.com/no-feed');
 
 		await expect(promise).rejects.toThrow('Could not find feed URL');
-	});
-});
-
-describe('Fetch feed from XHTML', () => {
-	test('Feed in link', async () => {
-		const xhtml = `<?xml version="1.0" encoding="UTF-8"?>
-		<html xmlns="http://www.w3.org/1999/xhtml">
-			<head>
-				<link rel="alternate" type="application/rss+xml" href="https://example.com/rss.xml" />
-			</head>
-		</html>
-		`;
-
-		const feed = await fetchFeedFromXhtml(xhtml, 'https://example.com');
-
-		expect(feed.feed.feedUrl).toBe('https://example.com/rss.xml');
-	});
-
-	test('No feed', async () => {
-		const xhtml = `<?xml version="1.0" encoding="UTF-8"?>
-		<html xmlns="http://www.w3.org/1999/xhtml"></html>
-		`;
-
-		const feed = fetchFeedFromXhtml(xhtml, 'https://example.com');
-
-		await expect(feed).rejects.toThrow('Could not find feed URL');
 	});
 });
 

@@ -1,5 +1,5 @@
 import { fetchProxied } from '../utils/fetch.ts';
-import { canParseXml, parseHtml, parseXhtml, parseXml } from '../utils/parsing.ts';
+import { parseHtml, parseXml } from '../utils/parsing.ts';
 import { type Feed, parseFeed } from './Feed.ts';
 import { parseMetadata } from './Metadata.ts';
 
@@ -15,57 +15,45 @@ export async function getFeedText(url: string, redirectCount = 0) {
 
 	const text = await response.text();
 
-	if (canParseXml(text)) {
-		return text;
-	}
-
-	if (redirectCount > MAX_REDIRECTS) {
-		throw new Error('Too many redirects');
-	}
-
-	const siteHtml = parseHtml(text, url);
-	const parsedFeedUrl = getFeedUrl(siteHtml);
-
-	if (!parsedFeedUrl) {
-		throw new Error('Could not find feed URL');
-	}
-
-	return getFeedText(parsedFeedUrl, redirectCount + 1);
-}
-
-export async function fetchFeedFromXhtml(xhtmlText: string, baseUrl: string) {
-	const siteHtml = parseXhtml(xhtmlText, baseUrl);
-	const feedUrl = getFeedUrl(siteHtml);
-
-	if (!feedUrl) {
-		throw new Error('Could not find feed URL');
-	}
-
-	const feedText = await getFeedText(feedUrl);
-	const xml = parseXml(feedText);
-
-	return parseFeed(xml, feedUrl);
-}
-
-export async function fetchFeed(url: string) {
-	const feedText = await getFeedText(url);
-
 	try {
-		const xml = parseXml(feedText);
+		parseXml(text);
 
-		// INFO: check if one of the root level elements for feeds exist
-		if (!xml.querySelector('rss, feed')) {
-			throw new TypeError('Document is XHTML and not a Feed');
-		}
-
-		return parseFeed(xml, url);
+		return {
+			text,
+			url
+		};
 	} catch (err) {
 		if (err instanceof TypeError) {
-			return fetchFeedFromXhtml(feedText, url);
+			if (redirectCount > MAX_REDIRECTS) {
+				throw new Error('Too many redirects', { cause: err });
+			}
+
+			const siteHtml = parseHtml(text, url);
+			const parsedFeedUrl = getFeedUrl(siteHtml);
+
+			if (!parsedFeedUrl) {
+				throw new Error('Could not find feed URL', { cause: err });
+			}
+
+			const result = await getFeedText(parsedFeedUrl, redirectCount + 1);
+			// oxlint-disable-next-line typescript/consistent-type-assertions, typescript/no-unnecessary-type-assertion
+			const textFromHtml = result.text as string;
+
+			return {
+				url: parsedFeedUrl,
+				text: textFromHtml
+			};
 		}
 
 		throw err;
 	}
+}
+
+export async function fetchFeed(url: string) {
+	const { text, url: feedUrl } = await getFeedText(url);
+	const xml = parseXml(text);
+
+	return parseFeed(xml, feedUrl);
 }
 
 export async function enhanceFeedWithMetadata(feed: Feed) {

@@ -1,6 +1,6 @@
 import { fetchProxied, getImageSizes } from '../utils/fetch.ts';
 import { getMimeTypeFromExtension } from '../utils/mime-types.ts';
-import { canParseXml, parseHtml, parseIntWithFallback, parseUrl, parseUrlWithBase, parseXhtml, parseXml } from '../utils/parsing.ts';
+import { parseHtml, parseIntWithFallback, parseUrl, parseUrlWithBase, parseXml } from '../utils/parsing.ts';
 import type { WebManifest } from './web-app-manifest';
 
 interface MetadataIcon {
@@ -342,13 +342,7 @@ export async function parseMetadata(siteUrl: string) {
 		const response = await fetchProxied(siteUrl);
 		const text = await response.text();
 
-		let parsedDocument: Document;
-
-		if (canParseXml(text)) {
-			parsedDocument = parseXhtml(text, siteUrl);
-		} else {
-			parsedDocument = parseHtml(text, siteUrl);
-		}
+		const parsedDocument = parseHtml(text, siteUrl);
 
 		const [manifestResult, msconfigResult, imageResult] = await Promise.allSettled([
 			getApplicationManifest(parsedDocument, siteUrl),

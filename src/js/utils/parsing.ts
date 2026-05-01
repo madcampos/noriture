@@ -1,16 +1,9 @@
 /* oxlint-disable typescript/consistent-type-assertions */
-
-export function canParseXml(text: string) {
-	if (!text.trim()) {
-		return false;
-	}
-
-	if (!text.startsWith('<?xml')) {
-		return false;
-	}
-
-	return true;
-}
+const XML_ELEMENTS_TO_CHECK = [
+	'rss',
+	'feed',
+	'browserconfig'
+] as const;
 
 export function parseXml(text: string) {
 	if (!text.trim()) {
@@ -21,6 +14,10 @@ export function parseXml(text: string) {
 
 	if (xml.querySelector('parsererror')) {
 		throw new SyntaxError('Invalid XML document');
+	}
+
+	if (!xml.querySelector(XML_ELEMENTS_TO_CHECK.join(', '))) {
+		throw new TypeError('File is not one of the expected XML documents');
 	}
 
 	return xml as XMLDocument;
@@ -38,20 +35,6 @@ export function parseHtml(text: string, baseUrl?: string) {
 	}
 
 	return html as HTMLDocument;
-}
-
-export function parseXhtml(text: string, baseUrl: string) {
-	if (!text.trim()) {
-		throw new RangeError('Empty HTML text');
-	}
-
-	const xhtml = new DOMParser().parseFromString(text, 'application/xhtml+xml');
-
-	if (!xhtml.querySelector('base')) {
-		xhtml.querySelector('html')?.insertAdjacentHTML('afterbegin', `<base href="${baseUrl}" />`);
-	}
-
-	return xhtml as XMLDocument;
 }
 
 export function parseDate(dateToParse: unknown) {
