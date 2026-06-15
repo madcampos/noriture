@@ -30,7 +30,7 @@
 		"array-callback-return": "error",
 		"arrow-body-style": "error",
 		"block-scoped-var": "warn",
-		"capitalized-comments": "warn",
+		"capitalized-comments": "off",
 		"class-methods-use-this": "off",
 		"complexity": "error",
 		"constructor-super": "error",
@@ -40,8 +40,9 @@
 		"default-param-last": "error",
 		"eqeqeq": ["error", "smart"],
 		"for-direction": "error",
-		"func-names": ["warn", "as-needed"],
 		"func-style": ["warn", "declaration", { "allowArrowFunctions": true }],
+		"func-names": ["warn", "as-needed"],
+		"func-name-matching": "error",
 		"getter-return": ["error", { "allowImplicit": true }],
 		"grouped-accessor-pairs": "error",
 		"guard-for-in": "warn",
@@ -52,6 +53,7 @@
 			"exceptions": ["i", "j", "n", "w", "x", "y", "z", "id", "fs", "up", "_", "t", "T", "U"]
 		}],
 		"init-declarations": "off",
+		"logical-assignment-operators": ["error", "always", { "enforceForIfStatements": true }],
 		"max-classes-per-file": "off",
 		"max-depth": "warn",
 		"max-lines-per-function": ["warn", { "max": 512 }],
@@ -102,8 +104,14 @@
 		"no-func-assign": "error",
 		"no-global-assign": "error",
 		"no-implicit-coercion": "error",
+		"no-implicit-globals": "warn",
 		"no-import-assign": "error",
-		"no-inline-comments": ["warn", { "ignorePattern": "(?:@vite-ignore|@ts-expect-error).+" }],
+		"no-inline-comments": [
+			"warn",
+			{
+				"ignorePattern": "(?:^\\s*(?:sql|html|xml|css|db|svg|glsl|inline-html|template|inline-template|javascript|js|typescript|ts)\\s*$)|(?:(?:@vite-ignore|@ts-expect-error|eslint|oxlint).+)"
+			}
+		],
 		"no-inner-declarations": ["error", "both"],
 		"no-invalid-regexp": "error",
 		"no-irregular-whitespace": "error",
@@ -142,6 +150,7 @@
 		"no-prototype-builtins": "warn",
 		"no-redeclare": "error",
 		"no-regex-spaces": "error",
+		"no-restricted-exports": "off",
 		"no-restricted-globals": ["error", "event"],
 		"no-restricted-imports": ["error", {
 			"paths": [
@@ -186,6 +195,7 @@
 		"no-ternary": "off",
 		"no-this-before-super": "error",
 		"no-throw-literal": "off",
+		"no-underscore-dangle": "error",
 		"no-unassigned-vars": "error",
 		"no-undef": "off",
 		"no-undefined": "off",
@@ -208,6 +218,7 @@
 			"typedefs": true,
 			"ignoreTypeReferences": false
 		}],
+		"no-useless-assignment": "error",
 		"no-useless-backreference": "error",
 		"no-useless-call": "error",
 		"no-useless-catch": "error",
@@ -221,7 +232,9 @@
 		"no-void": ["error", { "allowAsStatement": true }],
 		"no-warning-comments": "warn",
 		"no-with": "error",
+		"object-shorthand": "warn",
 		"operator-assignment": "warn",
+		"prefer-arrow-callback": "warn",
 		"prefer-const": "warn",
 		"prefer-destructuring": "off",
 		"prefer-exponentiation-operator": "warn",
@@ -229,14 +242,16 @@
 		"prefer-object-has-own": "error",
 		"prefer-object-spread": "error",
 		"prefer-promise-reject-errors": "off",
+		"prefer-regex-literals": "warn",
 		"prefer-rest-params": "warn",
 		"prefer-spread": "warn",
 		"prefer-template": "warn",
 		"preserve-caught-error": "error",
 		"radix": ["error", "as-needed"],
 		"require-await": "off",
+		"require-unicode-regexp": "warn",
 		"require-yield": "error",
-		"sort-imports": ["warn", {
+		"sort-imports": ["off", {
 			"allowSeparatedGroups": true,
 			"ignoreCase": true,
 			"ignoreDeclarationSort": true,
@@ -279,6 +294,7 @@
 		}],
 		"typescript/explicit-function-return-type": "off",
 		"typescript/explicit-module-boundary-types": "off",
+		"typescript/method-signature-style": ["error", "method"],
 		"typescript/no-array-delete": "error",
 		"typescript/no-base-to-string": "error",
 		"typescript/no-confusing-non-null-assertion": "error",

@@ -1,23 +1,13 @@
 {
 	"consistent-this": ["warn", "self"],
-	"func-name-matching": "error",
-	"logical-assignment-operators": ["error", "always", { "enforceForIfStatements": true }],
-	"no-implicit-globals": "warn",
-	"no-restricted-exports": "off",
-	"no-useless-assignment": "error",
-	"no-underscore-dangle": "error",
 	"no-unreachable-loop": "error",
-	"object-shorthand": "warn",
 	"one-var": ["warn", "never"],
-	"prefer-arrow-callback": "warn",
-	"prefer-regex-literals": "warn",
-	"require-unicode-regexp": "warn",
 
 	"import/no-extraneous-dependencies": "error",
 	"import/no-useless-path-segments": "warn",
 
-	"typescript/method-signature-style": ["error", "method"],
 	"typescript/prefer-destructuring": "warn",
+
 	"typescript/naming-convention": ["error", {
 		"selector": "default",
 		"format": ["PascalCase", "camelCase"],
