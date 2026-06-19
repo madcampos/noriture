@@ -47,16 +47,16 @@
 		"open-props": "1.7.23"
 	},
 	"devDependencies": {
-		"@cloudflare/vite-plugin": "1.31.2",
+		"@cloudflare/vite-plugin": "1.39.0",
 		"@vitest/browser-playwright": "4.1.4",
-		"oxlint": "1.59.0",
-		"oxlint-tsgolint": "0.20.0",
+		"oxlint": "1.67.0",
+		"oxlint-tsgolint": "0.23.0",
 		"typed-query-selector": "2.12.1",
 		"typescript": "6.0.2",
 		"vite": "8.0.16",
 		"vitest": "4.1.4",
 		"vitest-browser-lit": "1.0.1",
-		"wrangler": "4.81.1"
+		"wrangler": "4.95.0"
 	},
 	"overrides": {
 		"hasown": "npm:@nolyfill/hasown@^1",
