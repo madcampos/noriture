@@ -1,6 +1,6 @@
 /* oxlint-disable typescript/prefer-nullish-coalescing, typescript/no-unsafe-type-assertion, typescript/consistent-type-assertions */
 
-import { getMediaTypeFromMime, getMimeTypeFromExtension, type MediaType } from '../utils/mime-types.ts';
+import { type MediaType, getMediaTypeFromMime, getMimeTypeFromExtension } from '../utils/mime-types.ts';
 import { parseDate, parseUrl } from '../utils/parsing.ts';
 import { sanitizeContentHtml, sanitizeInlineHtml, sanitizeInlineText, stripCData } from '../utils/sanitizer.ts';
 import type { FeedId } from './Feed.ts';
