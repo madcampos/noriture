@@ -1,8 +1,11 @@
 // oxlint-env node
 
+/// <reference types="@types/node" />
+/// <reference types="vite/client" />
+
 import { cloudflare } from '@cloudflare/vite-plugin';
-import { readFileSync } from 'fs';
-import { defineConfig, type UserConfig } from 'vite';
+import { readFileSync } from 'node:fs';
+import { type UserConfig, defineConfig } from 'vite';
 
 // oxlint-disable-next-line import/no-default-export
 export default defineConfig(({ mode }) => {
@@ -13,6 +16,14 @@ export default defineConfig(({ mode }) => {
 			key: readFileSync('./certs/server.key', 'utf-8')
 		};
 
+	const serverOptions = {
+		https: sslOptions,
+		host: 'localhost',
+		cors: true,
+		port: 5000,
+		strictPort: true
+	};
+
 	const config: UserConfig = {
 		plugins: [cloudflare({ configPath: '../wrangler.json' })],
 		envPrefix: 'APP_',
@@ -21,19 +32,21 @@ export default defineConfig(({ mode }) => {
 		publicDir: '../public',
 		clearScreen: false,
 		server: {
-			host: 'localhost',
-			https: sslOptions,
+			...serverOptions,
 			open: false,
-			cors: true,
-			port: 5000
+			forwardConsole: {
+				unhandledErrors: true,
+				logLevels: ['warn', 'error']
+			}
 		},
 		build: {
 			target: 'esnext',
 			emptyOutDir: true,
-			outDir: '../dist'
+			outDir: '../dist',
+			reportCompressedSize: false
 		},
 		preview: {
-			https: sslOptions,
+			...serverOptions,
 			open: true
 		}
 	};

@@ -14,15 +14,22 @@ lerna-debug.log*
 dist
 dev-dist
 dist-ssr
+*.local
+*.tsbuildinfo
+*.tgz
 
 # Dependencies
 node_modules
-coverage
-*.local
-*.tsbuildinfo
+.tsbuildinfo
+
+# Wrangler local files
 .wrangler
 server/env.d.ts
 
+# Test files
+coverage
+.vitest-attachments/
+__screenshots__/
 /cypress/videos/
 /cypress/screenshots/
 

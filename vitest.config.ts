@@ -9,13 +9,19 @@ export default defineConfig((config) => ({
 	...viteConfig(config),
 	plugins: [],
 	test: {
+		coverage: {
+			provider: 'v8',
+			enabled: true
+		},
 		browser: {
 			enabled: true,
 			provider: playwright(),
-			// https://vitest.dev/config/browser/playwright
 			instances: [
 				{ browser: 'chromium' }
-			]
-		}
+			],
+			ui: false,
+			headless: true
+		},
+		open: false
 	}
 }));

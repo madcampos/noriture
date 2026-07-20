@@ -2,7 +2,7 @@
 	"name": "noriture",
 	"private": true,
 	"version": "1.0.0",
-	"homepage": "https://madcampos.github.io/noriture/",
+	"description": "Web based feed reader",
 	"keywords": [
 		"app",
 		"utilities",
@@ -10,58 +10,69 @@
 		"rss",
 		"feed"
 	],
-	"author": "madcampos",
-	"license": "MIT",
+	"author": {
+		"name": "madcampos",
+		"url": "https://madcampos.dev/"
+	},
+	"license": "LGPL-3",
+	"homepage": "https://madcampos.github.io/noriture/#readme",
+	"bugs": {
+		"url": "https://madcampos.github.io/noriture/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://madcampos.github.io/noriture.git"
+	},
+	"funding": [
+		{
+			"type": "Buy Me a Coffee",
+			"url": "https://buymeacoffee.com/madcampos"
+		},
+		{
+			"type": "Ko-Fi",
+			"url": "https://ko-fi.com/madcampos"
+		}
+	],
 	"browser": "./dist/index.html",
 	"type": "module",
 	"engines": {
 		"node": ">=24.0.0"
 	},
 	"scripts": {
-		"bootstrap:browser": "playwright install chromium",
-		"bootstrap:types": "wrangler types server/env.d.ts",
-		"bootstrap:certs": "mkdir certs && mkcert -key-file=certs/server.key -cert-file=certs/server.crt localhost",
-		"bootstrap": "pnpm run bootstrap:certs && pnpm run bootstrap:types && pnpm run bootstrap:browser",
-
-		"start": "vite",
-
-		"format": "dprint fmt",
-
 		"typecheck": "tsc --noEmit",
 		"lint:js": "oxlint --fix",
-		"lint": "pnpm run typecheck && pnpm run lint:js",
-
-		"test": "vitest",
-
+		"lint": "npm run typecheck && npm run lint:js",
+		"format": "dprint fmt",
+		"version": "npm version --sign-git-tag --message \"chore: update package version\"",
+		"postversion": "changelog --output \"docs/changelog\" --push --create-release",
+		"certs": "mkcert -install && mkcert -key-file=certs/server.key -cert-file=certs/server.crt localhost",
+		"types": "wrangler types server/env.d.ts",
+		"deploy": "wrangler deploy --minify --env=\"\"",
+		"start": "vite",
 		"prepreview": "pnpm run build",
-		"preview": "vite preview --port 3000",
+		"preview": "vite preview",
 		"build": "vite build",
-
-		"deploy": "wrangler deploy --minify --env=''"
+		"browsers": "playwright install chromium",
+		"test": "vitest"
 	},
 	"dependencies": {
 		"@mozilla/readability": "0.6.0",
 		"iconify-icon": "3.0.2",
 		"idb": "8.0.3",
-		"lit": "3.3.2",
+		"lit": "3.3.3",
 		"open-props": "1.7.23"
 	},
 	"devDependencies": {
-		"@cloudflare/vite-plugin": "1.40.1",
-		"@vitest/browser-playwright": "4.1.4",
-		"oxlint": "1.69.0",
-		"oxlint-tsgolint": "0.23.0",
-		"typed-query-selector": "2.12.1",
-		"typescript": "6.0.2",
-		"vite": "8.0.16",
-		"vitest": "4.1.4",
+		"@cloudflare/vite-plugin": "1.44.0",
+		"@mad-c/config": "^3.1.0",
+		"@vitest/browser-playwright": "4.1.10",
+		"oxlint": "1.73.0",
+		"oxlint-tsgolint": "0.24.0",
+		"typed-query-selector": "2.12.2",
+		"typescript": "7.0.2",
+		"vite": "8.1.4",
+		"vitest": "4.1.10",
 		"vitest-browser-lit": "1.0.1",
-		"wrangler": "4.99.0"
-	},
-	"overrides": {
-		"hasown": "npm:@nolyfill/hasown@^1",
-		"string.prototype.matchall": "npm:@nolyfill/string.prototype.matchall@^1",
-		"is-core-module": "npm:@nolyfill/is-core-module@^1",
-		"safe-buffer": "npm:@nolyfill/safe-buffer@^1"
+		"wrangler": "4.110.0"
 	}
 }

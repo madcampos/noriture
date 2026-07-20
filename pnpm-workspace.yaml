@@ -1,15 +1,15 @@
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
-  - "wrangler"
-  - "workerd"
-  - "miniflare"
-  - "@cloudflare/*"
+  # Add packages to exclude from the minimum release age
+  - "@mad-c/config"
 trustPolicy: "no-downgrade"
-trustPolicyExclude:
-  - "semver@6.3.1"
 preferFrozenLockfile: true
 ignoreScripts: true
 ignoreDepScripts: true
 strictDepBuilds: true
 engineStrict: false
 ignorePnpmfile: true
+blockExoticSubdeps: true
+allowBuilds:
+  # Add packages to allow running build scripts
+  dprint: true

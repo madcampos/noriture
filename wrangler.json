@@ -2,13 +2,19 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "noriture",
 	"main": "server/index.ts",
-	"compatibility_date": "2025-07-26",
+	"compatibility_date": "2026-05-30",
 	"compatibility_flags": ["nodejs_compat"],
 	"keep_vars": false,
 	"send_metrics": false,
+	"preserve_file_names": true,
+	"minify": true,
 	"workers_dev": false,
 	"preview_urls": false,
 	"route": { "pattern": "noriture.madcampos.dev", "custom_domain": true },
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 1
+	},
 	"dev": {
 		"ip": "localhost",
 		"port": 3322,
@@ -16,14 +22,29 @@
 		"upstream_protocol": "https"
 	},
 	"assets": {
+		"directory": "./public",
 		"binding": "Assets",
-		"directory": "public",
-		"html_handling": "auto-trailing-slash",
-		"not_found_handling": "single-page-application",
 		"run_worker_first": [
 			"/proxy",
 			"/proxy/"
-		]
+		],
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "single-page-application"
 	},
-	"vars": { "NODE_ENV": "production" }
+	"vars": { "NODE_ENV": "production" },
+	"env": {
+		"local": {
+			"assets": {
+				"directory": "./public",
+				"binding": "Assets",
+				"run_worker_first": [
+					"/proxy",
+					"/proxy/"
+				],
+				"html_handling": "auto-trailing-slash",
+				"not_found_handling": "single-page-application"
+			},
+			"vars": { "NODE_ENV": "local" }
+		}
+	}
 }
