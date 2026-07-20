@@ -65,6 +65,7 @@
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "1.44.0",
 		"@mad-c/config": "^3.1.0",
+		"@types/node": "^26.1.1",
 		"@vitest/browser-playwright": "4.1.10",
 		"oxlint": "1.73.0",
 		"oxlint-tsgolint": "0.24.0",
