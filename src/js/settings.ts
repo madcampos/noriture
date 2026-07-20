@@ -98,7 +98,6 @@ export class Settings {
 		}
 	}
 
-	// oxlint-disable-next-line typescript/no-unnecessary-type-parameters
 	static #getSetting<T extends string>(setting: typeof Settings.AVAILABLE_SETTINGS[number]) {
 		if (!this.#isInitialized) {
 			Settings.initializeSettings();

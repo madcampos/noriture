@@ -105,7 +105,7 @@ describe('Feed Item ID', () => {
 		const itemId = parseItemId(itemXml);
 
 		expect(itemId).not.toBe('[ITEM ID]');
-		expect(/[0-9a-f-]{36}/.test(itemId)).toBeTruthy();
+		expect(/[0-9a-f-]{36}/u.test(itemId)).toBeTruthy();
 	});
 });
 

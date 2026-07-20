@@ -34,23 +34,21 @@ export class Database {
 
 	static async #getConnection() {
 		// oxlint-disable-next-line typescript/no-unnecessary-condition
-		if (!this.#database) {
-			this.#database = await openDB('noriture', DATABASE_VERSION, {
-				upgrade(database) {
-					const feedsStore = database.createObjectStore('feeds', { keyPath: 'id' });
-					const feedItemsStore = database.createObjectStore('feedItems', { keyPath: 'id' });
+		this.#database ||= await openDB('noriture', DATABASE_VERSION, {
+			upgrade(database) {
+				const feedsStore = database.createObjectStore('feeds', { keyPath: 'id' });
+				const feedItemsStore = database.createObjectStore('feedItems', { keyPath: 'id' });
 
-					feedsStore.createIndex('feedUrl', 'feedUrl', { unique: true });
-					feedsStore.createIndex('siteUrl', 'siteUrl');
-					feedsStore.createIndex('feedCategories', 'categories', { multiEntry: true });
+				feedsStore.createIndex('feedUrl', 'feedUrl', { unique: true });
+				feedsStore.createIndex('siteUrl', 'siteUrl');
+				feedsStore.createIndex('feedCategories', 'categories', { multiEntry: true });
 
-					feedItemsStore.createIndex('feedId', 'feedId');
-					feedItemsStore.createIndex('itemUrl', 'url');
-					feedItemsStore.createIndex('itemTags', 'tags', { multiEntry: true });
-					feedItemsStore.createIndex('isRead', ['feedId', 'read'], { unique: false });
-				}
-			});
-		}
+				feedItemsStore.createIndex('feedId', 'feedId');
+				feedItemsStore.createIndex('itemUrl', 'url');
+				feedItemsStore.createIndex('itemTags', 'tags', { multiEntry: true });
+				feedItemsStore.createIndex('isRead', ['feedId', 'read'], { unique: false });
+			}
+		});
 
 		return this.#database;
 	}

@@ -1,7 +1,6 @@
 // oxlint-env node
 
 /// <reference types="@types/node" />
-/// <reference types="vite/client" />
 
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { readFileSync } from 'node:fs';

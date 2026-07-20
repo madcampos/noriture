@@ -20,7 +20,7 @@ export function parseXml(text: string) {
 		throw new TypeError('File is not one of the expected XML documents');
 	}
 
-	return xml as XMLDocument;
+	return xml;
 }
 
 export function parseHtml(text: string, baseUrl?: string) {
@@ -34,7 +34,7 @@ export function parseHtml(text: string, baseUrl?: string) {
 		html.head.insertAdjacentHTML('afterbegin', `<base href="${baseUrl}" />`);
 	}
 
-	return html as HTMLDocument;
+	return html;
 }
 
 export function parseDate(dateToParse: unknown) {

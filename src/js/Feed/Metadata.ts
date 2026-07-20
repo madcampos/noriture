@@ -41,7 +41,7 @@ export function getLargestIconSize(sizes?: string) {
 export async function getApplicationManifest(htmlDocument: Document, baseUrl: string) {
 	const manifestPath = htmlDocument.querySelector('link[rel="manifest"]')?.getAttribute('href');
 
-	let response: Response | undefined = undefined;
+	let response: Response;
 
 	try {
 		const manifestUrl = new URL(manifestPath ?? '/app.webmanifest', baseUrl).href;
