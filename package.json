@@ -73,7 +73,7 @@
 		"typed-query-selector": "2.12.2",
 		"typescript": "7.0.2",
 		"vite": "8.2.1",
-		"vitest": "4.1.10",
+		"vitest": "4.1.11",
 		"vitest-browser-lit": "1.0.1",
 		"wrangler": "4.120.1"
 	}
