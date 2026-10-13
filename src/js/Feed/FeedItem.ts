@@ -5,6 +5,8 @@ import { parseDate, parseUrl } from '../utils/parsing.ts';
 import { sanitizeContentHtml, sanitizeInlineHtml, sanitizeInlineText, stripCData } from '../utils/sanitizer.ts';
 import type { FeedId } from './Feed.ts';
 
+// TODO: add podcast transcript
+// Ref: https://media.rss.com/fireside-chat/feed.xml
 export interface FeedMedia {
 	type: MediaType;
 	url: string;
